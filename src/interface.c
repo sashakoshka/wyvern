@@ -246,8 +246,8 @@ static void Interface_editView_drawCharsRow (size_t y) {
         
         for (size_t x = 0; x < textDisplay->width; x ++) {
                 size_t coordinate = y * textDisplay->width + x;
-                if (!textDisplay->damageBuffer[coordinate]) { continue; }
-                textDisplay->damageBuffer[coordinate] = 0;
+                if (!textDisplay->cells[coordinate].damaged) { continue; }
+                textDisplay->cells[coordinate].damaged = 0;
                 
                 double realX = editView->textX;
                 double realY = editView->innerY;
@@ -261,7 +261,7 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         glyphWidth, lineHeight);
                 cairo_fill(Window_context);
 
-                Rune rune = textDisplay->buffer[coordinate];
+                Rune rune = textDisplay->cells[coordinate].rune;
 
                 int isSpace = isspace((char)(rune));
                 if (!isSpace) { inIndent = 0; }

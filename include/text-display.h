@@ -7,17 +7,19 @@
 #define TAB_WIDTH 8
 
 typedef struct {
+        Rune rune;
+        int  damaged;
+        size_t realRow;
+        size_t realColumn;
+} TextDisplay_Cell;
+
+typedef struct {
         EditBuffer *model;
 
         size_t width;
         size_t height;
         
-        Rune    *buffer;
-        uint8_t *damageBuffer;
-        uint8_t *colorBuffer;
-        // TODO: implement real coordinate buffer to map display charachters to
-        // actual characters in the model, and update them when grabbing. This
-        // will make mouse input easier.
+        TextDisplay_Cell *cells;
 } TextDisplay;
 
 TextDisplay *TextDisplay_new      (EditBuffer *, size_t, size_t);

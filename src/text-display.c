@@ -22,10 +22,7 @@ TextDisplay *TextDisplay_new (
         textDisplay->width  = width;
         textDisplay->height = height;
 
-        textDisplay->buffer       = calloc(width * height, sizeof(Rune));
-        textDisplay->damageBuffer = calloc(width * height, sizeof(uint8_t));
-        textDisplay->colorBuffer  = calloc(width * height, sizeof(uint8_t));
-        
+        textDisplay->cells = calloc(width * height, sizeof(TextDisplay_Cell));
         return textDisplay;
 }
 
@@ -33,9 +30,7 @@ TextDisplay *TextDisplay_new (
  * Frees a text display and all associated data, except its model.
  */
 void TextDisplay_free (TextDisplay *textDisplay) {
-        free(textDisplay->buffer);
-        free(textDisplay->damageBuffer);
-        free(textDisplay->colorBuffer);
+        free(textDisplay->cells);
         free(textDisplay);
 }
 
@@ -73,7 +68,7 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
         for (size_t column = 0; column < textDisplay->width; column ++) {
                 Rune   new = 0;
                 size_t coordinate  = row * textDisplay->width + column;
-                Rune  *destination = &textDisplay->buffer[coordinate];
+                Rune  *destination = &textDisplay->cells[coordinate].rune;
 
                 if (column % TAB_WIDTH == 0) {
                         findNextTabStop = 0;
@@ -92,7 +87,7 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                 }
 
                 uint8_t damaged = *destination != new;
-                textDisplay->damageBuffer[coordinate] = damaged;
+                textDisplay->cells[coordinate].damaged = damaged;
                 *destination = new;
         }
 }
@@ -124,13 +119,8 @@ void TextDisplay_resize (
         textDisplay->width  = width;
         textDisplay->height = height;
 
-        free(textDisplay->buffer);
-        free(textDisplay->damageBuffer);
-        free(textDisplay->colorBuffer);
-
-        textDisplay->buffer       = calloc(width * height, sizeof(Rune));
-        textDisplay->damageBuffer = calloc(width * height, sizeof(uint8_t));
-        textDisplay->colorBuffer  = calloc(width * height, sizeof(uint8_t));
+        free(textDisplay->cells);
+        textDisplay->cells = calloc(width * height, sizeof(TextDisplay_Cell));
 }
 
 /* TextDisplay_clear
@@ -139,7 +129,7 @@ void TextDisplay_resize (
  */
 static void TextDisplay_clear (TextDisplay *textDisplay) {
         memset (
-                textDisplay->buffer, 0,
+                textDisplay->cells, 0,
                 textDisplay->width *
-                textDisplay->height * sizeof(Rune));
+                textDisplay->height * sizeof(TextDisplay_Cell));
 }
