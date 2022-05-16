@@ -145,7 +145,13 @@ static Error respondToEvent (XEvent event) {
                 if (callbacks.onRedraw == NULL) {
                         return Error_nullCallback;
                 }
+
+                cairo_push_group(Window_context);
+                cairo_paint(Window_context);
                 callbacks.onRedraw(width, height);
+                cairo_pop_group_to_source(Window_context);
+                cairo_paint(Window_context);        
+                cairo_surface_flush(Window_surface);
                 break;
 
         case ConfigureNotify: ;

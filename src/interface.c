@@ -148,8 +148,6 @@ static void Interface_recalculate (int width, int height) {
 static void Interface_redraw (void) {
         Interface_tabBar_redraw();
         Interface_editView_redraw();
-        
-        cairo_surface_flush(Window_surface);
 }
 
 static void Interface_tabBar_redraw (void) {
