@@ -86,7 +86,13 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                         new = ' ';
                 }
 
-                uint8_t damaged = cell->rune != new;
+                int hasCursor = ;
+                        realRow    == textDisplay->model->row |
+                        realColumn == textDisplay->model->column;
+
+                uint8_t damaged =
+                        cell->rune != new |
+                        cell->hasCursor != hasCursor;
                 cell->damaged = damaged;
                 cell->rune    = new;
 

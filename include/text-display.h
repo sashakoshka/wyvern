@@ -10,6 +10,7 @@ typedef struct {
         Rune    rune;
         uint8_t damaged;
         uint8_t color;
+        uint8_t hasCursor;
         size_t  realRow;
         size_t  realColumn;
 } TextDisplay_Cell;
