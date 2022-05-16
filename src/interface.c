@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <cairo.h>
 #include <cairo-ft.h>
 #include <ft2build.h>
@@ -18,13 +19,14 @@
 #define RULER_TEXT_COLOR 0.298, 0.337, 0.416
 // #define ACTIVE_TAB_COLOR 0.188, 0.212, 0.263
 
-static Error Interface_setup              (void);
-static void  Interface_recalculate        (int, int);
-static void  Interface_redraw             (void);
-static void  Interface_tabBar_redraw      (void);
-static void  Interface_editView_redraw    (void);
-static void  Interface_editView_drawRuler (void);
-static void  Interface_editView_drawChars (void);
+static Error Interface_setup                (void);
+static void  Interface_recalculate          (int, int);
+static void  Interface_redraw               (void);
+static void  Interface_tabBar_redraw        (void);
+static void  Interface_editView_redraw      (void);
+static void  Interface_editView_drawRuler   (void);
+static void  Interface_editView_drawChars   (void);
+static void Interface_editView_drawCharsRow (size_t);
 
 static void fontNormal     (void);
 // static void fontBold       (void);
@@ -234,10 +236,17 @@ static void Interface_editView_drawRuler (void) {
 
 static void Interface_editView_drawChars (void) {
         TextDisplay_grab(textDisplay);
-        Interface_EditView *editView = &interface.editView;
         fontNormal();
 
-        for (size_t y = 0; y < textDisplay->height; y ++)
+        for (size_t y = 0; y < textDisplay->height; y ++) {
+                Interface_editView_drawCharsRow(y);
+        }
+}
+
+static void Interface_editView_drawCharsRow (size_t y) {
+        Interface_EditView *editView = &interface.editView;
+        int inIndent = 1;
+        
         for (size_t x = 0; x < textDisplay->width;  x ++) {
                 size_t coordinate = y * textDisplay->width + x;
                 if (!textDisplay->damageBuffer[coordinate]) { continue; }
@@ -255,6 +264,22 @@ static void Interface_editView_drawChars (void) {
                         glyphWidth, lineHeight);
                 cairo_fill(Window_context);
 
+                Rune rune = textDisplay->buffer[coordinate];
+
+                int isSpace = isspace((char)(rune));
+                if (!isSpace) { inIndent = 0; }
+                
+                if (x % TAB_WIDTH == 0 && inIndent) {
+                        cairo_set_source_rgb(Window_context, RULER_COLOR);
+                        cairo_set_line_width(Window_context, 2);
+                        cairo_move_to(Window_context, realX + 1, realY);
+                        cairo_line_to (
+                                Window_context,
+                                realX + 1,
+                                realY + lineHeight);
+                        cairo_stroke(Window_context);
+                }
+
                 if (x == 80) {
                         cairo_set_source_rgb(Window_context, RULER_COLOR);
                         cairo_set_line_width(Window_context, 2);
@@ -266,9 +291,7 @@ static void Interface_editView_drawChars (void) {
                         cairo_stroke(Window_context);
                 }
 
-                if (!textDisplay->buffer[coordinate]) { continue; }
-
-                Rune rune = textDisplay->buffer[coordinate];
+                if (rune == 0) { continue; }
                 cairo_glyph_t glyph = {
                         .index = FT_Get_Char_Index(freetypeFace, rune),
                         .x     = realX,

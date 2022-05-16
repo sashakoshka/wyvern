@@ -4,6 +4,8 @@
 #include <cairo.h>
 #include "edit-buffer.h"
 
+#define TAB_WIDTH 8
+
 typedef struct {
         EditBuffer *model;
 

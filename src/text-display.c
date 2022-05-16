@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include "text-display.h"
 
-#define TAB_WIDTH 8
-
 static void TextDisplay_grabRow (TextDisplay *, size_t);
 static void TextDisplay_clear   (TextDisplay *);
 
