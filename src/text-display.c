@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include "text-display.h"
 
+#define TAB_WIDTH 8
+
 static void TextDisplay_grabRow (TextDisplay *, size_t);
 static void TextDisplay_clear   (TextDisplay *);
 
@@ -69,14 +71,23 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
         }
         
         size_t realColumn = 0;
+        int tabCounter = 0;
         for (size_t column = 0; column < textDisplay->width;  column ++) {
                 Rune   new = 0;
                 size_t coordinate  = row * textDisplay->width + column;
                 Rune  *destination = &textDisplay->buffer[coordinate];
-                
-                if (line != NULL && realColumn < line->length) {
+
+                if (tabCounter > 1) {
+                        new = ' ';
+                        tabCounter --;
+                } else if (line != NULL && realColumn < line->length) {
                         new = (Rune)line->buffer[realColumn];
                         realColumn ++;
+                }
+
+                if (new == '\t') {
+                        tabCounter = TAB_WIDTH;
+                        new = ' ';
                 }
 
                 uint8_t damaged = *destination != new;
