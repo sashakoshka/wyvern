@@ -70,29 +70,31 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                 line = textDisplay->model->lines[realRow];
         }
         
-        size_t realColumn = 0;
-        int tabCounter = 0;
-        for (size_t column = 0; column < textDisplay->width;  column ++) {
+        size_t realColumn      = 0;
+        int    findNextTabStop = 0;
+        for (size_t column = 0; column < textDisplay->width; column ++) {
                 Rune   new = 0;
                 size_t coordinate  = row * textDisplay->width + column;
                 Rune  *destination = &textDisplay->buffer[coordinate];
 
-                if (tabCounter > 1) {
+                if (column % TAB_WIDTH == 0) {
+                        findNextTabStop = 0;
+                }
+                
+                if (findNextTabStop) {
                         new = ' ';
-                        tabCounter --;
                 } else if (line != NULL && realColumn < line->length) {
-                        new = (Rune)line->buffer[realColumn];
+                        new = line->buffer[realColumn]; 
                         realColumn ++;
                 }
 
                 if (new == '\t') {
-                        tabCounter = TAB_WIDTH;
+                        findNextTabStop = 1;
                         new = ' ';
                 }
 
                 uint8_t damaged = *destination != new;
                 textDisplay->damageBuffer[coordinate] = damaged;
-                // printf("%i\t%i\t%i\n", damaged, *destination, new);
                 *destination = new;
         }
 }

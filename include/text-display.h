@@ -13,6 +13,9 @@ typedef struct {
         Rune    *buffer;
         uint8_t *damageBuffer;
         uint8_t *colorBuffer;
+        // TODO: implement real coordinate buffer to map display charachters to
+        // actual characters in the model, and update them when grabbing. This
+        // will make mouse input easier.
 } TextDisplay;
 
 TextDisplay *TextDisplay_new      (EditBuffer *, size_t, size_t);
