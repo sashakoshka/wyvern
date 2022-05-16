@@ -159,11 +159,6 @@ static Error respondToEvent (XEvent event) {
                 cairo_xlib_surface_set_size (
                         Window_surface,
                         width, height);
-                
-                if (callbacks.onRedraw == NULL) {
-                        return Error_nullCallback;
-                }
-                callbacks.onRedraw(width, height);
                 break;
         
         case ClientMessage:
