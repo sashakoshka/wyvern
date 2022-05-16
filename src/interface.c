@@ -276,7 +276,7 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         cairo_line_to (
                                 Window_context,
                                 realX + 1,
-                                realY + lineHeight);
+                                realY + glyphHeight);
                         cairo_stroke(Window_context);
                 }
 
