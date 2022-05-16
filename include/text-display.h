@@ -7,10 +7,11 @@
 #define TAB_WIDTH 8
 
 typedef struct {
-        Rune rune;
-        int  damaged;
-        size_t realRow;
-        size_t realColumn;
+        Rune    rune;
+        uint8_t damaged;
+        uint8_t color;
+        size_t  realRow;
+        size_t  realColumn;
 } TextDisplay_Cell;
 
 typedef struct {
