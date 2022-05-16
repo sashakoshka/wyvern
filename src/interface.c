@@ -19,14 +19,14 @@
 #define RULER_TEXT_COLOR 0.298, 0.337, 0.416
 // #define ACTIVE_TAB_COLOR 0.188, 0.212, 0.263
 
-static Error Interface_setup                (void);
-static void  Interface_recalculate          (int, int);
-static void  Interface_redraw               (void);
-static void  Interface_tabBar_redraw        (void);
-static void  Interface_editView_redraw      (void);
-static void  Interface_editView_drawRuler   (void);
-static void  Interface_editView_drawChars   (void);
-static void Interface_editView_drawCharsRow (size_t);
+static Error Interface_setup                 (void);
+static void  Interface_recalculate           (int, int);
+static void  Interface_redraw                (void);
+static void  Interface_tabBar_redraw         (void);
+static void  Interface_editView_redraw       (void);
+static void  Interface_editView_drawRuler    (void);
+static void  Interface_editView_drawChars    (void);
+static void  Interface_editView_drawCharsRow (size_t);
 
 static void fontNormal     (void);
 // static void fontBold       (void);
@@ -81,7 +81,7 @@ static Error Interface_setup (void) {
         cairo_font_extents_t fontExtents;
         cairo_font_extents(Window_context, &fontExtents);
         lineHeight  = fontExtents.height;
-        glyphHeight = fontExtents.ascent * 0.8;
+        glyphHeight = fontExtents.ascent;
         glyphWidth  = fontExtents.max_x_advance;
         
         if (textDisplay != NULL) { free(textDisplay); }
@@ -123,14 +123,13 @@ static void Interface_recalculate (int width, int height) {
         editView->innerY      = editView->y      + editView->padding;
         editView->innerWidth  = editView->width  - editView->padding;
         editView->innerHeight = editView->height - editView->padding;
-        
-        editView->textX =
-                editView->innerX +
-                editView->rulerWidth +
-                editView->padding;
-        editView->textY = editView->innerY + glyphHeight;
-        editView->textWidth  = editView->width  - editView->textX  + glyphWidth;
-        editView->textHeight = editView->height - editView->innerY + lineHeight;
+
+        double textLeftOffset = editView->rulerWidth + editView->padding;
+        editView->textX = editView->innerX + textLeftOffset;
+        editView->textY = editView->innerY + glyphHeight * 0.8;
+        editView->textWidth  = editView->width  - textLeftOffset;
+        editView->textHeight = editView->height - editView->padding +
+                lineHeight;
 
         double textDisplayWidth  = editView->textWidth  / glyphWidth;
         double textDisplayHeight = editView->textHeight / lineHeight;
@@ -218,7 +217,7 @@ static void Interface_editView_drawRuler (void) {
         for (
                 size_t index = editBuffer->scroll;
                 index < editBuffer->length &&
-                y < editView->y + editView->height + lineHeight;
+                y < editView->textY + editView->textHeight;
                 index ++
         ) {     
                 char lineNumberBuffer[8] = { 0 };
@@ -247,7 +246,7 @@ static void Interface_editView_drawCharsRow (size_t y) {
         Interface_EditView *editView = &interface.editView;
         int inIndent = 1;
         
-        for (size_t x = 0; x < textDisplay->width;  x ++) {
+        for (size_t x = 0; x < textDisplay->width; x ++) {
                 size_t coordinate = y * textDisplay->width + x;
                 if (!textDisplay->damageBuffer[coordinate]) { continue; }
                 textDisplay->damageBuffer[coordinate] = 0;
@@ -295,7 +294,7 @@ static void Interface_editView_drawCharsRow (size_t y) {
                 cairo_glyph_t glyph = {
                         .index = FT_Get_Char_Index(freetypeFace, rune),
                         .x     = realX,
-                        .y     = realY + glyphHeight
+                        .y     = realY + glyphHeight * 0.8
                 };
                 cairo_set_source_rgb(Window_context, TEXT_COLOR);
                 cairo_show_glyphs(Window_context, &glyph, 1);
