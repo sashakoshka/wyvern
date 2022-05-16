@@ -261,13 +261,24 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         glyphWidth, lineHeight);
                 cairo_fill(Window_context);
 
-                Rune rune = textDisplay->cells[coordinate].rune;
+                TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
 
-                int isSpace = isspace((char)(rune));
+                int isSpace = isspace((char)(cell->rune));
                 if (!isSpace) { inIndent = 0; }
                 
                 if (x % TAB_WIDTH == 0 && inIndent) {
                         cairo_set_source_rgb(Window_context, RULER_COLOR);
+                        cairo_set_line_width(Window_context, 2);
+                        cairo_move_to(Window_context, realX + 1, realY);
+                        cairo_line_to (
+                                Window_context,
+                                realX + 1,
+                                realY + glyphHeight);
+                        cairo_stroke(Window_context);
+                }
+                
+                if (cell->hasCursor) {
+                        cairo_set_source_rgb(Window_context, TEXT_COLOR);
                         cairo_set_line_width(Window_context, 2);
                         cairo_move_to(Window_context, realX + 1, realY);
                         cairo_line_to (
@@ -288,9 +299,9 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         cairo_stroke(Window_context);
                 }
 
-                if (rune == 0) { continue; }
+                if (cell->rune == 0 || isSpace) { continue; }
                 cairo_glyph_t glyph = {
-                        .index = FT_Get_Char_Index(freetypeFace, rune),
+                        .index = FT_Get_Char_Index(freetypeFace, cell->rune),
                         .x     = realX,
                         .y     = realY + glyphHeight * 0.8
                 };

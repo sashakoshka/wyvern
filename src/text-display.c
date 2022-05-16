@@ -66,8 +66,9 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
         size_t realColumn      = 0;
         int    findNextTabStop = 0;
         for (size_t column = 0; column < textDisplay->width; column ++) {
-                Rune new               = 0;
+                Rune   new             = 0;
                 size_t coordinate      = row * textDisplay->width + column;
+                int    isOwnRune       = 0;
                 TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
 
                 if (column % TAB_WIDTH == 0) {
@@ -77,8 +78,8 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                 if (findNextTabStop) {
                         new = ' ';
                 } else if (line != NULL && realColumn < line->length) {
-                        new = line->buffer[realColumn]; 
-                        realColumn ++;
+                        new = line->buffer[realColumn];
+                        isOwnRune = 1;
                 }
 
                 if (new == '\t') {
@@ -86,18 +87,24 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                         new = ' ';
                 }
 
-                int hasCursor = ;
-                        realRow    == textDisplay->model->row |
-                        realColumn == textDisplay->model->column;
+                int hasCursor =
+                        realRow    == textDisplay->model->row    &&
+                        realColumn == textDisplay->model->column &&
+                        isOwnRune;
 
                 uint8_t damaged =
                         cell->rune != new |
                         cell->hasCursor != hasCursor;
-                cell->damaged = damaged;
-                cell->rune    = new;
+                cell->damaged   = damaged;
+                cell->rune      = new;
+                cell->hasCursor = hasCursor;
 
                 cell->realRow    = realRow;
                 cell->realColumn = realColumn;
+
+                if (isOwnRune) {
+                        realColumn ++;
+                }
         }
 }
 
