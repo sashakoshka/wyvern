@@ -7,11 +7,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/select.h>
 
 #include "window.h"
 
-cairo_surface_t *Window_surface = { 0 };
-cairo_t         *Window_context = { 0 };
+cairo_surface_t *Window_surface      = { 0 };
+cairo_t         *Window_context      = { 0 };
+unsigned int     Window_eventTimeout = 0;
 
 static int width  = 640;
 static int height = 480;
@@ -30,8 +32,9 @@ static struct {
         void (*onMouseMove)   (int, int);
 } callbacks = { 0 };
 
-static Error respondToEvent       (XEvent);
-static Error respondToEventButton (unsigned int, Window_State);
+static Error respondToEvent        (XEvent);
+static Error respondToEventButton  (unsigned int, Window_State);
+static int   fileDescriptorTimeout (int, time_t);
 
 /* Window_start
  * Opens the window and sets up the cairo rendering context. THe window will
@@ -204,6 +207,21 @@ static Error respondToEventButton (
         }
 
         return Error_none;
+}
+
+/* fileDescriptorTimeout
+ * Waits for an event on a specific file descriptor, for the max amount of time
+ * specified by the timeout. Returns 1 if the timeout was reached.
+ */
+static int fileDescriptorTimeout (int fileDescriptor, time_t seconds) {
+        fd_set fileDescriptorSet;
+        FD_ZERO(&fileDescriptorSet);
+        FD_SET(fileDescriptor, &fileDescriptorSet);
+        
+        struct timeval time;
+        time.tv_sec = seconds;
+        
+        return select(fileDescriptor + 1, &fileDescriptorSet, 0, 0, &time);
 }
 
 /* Window_Stop

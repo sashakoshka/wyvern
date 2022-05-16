@@ -29,6 +29,7 @@ void EditBuffer_free (EditBuffer *editBuffer) {
  */
 Error EditBuffer_open (EditBuffer *editBuffer, const char *filePath) {
         EditBuffer_clear(editBuffer);
+        strncpy(editBuffer->filePath, filePath, PATH_MAX);
 
         FILE *file = fopen(filePath, "r");
         if (file == NULL) { return Error_cantOpenFile; }
@@ -45,7 +46,6 @@ Error EditBuffer_open (EditBuffer *editBuffer, const char *filePath) {
                                 editBuffer->length);
                         line = String_new("");
                 } else {
-                        // TODO: fix this!
                         String_addRune(line, rune);
                 }
         }

@@ -17,6 +17,7 @@ typedef enum {
 
 extern cairo_surface_t *Window_surface;
 extern cairo_t         *Window_context;
+extern unsigned int     Window_eventTimeout;
 
 Error Window_start    (void);
 Error Window_show     (void);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdlib.h>
+#include <limits.h>
 #include "safe-string.h"
 #include "error.h"
 
@@ -12,6 +13,8 @@ typedef struct {
         size_t length;
         size_t size;
         String **lines;
+
+        char filePath[PATH_MAX];
 } EditBuffer;
 
 EditBuffer *EditBuffer_new  (void);

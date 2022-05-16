@@ -102,9 +102,7 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                 cell->realRow    = realRow;
                 cell->realColumn = realColumn;
 
-                if (isOwnRune) {
-                        realColumn ++;
-                }
+                if (isOwnRune) { realColumn ++; }
         }
 }
 
