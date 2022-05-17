@@ -36,16 +36,19 @@ Error EditBuffer_open (EditBuffer *editBuffer, const char *filePath) {
         if (file == NULL) { return Error_cantOpenFile; }
 
         String *line = line = String_new("");
+        EditBuffer_placeLine (
+                editBuffer, line,
+                editBuffer->length);
         int  reachedEnd = 0;
         while (!reachedEnd) {
                 Rune rune = Unicode_utf8FileGetRune(file, &reachedEnd);
                 if (rune == 0) { continue; }
                 
                 if (rune == '\n') {
+                        line = String_new("");
                         EditBuffer_placeLine (
                                 editBuffer, line,
                                 editBuffer->length);
-                        line = String_new("");
                 } else {
                         String_addRune(line, rune);
                 }
