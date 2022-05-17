@@ -86,7 +86,7 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                 }
 
                 // line breaks need to be their own runes
-                if (realColumn == line->length) {
+                if (line != NULL && realColumn == line->length) {
                         isOwnRune = 1;
                 }
 
