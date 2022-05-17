@@ -5,7 +5,6 @@ typedef enum {
         Error_cantOpenDisplay,
         Error_cantCloseDisplay,
         Error_cantSetName,
-        Error_nullCallback,
         Error_cantMapWindow,
         Error_cantOpenFile,
         Error_cantInitFreetype,

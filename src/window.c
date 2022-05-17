@@ -117,10 +117,9 @@ Error Window_listen (void) {
                         (Timestamp)(Window_interval);
                 if (timedOut || newTimestamp > maxTimestamp) {
                         previousTimestamp = newTimestamp;
-                        if (callbacks.onInterval == NULL) {
-                                return Error_nullCallback;
+                        if (callbacks.onInterval != NULL) {
+                                callbacks.onInterval();
                         }
-                        callbacks.onInterval();
                 }
         }
 
@@ -171,17 +170,12 @@ static Error respondToEvent (XEvent event) {
                         &mouseX, &mouseY,
                         &garbageU);
                         
-                if (callbacks.onMouseMove == NULL) {
-                        return Error_nullCallback;
-                }
+                if (callbacks.onMouseMove == NULL) { break; }
                 callbacks.onMouseMove(mouseX, mouseY);
-                
                 break;
 
         case Expose:
-                if (callbacks.onRedraw == NULL) {
-                        return Error_nullCallback;
-                }
+                if (callbacks.onRedraw == NULL) { break; }
 
                 cairo_push_group(Window_context);
                 cairo_paint(Window_context);
@@ -218,9 +212,7 @@ static Error respondToEventButton (
         unsigned int button,
         Window_State state
 ) {
-        if (callbacks.onMouseButton == NULL) {
-                return Error_nullCallback;
-        }
+        if (callbacks.onMouseButton == NULL) { return Error_none; }
         
         switch (button) {
         case 1:
@@ -247,6 +239,8 @@ static Error respondToEventKey (
         XKeyEvent   *event,
         Window_State state
 ) {
+        if (callbacks.onKey == NULL) { return Error_none; }
+        
         char   keyBuffer[8] = { 0 };
         KeySym xKeySym;
         XLookupString (
@@ -254,10 +248,6 @@ static Error respondToEventKey (
                 keyBuffer, sizeof(keyBuffer),
                 &xKeySym, NULL);
         
-        if (callbacks.onKey == NULL) {
-                return Error_nullCallback;
-        }
-
         callbacks.onKey(xKeySym, state);
 
         return Error_none;
