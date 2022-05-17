@@ -17,11 +17,13 @@ FLAGS_DEBUG="-g -Ddebug"
 FLAGS_CFLAGS="$FLAGS_CFLAGS $(pkg-config --cflags cairo)"
 FLAGS_CFLAGS="$FLAGS_CFLAGS $(pkg-config --cflags x11)"
 FLAGS_CFLAGS="$FLAGS_CFLAGS $(pkg-config --cflags freetype2)"
+FLAGS_CFLAGS="$FLAGS_CFLAGS $(pkg-config --cflags xkbcommon)"
 FLAGS_CFLAGS="$FLAGS_CFLAGS -I$INC_PATH"
 
 FLAGS_LIBS="$FLAGS_LIBS $(pkg-config --libs cairo)"
 FLAGS_LIBS="$FLAGS_LIBS $(pkg-config --libs x11)"
 FLAGS_LIBS="$FLAGS_LIBS $(pkg-config --libs freetype2)"
+FLAGS_LIBS="$FLAGS_LIBS $(pkg-config --libs xkbcommon)"
 
 INSTALL_LOCATION="/usr/local"
 
