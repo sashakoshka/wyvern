@@ -71,17 +71,26 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                 int    isOwnRune       = 0;
                 TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
 
+                // if we are at a tab stop, stop looking for it (if we even are) 
                 if (column % TAB_WIDTH == 0) {
                         findNextTabStop = 0;
                 }
-                
+
                 if (findNextTabStop) {
+                        // fill tabs with whitespace
                         new = ' ';
                 } else if (line != NULL && realColumn < line->length) {
+                        // if the cell actually maps to a rune, get it
                         new = line->buffer[realColumn];
                         isOwnRune = 1;
                 }
 
+                // line breaks need to be their own runes
+                if (realColumn == line->length) {
+                        isOwnRune = 1;
+                }
+
+                // if this is a tab, switch to looking for the next tab stop
                 if (new == '\t') {
                         findNextTabStop = 1;
                         new = ' ';
@@ -148,6 +157,7 @@ void TextDisplay_getRealCoords (
 ) {
         size_t coordinate      = row * textDisplay->width + column;
         TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
+
         *realRow    = cell->realRow;
         *realColumn = cell->realColumn;
 }

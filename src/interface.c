@@ -15,6 +15,7 @@
 #define TAB_BAR_COLOR    0.141, 0.161, 0.200
 #define RULER_COLOR      0.180, 0.204, 0.251
 #define RULER_TEXT_COLOR 0.298, 0.337, 0.416
+#define CURSOR_COLOR     0.298, 0.337, 0.416
 // #define ACTIVE_TAB_COLOR 0.188, 0.212, 0.263
 
 #define HITBOX(xx, yy, element) \
@@ -52,6 +53,7 @@ static double lineHeight     = 0;
 static double glyphWidth     = 0;
 
 static int scrollSize = 8;
+static int cursorSize = 2;
 
 Interface interface = { 0 };
 static EditBuffer  *editBuffer  = NULL;
@@ -287,12 +289,15 @@ static void Interface_editView_drawCharsRow (size_t y) {
                 }
                 
                 if (cell->hasCursor && editView->cursorBlink) {
-                        cairo_set_source_rgb(Window_context, TEXT_COLOR);
-                        cairo_set_line_width(Window_context, 2);
-                        cairo_move_to(Window_context, realX + 1, realY);
+                        cairo_set_source_rgb(Window_context, CURSOR_COLOR);
+                        cairo_set_line_width(Window_context, cursorSize);
+                        cairo_move_to (
+                                Window_context,
+                                realX + cursorSize / 2,
+                                realY);
                         cairo_line_to (
                                 Window_context,
-                                realX + 1,
+                                realX + cursorSize / 2,
                                 realY + glyphHeight);
                         cairo_stroke(Window_context);
                 }
