@@ -17,6 +17,10 @@
 #define RULER_TEXT_COLOR 0.298, 0.337, 0.416
 // #define ACTIVE_TAB_COLOR 0.188, 0.212, 0.263
 
+#define HITBOX(xx, yy, element) \
+        xx > element.x && xx < element.x + element.width && \
+        yy > element.y && yy < element.y + element.height
+
 static Error Interface_setup                 (void);
 static void  Interface_recalculate           (int, int);
 static void  Interface_redraw                (void);
@@ -52,6 +56,9 @@ static int scrollSize = 8;
 Interface interface = { 0 };
 static EditBuffer  *editBuffer  = NULL;
 static TextDisplay *textDisplay = NULL;
+
+static int mouseX = 0;
+static int mouseY = 0;
 
 Error Interface_run (void) {
         Window_start();
@@ -341,6 +348,36 @@ static void onRedraw (int width, int height) {
 }
 
 static void onMouseButton (Window_MouseButton button, Window_State state) {
+        // something is going to move or change - we need the cursor to be
+        // visible
+        interface.editView.cursorBlink = 1;
+
+        int inCell = HITBOX(mouseX, mouseY, interface.editView);
+
+        size_t cellX = 0;
+        size_t cellY = 0;
+        if (inCell) {
+                int intCellX = (int) (
+                        (mouseX - interface.editView.textX) /
+                        glyphWidth);
+                int intCellY = (int) (
+                        (mouseY - interface.editView.innerY) /
+                        lineHeight);
+
+                cellX = (size_t)(intCellX);
+                cellY = (size_t)(intCellY);
+                
+                if (intCellX < 0) { cellX = 0; }
+                if (intCellY < 0) { cellY = 0; }
+                
+                if (cellX >= textDisplay->width) {
+                        cellX = textDisplay->width - 1;
+                }
+                if (cellY >= textDisplay->height) {
+                        cellY = textDisplay->height - 1;
+                }
+        }
+
         switch (button) {
         case Window_MouseButton_left:
                 // TODO: cursor position, selection, etc.
@@ -352,7 +389,7 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                 // TODO: context menu
                 break;
         case Window_MouseButton_scrollUp:
-                if (state == Window_State_on) {
+                if (state == Window_State_on && inCell) {
                         EditBuffer_scroll(editBuffer, scrollSize * -1);
                         Interface_editView_drawRuler();
                         Interface_editView_drawChars(1);
@@ -360,7 +397,7 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                 break;
                 
         case Window_MouseButton_scrollDown:
-                if (state == Window_State_on) {
+                if (state == Window_State_on && inCell) {
                         EditBuffer_scroll(editBuffer, scrollSize);
                         Interface_editView_drawRuler();
                         Interface_editView_drawChars(1);
@@ -370,11 +407,11 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
 }
 
 static void onMouseMove (int x, int y) {
-        (void)(x);
-        (void)(y);
+        mouseX = x;
+        mouseY = y;
 }
 
 static void onInterval (void) {
-        interface.editView.cursorBlink = !interface.editView.cursorBlink;
         Interface_editView_drawChars(0);
+        interface.editView.cursorBlink = !interface.editView.cursorBlink;
 }
