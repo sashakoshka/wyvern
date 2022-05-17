@@ -6,14 +6,13 @@
 #include <cairo-xlib.h>
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <sys/select.h>
 
 #include "window.h"
 
-cairo_surface_t *Window_surface      = { 0 };
-cairo_t         *Window_context      = { 0 };
-unsigned int     Window_eventTimeout = 0;
+cairo_surface_t *Window_surface  = { 0 };
+cairo_t         *Window_context  = { 0 };
+time_t           Window_interval = 0;
 
 static int width  = 640;
 static int height = 480;
@@ -30,11 +29,13 @@ static struct {
         void (*onRedraw)      (int, int);
         void (*onMouseButton) (Window_MouseButton, Window_State);
         void (*onMouseMove)   (int, int);
+        void (*onInterval)    (void);
 } callbacks = { 0 };
 
 static Error respondToEvent        (XEvent);
 static Error respondToEventButton  (unsigned int, Window_State);
 static int   fileDescriptorTimeout (int, time_t);
+static int   nextXEventOrTimeout   (XEvent *, time_t);
 
 /* Window_start
  * Opens the window and sets up the cairo rendering context. THe window will
@@ -94,10 +95,18 @@ Error Window_show (void) {
 Error Window_listen (void) {
         listening = 1;
         while (listening) {
-                XEvent event; 
-                XNextEvent(display, &event);
-                Error err = respondToEvent(event);
-                if (err) { return err; }
+                XEvent event;
+                int reachedTimeout = nextXEventOrTimeout (
+                        &event, Window_interval);
+                if (reachedTimeout) {
+                        if (callbacks.onInterval == NULL) {
+                                return Error_nullCallback;
+                        }
+                        callbacks.onInterval();
+                } else {
+                        Error err = respondToEvent(event);
+                        if (err) { return err; }
+                }
         }
 
         return Error_none;
@@ -210,18 +219,38 @@ static Error respondToEventButton (
 }
 
 /* fileDescriptorTimeout
- * Waits for an event on a specific file descriptor, for the max amount of time
- * specified by the timeout. Returns 1 if the timeout was reached.
+ * Waits for an event on fileDescriptor, for the max amount of time specified by
+ * milliseconds. Returns 1 if the timeout was reached.
  */
-static int fileDescriptorTimeout (int fileDescriptor, time_t seconds) {
+static int fileDescriptorTimeout (int fileDescriptor, time_t milliseconds) {
         fd_set fileDescriptorSet;
         FD_ZERO(&fileDescriptorSet);
         FD_SET(fileDescriptor, &fileDescriptorSet);
         
         struct timeval time;
-        time.tv_sec = seconds;
+        time.tv_usec = milliseconds * 1000;
         
         return select(fileDescriptor + 1, &fileDescriptorSet, 0, 0, &time);
+}
+
+/* nextXEventOrTimeout
+ * Gets the next X event, but only waits for the maximum amount of time
+ * specified by milliseconds. If milliseconds is zero, there will be no timeout.
+ * Returns 1 if the timeout was reached, and zero if an event was recieved.
+ */
+static int nextXEventOrTimeout (XEvent *event, time_t milliseconds) {
+        int xFileDescriptor = ConnectionNumber(display);
+
+        if (
+                milliseconds == 0 ||
+                XPending(display) ||
+                fileDescriptorTimeout(xFileDescriptor, milliseconds)
+        ) {
+                XNextEvent(display, event);
+                return 0;
+        } else {
+                return 1;
+        }
 }
 
 /* Window_Stop
@@ -277,4 +306,11 @@ void Window_onMouseButton (
  */
 void Window_onMouseMove (void (*callback) (int x, int y)) {
         callbacks.onMouseMove = callback;
+}
+
+/* Window_onInterval
+ * Sets the function to be called on an interval specified by Window_interval.
+ */
+void Window_onInterval (void (*callback) (void)) {
+        callbacks.onInterval = callback;
 }

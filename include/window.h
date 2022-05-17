@@ -1,5 +1,6 @@
 #pragma once
 #include <cairo.h>
+#include <stdlib.h>
 #include "error.h"
 
 typedef enum {
@@ -17,7 +18,7 @@ typedef enum {
 
 extern cairo_surface_t *Window_surface;
 extern cairo_t         *Window_context;
-extern unsigned int     Window_eventTimeout;
+extern time_t           Window_interval;
 
 Error Window_start    (void);
 Error Window_show     (void);
@@ -28,3 +29,4 @@ Error Window_setTitle (const char *);
 void Window_onRedraw      (void (*) (int, int));
 void Window_onMouseButton (void (*) (Window_MouseButton, Window_State));
 void Window_onMouseMove   (void (*) (int, int));
+void Window_onInterval    (void (*) (void));
