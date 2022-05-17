@@ -11,10 +11,8 @@
 
 #define OUTLINE_COLOR    0.122, 0.137, 0.169
 #define TEXT_COLOR       0.925, 0.937, 0.957
-// #define OUTLINE_COLOR    1, 0, 0
 #define BACKGROUND_COLOR 0.141, 0.161, 0.200
 #define TAB_BAR_COLOR    0.141, 0.161, 0.200
-// #define TAB_BAR_COLOR    0.180, 0.204, 0.251
 #define RULER_COLOR      0.180, 0.204, 0.251
 #define RULER_TEXT_COLOR 0.298, 0.337, 0.416
 // #define ACTIVE_TAB_COLOR 0.188, 0.212, 0.263
@@ -37,10 +35,10 @@ static void onRedraw      (int, int);
 static void onMouseButton (Window_MouseButton, Window_State);
 static void onMouseMove   (int, int);
 
-static FT_Library         freetypeHandle = { 0 };
-static FT_Face            freetypeFace   = { 0 };
-static cairo_font_face_t *fontFace       = NULL;
-static char              *fontName       =
+static FT_Library         freetypeHandle     = { 0 };
+static FT_Face            freetypeFaceNormal = { 0 };
+static cairo_font_face_t *fontFaceNormal     = NULL;
+static char              *fontName           =
         "/home/sashakoshka/.local/share/fonts/DMMono-Light.ttf";
 
 static int    fontSize       = 14;
@@ -73,9 +71,10 @@ void Interface_setEditBuffer (EditBuffer *newEditBuffer) {
 static Error Interface_setup (void) {
         int err = FT_Init_FreeType(&freetypeHandle);
         if (err) { return Error_cantInitFreetype; }
-        err = FT_New_Face(freetypeHandle, fontName, 0, &freetypeFace);
+        err = FT_New_Face(freetypeHandle, fontName, 0, &freetypeFaceNormal);
         if (err) { return Error_cantLoadFont; }
-        fontFace = cairo_ft_font_face_create_for_ft_face(freetypeFace, 0);
+        fontFaceNormal = cairo_ft_font_face_create_for_ft_face (
+                freetypeFaceNormal, 0);
 
         fontNormal();
         cairo_font_extents_t fontExtents;
@@ -301,7 +300,9 @@ static void Interface_editView_drawCharsRow (size_t y) {
 
                 if (cell->rune == 0 || isSpace) { continue; }
                 cairo_glyph_t glyph = {
-                        .index = FT_Get_Char_Index(freetypeFace, cell->rune),
+                        .index = FT_Get_Char_Index (
+                                freetypeFaceNormal,
+                                cell->rune),
                         .x     = realX,
                         .y     = realY + glyphHeight * 0.8
                 };
@@ -312,31 +313,22 @@ static void Interface_editView_drawCharsRow (size_t y) {
 
 static void fontNormal (void) {
         cairo_set_font_size(Window_context, fontSize);
-        cairo_set_font_face(Window_context, fontFace);
+        cairo_set_font_face(Window_context, fontFaceNormal);
 }
 
 // static void fontBold (void) {
         // cairo_set_font_size(Window_context, fontSize);
-        // cairo_select_font_face (Window_context,
-                // fontName,
-                // CAIRO_FONT_SLANT_NORMAL,
-                // CAIRO_FONT_WEIGHT_BOLD);
+        // cairo_set_font_face(Window_context, fontFaceBold);
 // }
 
 // static void fontItalic (void) {
         // cairo_set_font_size(Window_context, fontSize);
-        // cairo_select_font_face (Window_context,
-                // fontName,
-                // CAIRO_FONT_SLANT_ITALIC,
-                // CAIRO_FONT_WEIGHT_NORMAL);
+        // cairo_set_font_face(Window_context, fontFaceItalic);
 // }
-// 
+
 // static void fontBoldItalic (void) {
         // cairo_set_font_size(Window_context, fontSize);
-        // cairo_select_font_face (Window_context,
-                // fontName,
-                // CAIRO_FONT_SLANT_ITALIC,
-                // CAIRO_FONT_WEIGHT_BOLD);
+        // cairo_set_font_face(Window_context, fontFaceBoldItalic);
 // }
 
 static void onRedraw (int width, int height) {
@@ -346,6 +338,15 @@ static void onRedraw (int width, int height) {
 
 static void onMouseButton (Window_MouseButton button, Window_State state) {
         switch (button) {
+        case Window_MouseButton_left:
+                // TODO: cursor position, selection, etc.
+                break;
+        case Window_MouseButton_middle:
+                // TODO: copy/paste
+                break;
+        case Window_MouseButton_right:
+                // TODO: context menu
+                break;
         case Window_MouseButton_scrollUp:
                 if (state == Window_State_on) {
                         EditBuffer_scroll(editBuffer, scrollSize * -1);
