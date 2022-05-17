@@ -64,10 +64,9 @@ static int mouseX = 0;
 static int mouseY = 0;
 
 static struct {
-        int shift;
-        int lock;
-        int ctrl;
-        int alt;
+        Window_State shift;
+        Window_State ctrl;
+        Window_State alt;
 } modKeys = { 0 };
 
 Error Interface_run (void) {
@@ -441,8 +440,26 @@ static void onInterval (void) {
 }
 
 static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
+        switch (keySym) {
+        case WINDOW_KEY_SHIFT: modKeys.shift = state; return;
+        case WINDOW_KEY_CTRL:  modKeys.ctrl  = state; return;
+        case WINDOW_KEY_ALT:   modKeys.alt   = state; return;
+
+        case WINDOW_KEY_UP:
+                return;
+        case WINDOW_KEY_DOWN:
+                return;
+        case WINDOW_KEY_LEFT:
+                return;
+        case WINDOW_KEY_RIGHT:
+                return;
+        }
+
+        // if (state == Window_State_on) {
+                // printf("%lx\n", keySym);
+        // }
         (void)(keySym);
         (void)(rune);
         (void)(state);
 }
- 
+
