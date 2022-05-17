@@ -6,13 +6,18 @@
 #include <cairo-xlib.h>
 
 #include <stdio.h>
+#include <sys/time.h>
 #include <sys/select.h>
 
 #include "window.h"
 
+typedef unsigned long long Timestamp;
+
 cairo_surface_t *Window_surface  = { 0 };
 cairo_t         *Window_context  = { 0 };
 time_t           Window_interval = 0;
+
+static Timestamp previousTimestamp = 0;
 
 static int width  = 640;
 static int height = 480;
@@ -32,10 +37,11 @@ static struct {
         void (*onInterval)    (void);
 } callbacks = { 0 };
 
-static Error respondToEvent        (XEvent);
-static Error respondToEventButton  (unsigned int, Window_State);
-static int   fileDescriptorTimeout (int, time_t);
-static int   nextXEventOrTimeout   (XEvent *, time_t);
+static Error     respondToEvent        (XEvent);
+static Error     respondToEventButton  (unsigned int, Window_State);
+static int       fileDescriptorTimeout (int, time_t);
+static int       nextXEventOrTimeout   (XEvent *, time_t);
+static Timestamp currentTimestamp      (void);
 
 /* Window_start
  * Opens the window and sets up the cairo rendering context. THe window will
@@ -97,14 +103,21 @@ Error Window_listen (void) {
         while (listening) {
                 XEvent event;
                 int timedOut = nextXEventOrTimeout(&event, Window_interval);
-                if (timedOut) {
+                if (!timedOut) {
+                        Error err = respondToEvent(event);
+                        if (err) { return err; }
+                }
+
+                Timestamp newTimestamp = currentTimestamp();
+                Timestamp maxTimestamp =
+                        previousTimestamp +
+                        (Timestamp)(Window_interval);
+                if (timedOut || newTimestamp > maxTimestamp) {
+                        previousTimestamp = newTimestamp;
                         if (callbacks.onInterval == NULL) {
                                 return Error_nullCallback;
                         }
                         callbacks.onInterval();
-                } else {
-                        Error err = respondToEvent(event);
-                        if (err) { return err; }
                 }
         }
 
@@ -250,6 +263,18 @@ static int nextXEventOrTimeout (XEvent *event, time_t milliseconds) {
         } else {
                 return 1;
         }
+}
+
+/* currentTimestamp
+ * Returns the current UNIX timestamp in milliseconds.
+ */
+static Timestamp currentTimestamp () {
+        struct timeval time; 
+        gettimeofday(&time, NULL);
+        Timestamp milliseconds = (Timestamp) (
+                time.tv_sec  * 1000 +
+                time.tv_usec / 1000);
+        return milliseconds;
 }
 
 /* Window_Stop
