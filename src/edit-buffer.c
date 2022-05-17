@@ -142,6 +142,18 @@ void EditBuffer_cursorMoveV (EditBuffer *editBuffer, int amount) {
 void EditBuffer_cursorMoveWordH (EditBuffer *editBuffer, int);
 void EditBuffer_cursorMoveWordV (EditBuffer *editBuffer, int);
 
+/* EditBuffer_cursorMoveTo
+ * Moves the cursor of the edit buffer to the specified row and column.
+ */
+void EditBuffer_cursorMoveTo (
+        EditBuffer *editBuffer,
+        size_t column,
+        size_t row
+) {
+        editBuffer->column = column;
+        editBuffer->row    = row;
+}
+
 void EditBuffer_changeIndent (EditBuffer *editBuffer, int);
 void EditBuffer_insertBuffer (EditBuffer *editBuffer, const char *);
 

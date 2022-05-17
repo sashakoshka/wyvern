@@ -380,7 +380,17 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
 
         switch (button) {
         case Window_MouseButton_left:
-                // TODO: cursor position, selection, etc.
+                // TODO: selection, etc.
+                if (state == Window_State_on && inCell) {
+                        size_t realX = 0;
+                        size_t realY = 0;
+                        TextDisplay_getRealCoords (
+                                textDisplay,
+                                cellX, cellY,
+                                &realX, &realY);
+                        EditBuffer_cursorMoveTo(editBuffer, realX, realY);
+                        Interface_editView_drawChars(1);
+                }
                 break;
         case Window_MouseButton_middle:
                 // TODO: copy/paste

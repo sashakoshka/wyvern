@@ -24,9 +24,12 @@ typedef struct {
         TextDisplay_Cell *cells;
 } TextDisplay;
 
-TextDisplay *TextDisplay_new      (EditBuffer *, size_t, size_t);
-void         TextDisplay_free     (TextDisplay *);
-void         TextDisplay_grab     (TextDisplay *);
-void         TextDisplay_setModel (TextDisplay *, EditBuffer *);
-void         TextDisplay_resize   (TextDisplay *, size_t, size_t);
-
+TextDisplay *TextDisplay_new           (EditBuffer *, size_t, size_t);
+void         TextDisplay_free          (TextDisplay *);
+void         TextDisplay_grab          (TextDisplay *);
+void         TextDisplay_setModel      (TextDisplay *, EditBuffer *);
+void         TextDisplay_resize        (TextDisplay *, size_t, size_t);
+void         TextDisplay_getRealCoords (
+        TextDisplay *,
+        size_t, size_t,
+        size_t *, size_t *);

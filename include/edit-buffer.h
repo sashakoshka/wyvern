@@ -33,6 +33,7 @@ void EditBuffer_cursorMoveH     (EditBuffer *, int);
 void EditBuffer_cursorMoveV     (EditBuffer *, int);
 void EditBuffer_cursorMoveWordH (EditBuffer *, int);
 void EditBuffer_cursorMoveWordV (EditBuffer *, int);
+void EditBuffer_cursorMoveTo    (EditBuffer *, size_t, size_t);
 
 void EditBuffer_changeIndent (EditBuffer *, int);
 void EditBuffer_insertBuffer (EditBuffer *, const char *);

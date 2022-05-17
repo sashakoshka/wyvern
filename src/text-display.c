@@ -97,7 +97,7 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                         cell->hasCursor != hasCursor;
                 cell->damaged   = damaged;
                 cell->rune      = new;
-                cell->hasCursor = hasCursor;
+                cell->hasCursor = (uint8_t)hasCursor;
 
                 cell->realRow    = realRow;
                 cell->realColumn = realColumn;
@@ -135,6 +135,21 @@ void TextDisplay_resize (
 
         free(textDisplay->cells);
         textDisplay->cells = calloc(width * height, sizeof(TextDisplay_Cell));
+}
+
+/* TextDisplay_getRealCoords
+ * Takes in the coordinates of a cell in the buffer, and outputs the row and
+ * column that it points to in the model.
+ */
+void TextDisplay_getRealCoords (
+        TextDisplay  *textDisplay,
+        size_t  column,     size_t  row,
+        size_t *realColumn, size_t *realRow
+) {
+        size_t coordinate      = row * textDisplay->width + column;
+        TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
+        *realRow    = cell->realRow;
+        *realColumn = cell->realColumn;
 }
 
 /* TextDisplay_clear
