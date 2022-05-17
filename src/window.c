@@ -35,10 +35,13 @@ static struct {
         void (*onMouseButton) (Window_MouseButton, Window_State);
         void (*onMouseMove)   (int, int);
         void (*onInterval)    (void);
+        void (*onKey)         (Window_KeySym, Window_State);
 } callbacks = { 0 };
 
-static Error     respondToEvent        (XEvent);
-static Error     respondToEventButton  (unsigned int, Window_State);
+static Error respondToEvent       (XEvent);
+static Error respondToEventButton (unsigned int, Window_State);
+static Error respondToEventKey    (XKeyEvent *, Window_State);
+
 static int       fileDescriptorTimeout (int, time_t);
 static int       nextXEventOrTimeout   (XEvent *, time_t);
 static Timestamp currentTimestamp      (void);
@@ -145,6 +148,16 @@ static Error respondToEvent (XEvent event) {
                 if (err) { return err; }
                 break;
 
+        case KeyPress:
+                err = respondToEventKey(&event.xkey, Window_State_on);
+                if (err) { return err; }
+                break;
+        
+        case KeyRelease:
+                err = respondToEventKey(&event.xkey, Window_State_off);
+                if (err) { return err; }
+                break;
+
         case MotionNotify: ;
                 int mouseX;
                 int mouseY;
@@ -226,6 +239,26 @@ static Error respondToEventButton (
                 callbacks.onMouseButton(Window_MouseButton_scrollDown, state);
                 break;
         }
+
+        return Error_none;
+}
+
+static Error respondToEventKey (
+        XKeyEvent   *event,
+        Window_State state
+) {
+        char   keyBuffer[8] = { 0 };
+        KeySym xKeySym;
+        XLookupString (
+                event,
+                keyBuffer, sizeof(keyBuffer),
+                &xKeySym, NULL);
+        
+        if (callbacks.onKey == NULL) {
+                return Error_nullCallback;
+        }
+
+        callbacks.onKey(xKeySym, state);
 
         return Error_none;
 }
@@ -315,11 +348,10 @@ void Window_onRedraw (void (*callback) (int width, int height)) {
 /* Window_onMouseButton
  * Sets the function to be called when a mouse button is pressed or released.
  * The mouse button that was pressed is passed as button, and whether it is
- * pressed or released is passed as state,
+ * pressed or released is passed as state.
  */
 void Window_onMouseButton (
-        void (*callback) (
-                Window_MouseButton button, Window_State state)
+        void (*callback) (Window_MouseButton button, Window_State state)
 ) {
         callbacks.onMouseButton = callback;
 }
@@ -337,4 +369,15 @@ void Window_onMouseMove (void (*callback) (int x, int y)) {
  */
 void Window_onInterval (void (*callback) (void)) {
         callbacks.onInterval = callback;
+}
+
+/* Window_onKey
+ * Sets the function to be called when a key is pressed or released. The Xlib
+ * keysym that was pressed is passed as keySym, and whether it is pressed or
+ * released is passed as state.
+ */
+void Window_onKey (
+        void (*callback) (Window_KeySym keySym, Window_State state)
+) {
+        callbacks.onKey = callback;
 }
