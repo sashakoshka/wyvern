@@ -16,6 +16,7 @@
 #define RULER_COLOR      0.180, 0.204, 0.251
 #define RULER_TEXT_COLOR 0.298, 0.337, 0.416
 #define CURSOR_COLOR     0.298, 0.337, 0.416
+#define BAD_CHAR_COLOR   0.749, 0.380, 0.419
 // #define ACTIVE_TAB_COLOR 0.188, 0.212, 0.263
 
 #define HITBOX(xx, yy, element) \
@@ -321,11 +322,45 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         cairo_stroke(Window_context);
                 }
 
-                if (cell->rune == 0 || isSpace) { continue; }
+                // don't attempt to render whitespace
+                if (cell->rune == TEXTDISPLAY_EMPTY_CELL || isSpace) {
+                        continue;
+                }
+                
+                unsigned int index = FT_Get_Char_Index (
+                        freetypeFaceNormal,
+                        cell->rune);
+
+                // if we couldn't find the character, display a red error symbol
+                if (index == 0) {
+                        cairo_set_source_rgb(Window_context, BAD_CHAR_COLOR);
+                        double scale   = glyphWidth / 3;
+                        double centerX = realX + glyphWidth / 2;
+                        double centerY = realY + glyphHeight / 2;
+                        cairo_set_line_width(Window_context, 2);
+                        cairo_move_to (
+                                Window_context,
+                                centerX - scale,
+                                centerY - scale);
+                        cairo_line_to (
+                                Window_context,
+                                centerX + scale,
+                                centerY + scale);
+                                cairo_stroke(Window_context);
+                        cairo_move_to (
+                                Window_context,
+                                centerX + scale,
+                                centerY - scale);
+                        cairo_line_to (
+                                Window_context,
+                                centerX - scale,
+                                centerY + scale);
+                                cairo_stroke(Window_context);
+                        continue;
+                }
+                
                 cairo_glyph_t glyph = {
-                        .index = FT_Get_Char_Index (
-                                freetypeFaceNormal,
-                                cell->rune),
+                        .index = index,
                         .x     = realX,
                         .y     = realY + glyphHeight * 0.8
                 };

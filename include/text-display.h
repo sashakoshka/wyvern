@@ -6,6 +6,8 @@
 
 #define TAB_WIDTH 8
 
+#define TEXTDISPLAY_EMPTY_CELL 1
+
 typedef struct {
         Rune    rune;
         uint8_t damaged;

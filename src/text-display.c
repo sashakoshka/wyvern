@@ -67,7 +67,7 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
         size_t lastRealColumn  = 0;
         int    findNextTabStop = 0;
         for (size_t column = 0; column < textDisplay->width; column ++) {
-                Rune   new             = 0;
+                Rune   new             = TEXTDISPLAY_EMPTY_CELL;
                 size_t coordinate      = row * textDisplay->width + column;
                 int    isOwnRune       = 0;
                 TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
