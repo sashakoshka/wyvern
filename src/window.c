@@ -1,3 +1,6 @@
+#include <xkbcommon/xkbcommon.h>
+
+#include <X11/XKBlib.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
@@ -35,7 +38,7 @@ static struct {
         void (*onMouseButton) (Window_MouseButton, Window_State);
         void (*onMouseMove)   (int, int);
         void (*onInterval)    (void);
-        void (*onKey)         (Window_KeySym, Window_State);
+        void (*onKey)         (Window_KeySym, Rune, Window_State);
 } callbacks = { 0 };
 
 static Error respondToEvent       (XEvent);
@@ -241,14 +244,13 @@ static Error respondToEventKey (
 ) {
         if (callbacks.onKey == NULL) { return Error_none; }
         
-        char   keyBuffer[8] = { 0 };
-        KeySym xKeySym;
-        XLookupString (
-                event,
-                keyBuffer, sizeof(keyBuffer),
-                &xKeySym, NULL);
+        KeySym keySym = XkbKeycodeToKeysym (
+                display,
+                (KeyCode)(event->keycode),
+                0, event->state & ShiftMask ? 1 : 0);
         
-        callbacks.onKey(xKeySym, state);
+        Rune rune = (Rune)(xkb_keysym_to_utf32((xkb_keysym_t)(keySym)));
+        callbacks.onKey(keySym, rune, state);
 
         return Error_none;
 }
@@ -364,10 +366,14 @@ void Window_onInterval (void (*callback) (void)) {
 /* Window_onKey
  * Sets the function to be called when a key is pressed or released. The Xlib
  * keysym that was pressed is passed as keySym, and whether it is pressed or
- * released is passed as state.
+ * released is passed as state. If the keySym has a utf32 representation, it is
+ * passed as rune.
  */
 void Window_onKey (
-        void (*callback) (Window_KeySym keySym, Window_State state)
+        void (*callback) (
+                Window_KeySym keySym,
+                Rune          rune,
+                Window_State  state)
 ) {
         callbacks.onKey = callback;
 }

@@ -2,6 +2,7 @@
 #include <cairo.h>
 #include <stdlib.h>
 #include "error.h"
+#include "unicode.h"
 
 typedef enum {
         Window_MouseButton_left,
@@ -32,4 +33,4 @@ void Window_onRedraw      (void (*) (int, int));
 void Window_onMouseButton (void (*) (Window_MouseButton, Window_State));
 void Window_onMouseMove   (void (*) (int, int));
 void Window_onInterval    (void (*) (void));
-void Window_onKey         (void (*) (Window_KeySym, Window_State));
+void Window_onKey         (void (*) (Window_KeySym, Rune, Window_State));

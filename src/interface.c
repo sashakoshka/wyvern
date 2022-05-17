@@ -40,7 +40,7 @@ static void onRedraw      (int, int);
 static void onMouseButton (Window_MouseButton, Window_State);
 static void onMouseMove   (int, int);
 static void onInterval    (void);
-static void onKey         (Window_KeySym, Window_State);
+static void onKey         (Window_KeySym, Rune, Window_State);
 
 static FT_Library         freetypeHandle     = { 0 };
 static FT_Face            freetypeFaceNormal = { 0 };
@@ -440,8 +440,9 @@ static void onInterval (void) {
         interface.editView.cursorBlink = !interface.editView.cursorBlink;
 }
 
-static void onKey (Window_KeySym keySym, Window_State state) {
+static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         (void)(keySym);
+        (void)(rune);
         (void)(state);
 }
  
