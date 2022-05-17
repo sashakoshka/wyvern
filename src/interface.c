@@ -40,6 +40,7 @@ static void onRedraw      (int, int);
 static void onMouseButton (Window_MouseButton, Window_State);
 static void onMouseMove   (int, int);
 static void onInterval    (void);
+static void onKey         (Window_KeySym, Window_State);
 
 static FT_Library         freetypeHandle     = { 0 };
 static FT_Face            freetypeFaceNormal = { 0 };
@@ -61,6 +62,13 @@ static TextDisplay *textDisplay = NULL;
 
 static int mouseX = 0;
 static int mouseY = 0;
+
+static struct {
+        int shift;
+        int lock;
+        int ctrl;
+        int alt;
+} modKeys = { 0 };
 
 Error Interface_run (void) {
         Window_start();
@@ -103,6 +111,7 @@ static Error Interface_setup (void) {
         Window_onMouseButton(onMouseButton);
         Window_onMouseMove(onMouseMove);
         Window_onInterval(onInterval);
+        Window_onKey(onKey);
         
         Window_interval = 500;
         Window_setTitle("Text Editor");
@@ -430,3 +439,9 @@ static void onInterval (void) {
         Interface_editView_drawChars(0);
         interface.editView.cursorBlink = !interface.editView.cursorBlink;
 }
+
+static void onKey (Window_KeySym keySym, Window_State state) {
+        (void)(keySym);
+        (void)(state);
+}
+ 
