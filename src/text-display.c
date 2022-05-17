@@ -108,15 +108,23 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                 cell->damaged   = damaged;
                 cell->rune      = new;
                 cell->hasCursor = (uint8_t)hasCursor;
-
-                cell->realRow    = realRow;
-                cell->realColumn = realColumn;
-
-                if (isOwnRune) {
-                        lastRealColumn = realColumn;
-                        realColumn ++;
+                
+                if (realRow >= textDisplay->model->length) {
+                        cell->realRow    = textDisplay->model->length - 1;
+                        cell->realColumn = 0;
+                        // TODO: store last real row in textDisplay, get column
+                        // from that
                 } else {
-                        cell->realColumn = lastRealColumn;
+                        cell->realRow    = realRow;
+                        cell->realColumn = realColumn;
+
+                        if (isOwnRune) {
+                                lastRealColumn = realColumn;
+                                realColumn ++;
+                        } else {
+                                // TODO: do the same thing with the row
+                                cell->realColumn = lastRealColumn;
+                        }
                 }
         }
 }
