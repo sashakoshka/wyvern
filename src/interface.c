@@ -23,7 +23,7 @@ static void  Interface_redraw                (void);
 static void  Interface_tabBar_redraw         (void);
 static void  Interface_editView_redraw       (void);
 static void  Interface_editView_drawRuler    (void);
-static void  Interface_editView_drawChars    (void);
+static void  Interface_editView_drawChars    (int);
 static void  Interface_editView_drawCharsRow (size_t);
 
 static void fontNormal     (void);
@@ -34,6 +34,7 @@ static void fontNormal     (void);
 static void onRedraw      (int, int);
 static void onMouseButton (Window_MouseButton, Window_State);
 static void onMouseMove   (int, int);
+static void onInterval    (void);
 
 static FT_Library         freetypeHandle     = { 0 };
 static FT_Face            freetypeFaceNormal = { 0 };
@@ -92,6 +93,9 @@ static Error Interface_setup (void) {
         Window_onRedraw(onRedraw);
         Window_onMouseButton(onMouseButton);
         Window_onMouseMove(onMouseMove);
+        Window_onInterval(onInterval);
+        
+        Window_interval = 500;
         Window_setTitle("Text Editor");
 
         return Error_none;
@@ -195,7 +199,7 @@ static void Interface_editView_redraw (void) {
         cairo_stroke(Window_context);
 
         Interface_editView_drawRuler();
-        Interface_editView_drawChars();
+        Interface_editView_drawChars(1);
 }
 
 static void Interface_editView_drawRuler (void) {
@@ -230,9 +234,8 @@ static void Interface_editView_drawRuler (void) {
         }
 }
 
-static void Interface_editView_drawChars (void) {
-        TextDisplay_grab(textDisplay);
-        fontNormal();
+static void Interface_editView_drawChars (int grabModel) {
+        if (grabModel) { TextDisplay_grab(textDisplay); }
 
         for (size_t y = 0; y < textDisplay->height; y ++) {
                 Interface_editView_drawCharsRow(y);
@@ -245,7 +248,9 @@ static void Interface_editView_drawCharsRow (size_t y) {
         
         for (size_t x = 0; x < textDisplay->width; x ++) {
                 size_t coordinate = y * textDisplay->width + x;
-                if (!textDisplay->cells[coordinate].damaged) { continue; }
+                TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
+                
+                if (!cell->damaged && !cell->hasCursor) { continue; }
                 textDisplay->cells[coordinate].damaged = 0;
                 
                 double realX = editView->textX;
@@ -259,8 +264,6 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         realX, realY,
                         glyphWidth, lineHeight);
                 cairo_fill(Window_context);
-
-                TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
 
                 int isSpace = isspace((char)(cell->rune));
                 if (!isSpace) { inIndent = 0; }
@@ -276,7 +279,7 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         cairo_stroke(Window_context);
                 }
                 
-                if (cell->hasCursor) {
+                if (cell->hasCursor && editView->cursorBlink) {
                         cairo_set_source_rgb(Window_context, TEXT_COLOR);
                         cairo_set_line_width(Window_context, 2);
                         cairo_move_to(Window_context, realX + 1, realY);
@@ -306,6 +309,7 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         .x     = realX,
                         .y     = realY + glyphHeight * 0.8
                 };
+                fontNormal();
                 cairo_set_source_rgb(Window_context, TEXT_COLOR);
                 cairo_show_glyphs(Window_context, &glyph, 1);
         }
@@ -351,7 +355,7 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                 if (state == Window_State_on) {
                         EditBuffer_scroll(editBuffer, scrollSize * -1);
                         Interface_editView_drawRuler();
-                        Interface_editView_drawChars();
+                        Interface_editView_drawChars(1);
                 }
                 break;
                 
@@ -359,7 +363,7 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                 if (state == Window_State_on) {
                         EditBuffer_scroll(editBuffer, scrollSize);
                         Interface_editView_drawRuler();
-                        Interface_editView_drawChars();
+                        Interface_editView_drawChars(1);
                 }
                 break;
         }
@@ -368,4 +372,9 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
 static void onMouseMove (int x, int y) {
         (void)(x);
         (void)(y);
+}
+
+static void onInterval (void) {
+        interface.editView.cursorBlink = !interface.editView.cursorBlink;
+        Interface_editView_drawChars(0);
 }

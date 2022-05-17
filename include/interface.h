@@ -44,6 +44,8 @@ typedef struct {
         double textY;
         double textWidth;
         double textHeight;
+
+        int cursorBlink;
 } Interface_EditView;
 
 typedef struct {

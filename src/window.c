@@ -96,9 +96,8 @@ Error Window_listen (void) {
         listening = 1;
         while (listening) {
                 XEvent event;
-                int reachedTimeout = nextXEventOrTimeout (
-                        &event, Window_interval);
-                if (reachedTimeout) {
+                int timedOut = nextXEventOrTimeout(&event, Window_interval);
+                if (timedOut) {
                         if (callbacks.onInterval == NULL) {
                                 return Error_nullCallback;
                         }
@@ -227,7 +226,7 @@ static int fileDescriptorTimeout (int fileDescriptor, time_t milliseconds) {
         FD_ZERO(&fileDescriptorSet);
         FD_SET(fileDescriptor, &fileDescriptorSet);
         
-        struct timeval time;
+        struct timeval time = { 0 };
         time.tv_usec = milliseconds * 1000;
         
         return select(fileDescriptor + 1, &fileDescriptorSet, 0, 0, &time);
