@@ -490,6 +490,11 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                 return;
         }
 
+        if (keySym >> 8 == 0 && state == Window_State_on) {
+                EditBuffer_insertRune(editBuffer, rune);
+                Interface_editView_drawChars(1);
+        }
+
         // if (state == Window_State_on) {
                 // printf("%lx\n", keySym);
         // }

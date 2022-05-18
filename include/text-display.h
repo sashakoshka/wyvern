@@ -22,6 +22,10 @@ typedef struct {
 
         size_t width;
         size_t height;
+
+        size_t lastRow;
+        size_t lastRealRow;
+        size_t lastRealColumn;
         
         TextDisplay_Cell *cells;
 } TextDisplay;

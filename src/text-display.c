@@ -64,7 +64,6 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
         }
         
         size_t realColumn      = 0;
-        size_t lastRealColumn  = 0;
         int    findNextTabStop = 0;
         for (size_t column = 0; column < textDisplay->width; column ++) {
                 Rune   new             = TEXTDISPLAY_EMPTY_CELL;
@@ -111,19 +110,21 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                 
                 if (realRow >= textDisplay->model->length) {
                         cell->realRow    = textDisplay->model->length - 1;
-                        cell->realColumn = 0;
-                        // TODO: store last real row in textDisplay, get column
-                        // from that
+                        cell->realColumn = textDisplay->cells [
+                                textDisplay->lastRow * textDisplay->width +
+                                column].realColumn;
                 } else {
                         cell->realRow    = realRow;
                         cell->realColumn = realColumn;
 
                         if (isOwnRune) {
-                                lastRealColumn = realColumn;
+                                textDisplay->lastRealColumn = realColumn;
+                                textDisplay->lastRealRow    = realRow;
+                                textDisplay->lastRow        = row;
                                 realColumn ++;
                         } else {
-                                // TODO: do the same thing with the row
-                                cell->realColumn = lastRealColumn;
+                                cell->realColumn = textDisplay->lastRealColumn;
+                                cell->realRow    = textDisplay->lastRealRow;
                         }
                 }
         }
