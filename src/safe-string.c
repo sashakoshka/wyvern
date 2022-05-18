@@ -155,6 +155,17 @@ void String_deleteRange (String *string, size_t start, size_t end) {
         String_realloc(string, string->length - offset);
 }
 
+/* String_splitInto
+ * Removes all characters after point (inclusive), and adds them to destination.
+ */
+void String_splitInto (String *string, String *destination, size_t point) {
+        for (size_t index = point; index < string->length; index ++) {
+                String_addRune(destination, string->buffer[index]);
+        }
+
+        String_realloc(string, point);
+}
+
 /* String_realloc
  * Resizes the internal buffer of the string to accomodate a string of
  * newLength, excluding the null terminator.

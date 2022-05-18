@@ -24,3 +24,4 @@ void String_insertRune   (String *, Rune, size_t);
 
 void String_deleteRune  (String *, size_t);
 void String_deleteRange (String *, size_t, size_t);
+void String_splitInto   (String *, String *, size_t);

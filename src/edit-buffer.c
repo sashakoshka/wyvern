@@ -100,7 +100,14 @@ void EditBuffer_insertRune (EditBuffer *editBuffer, Rune rune) {
         if (editBuffer->length == 0) { return; }
 
         if (rune == '\n') {
-                // TODO: split line in two
+                String *currentLine = EditBuffer_getCurrentLine(editBuffer);
+                String *newLine     = String_new("");
+                String_splitInto(currentLine, newLine, editBuffer->column);
+
+                editBuffer->row ++;
+                editBuffer->column = 0;
+
+                EditBuffer_placeLine(editBuffer, newLine, editBuffer->row);
                 return;
         }
 
@@ -272,13 +279,14 @@ static void EditBuffer_shiftDown (
         size_t     index,
         size_t     amount
 ) {
-        EditBuffer_realloc(editBuffer, editBuffer->length + amount);
+        size_t end       = editBuffer->length + amount;
+        size_t beginning = index + amount - 1;
+        EditBuffer_realloc(editBuffer, end);
 
-        size_t current = editBuffer->length - amount;
-        while (current --> index) {
-                editBuffer->lines[current] =
-                        editBuffer->lines[current + amount];
-                editBuffer->lines[current] = NULL;
+        for (size_t current = end - 1; current > beginning; current --) {
+                size_t target = current - amount;
+                editBuffer->lines[current] = editBuffer->lines[target];
+                editBuffer->lines[target] = NULL;
         }
 }
 

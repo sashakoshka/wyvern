@@ -511,6 +511,14 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                         Interface_editView_drawChars(1);
                 }
                 return;
+
+        case WINDOW_KEY_ENTER:
+                if (state == Window_State_on) {
+                        EditBuffer_insertRune(editBuffer, '\n');
+                        Interface_editView_drawChars(1);
+                        Interface_editView_drawRuler();
+                }
+                return;
         
         case WINDOW_KEY_BACKSPACE:
                 if (
