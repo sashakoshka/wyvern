@@ -490,21 +490,39 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                         Interface_editView_drawChars(1);
                 }
                 return;
+        
         case WINDOW_KEY_DOWN:
                 if (state == Window_State_on) {
                         EditBuffer_cursorMoveV(editBuffer, 1);
                         Interface_editView_drawChars(1);
                 }
                 return;
+        
         case WINDOW_KEY_LEFT:
                 if (state == Window_State_on) {
                         EditBuffer_cursorMoveH(editBuffer, -1);
                         Interface_editView_drawChars(1);
                 }
                 return;
+        
         case WINDOW_KEY_RIGHT:
                 if (state == Window_State_on) {
                         EditBuffer_cursorMoveH(editBuffer, 1);
+                        Interface_editView_drawChars(1);
+                }
+                return;
+        
+        case WINDOW_KEY_BACKSPACE:
+                if (state == Window_State_on) {
+                        EditBuffer_cursorMoveH(editBuffer, -1);
+                        EditBuffer_deleteRune(editBuffer);
+                        Interface_editView_drawChars(1);
+                }
+                return;
+        
+        case WINDOW_KEY_DELETE:
+                if (state == Window_State_on) {
+                        EditBuffer_deleteRune(editBuffer);
                         Interface_editView_drawChars(1);
                 }
                 return;
