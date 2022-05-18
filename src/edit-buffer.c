@@ -100,39 +100,40 @@ void EditBuffer_clear (EditBuffer *editBuffer) {
  */
 void EditBuffer_insertRune (EditBuffer *editBuffer, Rune rune) {
         if (editBuffer->length == 0) { return; }
+        EditBuffer_Cursor *cursor = &editBuffer->cursor;
 
         if (rune == '\n') {
                 String *currentLine = EditBuffer_getCurrentLine(editBuffer);
                 String *newLine     = String_new("");
-                String_splitInto(currentLine, newLine, editBuffer->column);
+                String_splitInto(currentLine, newLine, cursor->column);
 
-                editBuffer->row ++;
-                editBuffer->column = 0;
+                cursor->row ++;
+                cursor->column = 0;
 
-                EditBuffer_placeLine(editBuffer, newLine, editBuffer->row);
+                EditBuffer_placeLine(editBuffer, newLine, cursor->row);
                 return;
         }
 
         if (rune == '\t' && Options_tabsToSpaces) {
                 size_t spacesNeeded =
                         (size_t)(Options_tabSize) - (
-                                editBuffer->column %
+                                cursor->column %
                                 (size_t)(Options_tabSize));
 
                 size_t spacesLeft = spacesNeeded;
                 while (spacesLeft --> 0) {
                         String_insertRune (
-                                editBuffer->lines[editBuffer->row],
-                                ' ', editBuffer->column);
+                                editBuffer->lines[cursor->row],
+                                ' ', cursor->column);
                 }
 
-                editBuffer->column += spacesNeeded;
+                cursor->column += spacesNeeded;
                 return;
         }
 
         String_insertRune (
-                editBuffer->lines[editBuffer->row],
-                rune, editBuffer->column);
+                editBuffer->lines[cursor->row],
+                rune, cursor->column);
 }
 
 /* EditBuffer_deleteRune
@@ -141,21 +142,22 @@ void EditBuffer_insertRune (EditBuffer *editBuffer, Rune rune) {
  */
 void EditBuffer_deleteRune (EditBuffer *editBuffer) {
         if (editBuffer->length == 0) { return; }
+        EditBuffer_Cursor *cursor = &editBuffer->cursor;
 
         String *currentLine = EditBuffer_getCurrentLine(editBuffer);
         // if we within a line, we can just delete the rune we are on
-        if (editBuffer->column < currentLine->length) {
-                String_deleteRune(currentLine, editBuffer->column);
+        if (cursor->column < currentLine->length) {
+                String_deleteRune(currentLine, cursor->column);
                 return;
         }
 
         // cannot combine a line below
-        if (editBuffer->row >= editBuffer->length - 1) { return; }
+        if (cursor->row >= editBuffer->length - 1) { return; }
 
         // lift next line out and combine it with this one
-        String *nextLine = EditBuffer_getLine(editBuffer, editBuffer->row + 1);
+        String *nextLine = EditBuffer_getLine(editBuffer, cursor->row + 1);
         String_addString(currentLine, nextLine);
-        EditBuffer_shiftUp(editBuffer, editBuffer->row + 1, 1, 0);
+        EditBuffer_shiftUp(editBuffer, cursor->row + 1, 1, 0);
 }
 
 /* EditBuffer_scroll
@@ -179,7 +181,8 @@ String *EditBuffer_getLine (EditBuffer *editBuffer, size_t row) {
  * Returns the current line that the cursor is on.
  */
 String *EditBuffer_getCurrentLine (EditBuffer *editBuffer) {
-        return EditBuffer_getLine(editBuffer, editBuffer->row);
+        EditBuffer_Cursor *cursor = &editBuffer->cursor;
+        return EditBuffer_getLine(editBuffer, cursor->row);
 }
 
 /* TODO
@@ -194,22 +197,23 @@ String *EditBuffer_getCurrentLine (EditBuffer *editBuffer) {
  * (if possible),
  */
 void EditBuffer_cursorMoveH (EditBuffer *editBuffer, int amount) {
+        EditBuffer_Cursor *cursor = &editBuffer->cursor;
         size_t lineLength;
-        if (editBuffer->column == 0 && amount < 0) {
-                if (editBuffer->row > 0) {
-                        editBuffer->row --;
+        if (cursor->column == 0 && amount < 0) {
+                if (cursor->row > 0) {
+                        cursor->row --;
                         lineLength =
                                 EditBuffer_getCurrentLine(editBuffer)->length;
-                        editBuffer->column = lineLength;
+                        cursor->column = lineLength;
                 }
                 return;
         }
 
         lineLength = EditBuffer_getCurrentLine(editBuffer)->length;
-        if (editBuffer->column >= lineLength && amount > 0) {
-                if (editBuffer->row < editBuffer->length - 1) {
-                        editBuffer->row ++;
-                        editBuffer->column = 0;
+        if (cursor->column >= lineLength && amount > 0) {
+                if (cursor->row < editBuffer->length - 1) {
+                        cursor->row ++;
+                        cursor->column = 0;
                 }
                 return;
         }
@@ -217,10 +221,10 @@ void EditBuffer_cursorMoveH (EditBuffer *editBuffer, int amount) {
         size_t amountAbs;
         if (amount < 0) {
                 amountAbs = (size_t)(0 - amount);
-                editBuffer->column -= amountAbs;
+                cursor->column -= amountAbs;
         } else {
                 amountAbs = (size_t)(amount);
-                editBuffer->column += amountAbs;
+                cursor->column += amountAbs;
         }
 }
 
@@ -239,23 +243,24 @@ void EditBuffer_cursorMoveH (EditBuffer *editBuffer, int amount) {
  * 4. set new cursor position to the real position of that character
  */
 void EditBuffer_cursorMoveV (EditBuffer *editBuffer, int amount) {
-        size_t rowBefore = editBuffer->row;
-        editBuffer->row = constrainChange (
-                editBuffer->row,
+        EditBuffer_Cursor *cursor = &editBuffer->cursor;
+        size_t rowBefore = cursor->row;
+        cursor->row = constrainChange (
+                cursor->row,
                 amount,
                 editBuffer->length);
 
         size_t lineLength = EditBuffer_getCurrentLine(editBuffer)->length;
-        if (editBuffer->row == rowBefore) {
+        if (cursor->row == rowBefore) {
                 if (amount > 0) {
-                        editBuffer->column = lineLength;
+                        cursor->column = lineLength;
                 } else {
-                        editBuffer->column = 0;
+                        cursor->column = 0;
                 }
         }
 
-        if (editBuffer->column > lineLength) {
-                editBuffer->column = lineLength;
+        if (cursor->column > lineLength) {
+                cursor->column = lineLength;
         }
 }
 
@@ -270,8 +275,9 @@ void EditBuffer_cursorMoveTo (
         size_t column,
         size_t row
 ) {
-        editBuffer->column = column;
-        editBuffer->row    = row;
+        EditBuffer_Cursor *cursor = &editBuffer->cursor;
+        cursor->column = column;
+        cursor->row    = row;
 }
 
 void EditBuffer_changeIndent (EditBuffer *editBuffer, int);
@@ -339,6 +345,7 @@ static void EditBuffer_shiftUp (
  */
 static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
         if (newLength == editBuffer->length) { return; }
+        EditBuffer_Cursor *cursor = &editBuffer->cursor;
 
         if (newLength < editBuffer->size) {
                 // if the buffer is shrinking, just set the size to the new
@@ -363,8 +370,8 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
                 editBuffer->scroll = editBuffer->length;
         }
 
-        if (editBuffer->row >= editBuffer->length) {
-                editBuffer->row = editBuffer->length;
+        if (cursor->row >= editBuffer->length) {
+                cursor->row = editBuffer->length;
         }
 }
 

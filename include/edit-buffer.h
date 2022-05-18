@@ -8,6 +8,11 @@
 typedef struct {
         size_t row;
         size_t column;
+} EditBuffer_Cursor;
+
+typedef struct {
+        EditBuffer_Cursor cursor;
+        
         size_t scroll;
         
         size_t length;
