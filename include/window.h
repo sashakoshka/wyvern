@@ -71,8 +71,8 @@ typedef enum {
 } Window_MouseButton;
 
 typedef enum {
-        Window_State_on,
-        Window_State_off,
+        Window_State_on  = 1,
+        Window_State_off = 0,
 } Window_State;
 
 typedef unsigned long Window_KeySym;
