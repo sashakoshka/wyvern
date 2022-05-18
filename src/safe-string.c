@@ -186,5 +186,4 @@ static void String_realloc (String *string, size_t newLength) {
         
         string->buffer = realloc(string->buffer, string->size * sizeof(Rune));
         string->length = newLength;
-        string->buffer[string->length] = 0;
 }
