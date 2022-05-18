@@ -115,9 +115,21 @@ void EditBuffer_insertRune (EditBuffer *editBuffer, Rune rune) {
  */
 void EditBuffer_deleteRune (EditBuffer *editBuffer) {
         if (editBuffer->length == 0) { return; }
-        String_deleteRune (
-                editBuffer->lines[editBuffer->row],
-                editBuffer->column);
+
+        String *currentLine = EditBuffer_getCurrentLine(editBuffer);
+        // if we within a line, we can just delete the rune we are on
+        if (editBuffer->column < currentLine->length) {
+                String_deleteRune(currentLine, editBuffer->column);
+                return;
+        }
+
+        // cannot combine a line below
+        if (editBuffer->row >= editBuffer->length - 1) { return; }
+
+        // lift next line out and combine it with this one
+        String *nextLine = EditBuffer_getLine(editBuffer, editBuffer->row + 1);
+        String_addString(currentLine, nextLine);
+        EditBuffer_shiftUp(editBuffer, editBuffer->row + 1, 1, 0);
 }
 
 /* EditBuffer_scroll
@@ -143,6 +155,12 @@ String *EditBuffer_getLine (EditBuffer *editBuffer, size_t row) {
 String *EditBuffer_getCurrentLine (EditBuffer *editBuffer) {
         return EditBuffer_getLine(editBuffer, editBuffer->row);
 }
+
+/* TODO
+ * Make new struct called EditBuffer_Cursor, and make all functions that depend
+ * on cursor position (such as text insertion, deletion, and movement) members
+ * of that struct. Also make functions to do it to all of them at once.
+ */
 
 /* EditBuffer_cursorMoveH
  * Horizontally moves the cursor by amount. This function does bounds checking.
@@ -182,6 +200,17 @@ void EditBuffer_cursorMoveH (EditBuffer *editBuffer, int amount) {
 
 /* EditBuffer_cursorMoveV
  * Vertically moves the cursor by amount. This function does bounds checking.
+ *
+ * TODO: make this somewhat dependant on TextDisplay without introducing a
+ * dependancy cycle, perhapas just have TextDisplay handle it. It is nescessary
+ * to do this because vertical cursor movement needs to cross wrapped lines and
+ * account for runes larger than one cell so the movement makes sense to the
+ * user. The new function should follow these steps:
+ *
+ * 1. check if the buffer needs to be scrolled (if the cursor is at the edge)
+ * 2. if so, scroll it first
+ * 3. go up/down a row
+ * 4. set new cursor position to the real position of that character
  */
 void EditBuffer_cursorMoveV (EditBuffer *editBuffer, int amount) {
         size_t rowBefore = editBuffer->row;

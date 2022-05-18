@@ -513,7 +513,11 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                 return;
         
         case WINDOW_KEY_BACKSPACE:
-                if (state == Window_State_on) {
+                if (
+                        state == Window_State_on && (
+                                editBuffer->row    > 0 ||
+                                editBuffer->column > 0)
+                ) {
                         EditBuffer_cursorMoveH(editBuffer, -1);
                         EditBuffer_deleteRune(editBuffer);
                         Interface_editView_drawChars(1);
