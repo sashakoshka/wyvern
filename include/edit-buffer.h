@@ -29,6 +29,9 @@ void EditBuffer_deleteRune (EditBuffer *);
 
 void EditBuffer_scroll (EditBuffer *, int);
 
+String *EditBuffer_getLine        (EditBuffer *, size_t);
+String *EditBuffer_getCurrentLine (EditBuffer *);
+
 void EditBuffer_cursorMoveH     (EditBuffer *, int);
 void EditBuffer_cursorMoveV     (EditBuffer *, int);
 void EditBuffer_cursorMoveWordH (EditBuffer *, int);

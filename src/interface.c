@@ -475,23 +475,44 @@ static void onInterval (void) {
 }
 
 static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
+        // something is going to move or change - we need the cursor to be
+        // visible
+        interface.editView.cursorBlink = 1;
+        
         switch (keySym) {
         case WINDOW_KEY_SHIFT: modKeys.shift = state; return;
         case WINDOW_KEY_CTRL:  modKeys.ctrl  = state; return;
         case WINDOW_KEY_ALT:   modKeys.alt   = state; return;
 
         case WINDOW_KEY_UP:
+                if (state == Window_State_on) {
+                        EditBuffer_cursorMoveV(editBuffer, -1);
+                        Interface_editView_drawChars(1);
+                }
                 return;
         case WINDOW_KEY_DOWN:
+                if (state == Window_State_on) {
+                        EditBuffer_cursorMoveV(editBuffer, 1);
+                        Interface_editView_drawChars(1);
+                }
                 return;
         case WINDOW_KEY_LEFT:
+                if (state == Window_State_on) {
+                        EditBuffer_cursorMoveH(editBuffer, -1);
+                        Interface_editView_drawChars(1);
+                }
                 return;
         case WINDOW_KEY_RIGHT:
+                if (state == Window_State_on) {
+                        EditBuffer_cursorMoveH(editBuffer, 1);
+                        Interface_editView_drawChars(1);
+                }
                 return;
         }
 
         if (keySym >> 8 == 0 && state == Window_State_on) {
                 EditBuffer_insertRune(editBuffer, rune);
+                EditBuffer_cursorMoveH(editBuffer, 1);
                 Interface_editView_drawChars(1);
         }
 

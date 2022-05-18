@@ -9,7 +9,7 @@ int main () {
         // printf("%i\n", rune);
         
         EditBuffer *editBuffer = EditBuffer_new();
-        EditBuffer_open(editBuffer, "testfile2");
+        EditBuffer_open(editBuffer, "testfile");
         Interface_setEditBuffer(editBuffer);
         Interface_run();
 }

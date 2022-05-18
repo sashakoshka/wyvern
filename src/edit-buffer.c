@@ -130,13 +130,61 @@ void EditBuffer_scroll (EditBuffer *editBuffer, int amount) {
                 editBuffer->length);
 }
 
-void EditBuffer_cursorMoveH (EditBuffer *editBuffer, int amount);
+/* EditBuffer_getLine
+ * Returns the line at row.
+ */
+String *EditBuffer_getLine (EditBuffer *editBuffer, size_t row) {
+        return editBuffer->lines[row];
+}
+
+/* EditBuffer_getCurrentLine
+ * Returns the current line that the cursor is on.
+ */
+String *EditBuffer_getCurrentLine (EditBuffer *editBuffer) {
+        return EditBuffer_getLine(editBuffer, editBuffer->row);
+}
 
 /* EditBuffer_cursorMoveH
+ * Horizontally moves the cursor by amount. This function does bounds checking.
+ * If the cursor runs off the line, it is taken to the previous or next line
+ * (if possible),
+ */
+void EditBuffer_cursorMoveH (EditBuffer *editBuffer, int amount) {
+        size_t lineLength;
+        if (editBuffer->column == 0 && amount < 0) {
+                if (editBuffer->row > 0) {
+                        editBuffer->row --;
+                        lineLength =
+                                EditBuffer_getCurrentLine(editBuffer)->length;
+                        editBuffer->column = lineLength;
+                }
+                return;
+        }
+
+        lineLength = EditBuffer_getCurrentLine(editBuffer)->length;
+        if (editBuffer->column >= lineLength && amount > 0) {
+                if (editBuffer->row < editBuffer->length - 1) {
+                        editBuffer->row ++;
+                        editBuffer->column = 0;
+                }
+                return;
+        }
+
+        size_t amountAbs;
+        if (amount < 0) {
+                amountAbs = (size_t)(0 - amount);
+                editBuffer->column -= amountAbs;
+        } else {
+                amountAbs = (size_t)(amount);
+                editBuffer->column += amountAbs;
+        }
+}
+
+/* EditBuffer_cursorMoveV
  * Vertically moves the cursor by amount. This function does bounds checking.
  */
 void EditBuffer_cursorMoveV (EditBuffer *editBuffer, int amount) {
-        editBuffer->scroll = constrainChange (
+        editBuffer->row = constrainChange (
                 editBuffer->row,
                 amount,
                 editBuffer->length);
@@ -246,7 +294,7 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
         }
 }
 
-/* constrain
+/* constrainChange
  * Constrains a change in initial of amount, to a lower bound of 0 and an upper
  * bound of bound (bound is not inclusive).
  */
@@ -254,7 +302,7 @@ static size_t constrainChange (size_t initial, int amount, size_t bound) {
         size_t amountAbs;
         
         if (amount < 0) {
-                amountAbs = 0 - (size_t)amount;
+                amountAbs = (size_t)(0 - amount);
                 if (initial >= amountAbs) {
                         initial -= amountAbs;
                 } else {
