@@ -34,13 +34,30 @@ Error EditBuffer_open  (EditBuffer *, const char *);
 void  EditBuffer_copy  (EditBuffer *, const char *);
 void  EditBuffer_reset (EditBuffer *editBuffer);
 
-void EditBuffer_insertRune (EditBuffer *, Rune);
-void EditBuffer_deleteRune (EditBuffer *);
-
 void EditBuffer_scroll (EditBuffer *, int);
 
-String *EditBuffer_getLine        (EditBuffer *, size_t);
-String *EditBuffer_getCurrentLine (EditBuffer *);
+String *EditBuffer_getLine (EditBuffer *, size_t);
+
+// TODO: create methods for backspacing, overwriting, and inserting + moving 1
+// forward
+void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *, Rune);
+void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *);
+
+void EditBuffer_Cursor_moveH     (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_moveV     (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_moveWordH (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_moveWordV (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_moveTo    (EditBuffer_Cursor *, size_t, size_t);
+
+void EditBuffer_Cursor_changeIndent (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_insertString (EditBuffer_Cursor *, String *);
+
+String *EditBuffer_Cursor_getCurrentLine (EditBuffer_Cursor *);
+
+/* TODO: make these duplicates of the above functions that run for all cursors
+ * in the buffer
+void EditBuffer_insertRune (EditBuffer *, Rune);
+void EditBuffer_deleteRune (EditBuffer *);
 
 void EditBuffer_cursorMoveH     (EditBuffer *, int);
 void EditBuffer_cursorMoveV     (EditBuffer *, int);
@@ -50,3 +67,4 @@ void EditBuffer_cursorMoveTo    (EditBuffer *, size_t, size_t);
 
 void EditBuffer_changeIndent (EditBuffer *, int);
 void EditBuffer_insertBuffer (EditBuffer *, const char *);
+ */

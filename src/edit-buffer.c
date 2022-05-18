@@ -96,23 +96,22 @@ void EditBuffer_reset (EditBuffer *editBuffer) {
         *editBuffer = (const EditBuffer) { 0 };
 }
 
-/* EditBuffer_insertRune
+/* EditBuffer_Cursor_insertRune
  * Inserts a character at the current cursor position. If there are no lines in
  * the edit buffer, this function does nothing.
  */
-void EditBuffer_insertRune (EditBuffer *editBuffer, Rune rune) {
-        if (editBuffer->length == 0) { return; }
-        EditBuffer_Cursor *cursor = &editBuffer->cursor;
+void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
+        if (cursor->parent->length == 0) { return; }
+        String *currentLine = EditBuffer_Cursor_getCurrentLine(cursor);
 
         if (rune == '\n') {
-                String *currentLine = EditBuffer_getCurrentLine(editBuffer);
-                String *newLine     = String_new("");
+                String *newLine = String_new("");
                 String_splitInto(currentLine, newLine, cursor->column);
 
                 cursor->row ++;
                 cursor->column = 0;
 
-                EditBuffer_placeLine(editBuffer, newLine, cursor->row);
+                EditBuffer_placeLine(cursor->parent, newLine, cursor->row);
                 return;
         }
 
@@ -124,29 +123,24 @@ void EditBuffer_insertRune (EditBuffer *editBuffer, Rune rune) {
 
                 size_t spacesLeft = spacesNeeded;
                 while (spacesLeft --> 0) {
-                        String_insertRune (
-                                editBuffer->lines[cursor->row],
-                                ' ', cursor->column);
+                        String_insertRune(currentLine, ' ', cursor->column);
                 }
 
                 cursor->column += spacesNeeded;
                 return;
         }
 
-        String_insertRune (
-                editBuffer->lines[cursor->row],
-                rune, cursor->column);
+        String_insertRune(currentLine, rune, cursor->column);
 }
 
-/* EditBuffer_deleteRune
+/* EditBuffer_Cursor_deleteRune
  * Deletes the char at the cursor. If there are no lines in the edit buffer,
  * this function does nothing.
  */
-void EditBuffer_deleteRune (EditBuffer *editBuffer) {
-        if (editBuffer->length == 0) { return; }
-        EditBuffer_Cursor *cursor = &editBuffer->cursor;
-
-        String *currentLine = EditBuffer_getCurrentLine(editBuffer);
+void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
+        if (cursor->parent->length == 0) { return; }
+        String *currentLine = EditBuffer_Cursor_getCurrentLine(cursor);
+        
         // if we within a line, we can just delete the rune we are on
         if (cursor->column < currentLine->length) {
                 String_deleteRune(currentLine, cursor->column);
@@ -154,12 +148,12 @@ void EditBuffer_deleteRune (EditBuffer *editBuffer) {
         }
 
         // cannot combine a line below
-        if (cursor->row >= editBuffer->length - 1) { return; }
+        if (cursor->row >= cursor->parent->length - 1) { return; }
 
         // lift next line out and combine it with this one
-        String *nextLine = EditBuffer_getLine(editBuffer, cursor->row + 1);
+        String *nextLine = EditBuffer_getLine(cursor->parent, cursor->row + 1);
         String_addString(currentLine, nextLine);
-        EditBuffer_shiftUp(editBuffer, cursor->row + 1, 1, 0);
+        EditBuffer_shiftUp(cursor->parent, cursor->row + 1, 1, 0);
 }
 
 /* EditBuffer_scroll
@@ -172,48 +166,33 @@ void EditBuffer_scroll (EditBuffer *editBuffer, int amount) {
                 editBuffer->length);
 }
 
-/* EditBuffer_getLine
- * Returns the line at row.
- */
-String *EditBuffer_getLine (EditBuffer *editBuffer, size_t row) {
-        return editBuffer->lines[row];
-}
-
-/* EditBuffer_getCurrentLine
- * Returns the current line that the cursor is on.
- */
-String *EditBuffer_getCurrentLine (EditBuffer *editBuffer) {
-        EditBuffer_Cursor *cursor = &editBuffer->cursor;
-        return EditBuffer_getLine(editBuffer, cursor->row);
-}
-
 /* TODO
- * Make new struct called EditBuffer_Cursor, and make all functions that depend
+ * Make new struct called EditBuffer_Cursor_, and make all functions that depend
  * on cursor position (such as text insertion, deletion, and movement) members
  * of that struct. Also make functions to do it to all of them at once.
  */
 
-/* EditBuffer_cursorMoveH
+/* EditBuffer_Cursor_moveH
  * Horizontally moves the cursor by amount. This function does bounds checking.
  * If the cursor runs off the line, it is taken to the previous or next line
  * (if possible),
  */
-void EditBuffer_cursorMoveH (EditBuffer *editBuffer, int amount) {
-        EditBuffer_Cursor *cursor = &editBuffer->cursor;
+void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
         size_t lineLength;
         if (cursor->column == 0 && amount < 0) {
                 if (cursor->row > 0) {
                         cursor->row --;
-                        lineLength =
-                                EditBuffer_getCurrentLine(editBuffer)->length;
+                        lineLength = EditBuffer_Cursor_getCurrentLine (
+                                cursor
+                        )->length;
                         cursor->column = lineLength;
                 }
                 return;
         }
 
-        lineLength = EditBuffer_getCurrentLine(editBuffer)->length;
+        lineLength = EditBuffer_Cursor_getCurrentLine(cursor)->length;
         if (cursor->column >= lineLength && amount > 0) {
-                if (cursor->row < editBuffer->length - 1) {
+                if (cursor->row < cursor->parent->length - 1) {
                         cursor->row ++;
                         cursor->column = 0;
                 }
@@ -230,7 +209,7 @@ void EditBuffer_cursorMoveH (EditBuffer *editBuffer, int amount) {
         }
 }
 
-/* EditBuffer_cursorMoveV
+/* EditBuffer_Cursor_moveV
  * Vertically moves the cursor by amount. This function does bounds checking.
  *
  * TODO: make this somewhat dependant on TextDisplay without introducing a
@@ -244,15 +223,14 @@ void EditBuffer_cursorMoveH (EditBuffer *editBuffer, int amount) {
  * 3. go up/down a row
  * 4. set new cursor position to the real position of that character
  */
-void EditBuffer_cursorMoveV (EditBuffer *editBuffer, int amount) {
-        EditBuffer_Cursor *cursor = &editBuffer->cursor;
+void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
         size_t rowBefore = cursor->row;
         cursor->row = constrainChange (
                 cursor->row,
                 amount,
-                editBuffer->length);
+                cursor->parent->length);
 
-        size_t lineLength = EditBuffer_getCurrentLine(editBuffer)->length;
+        size_t lineLength = EditBuffer_Cursor_getCurrentLine(cursor)->length;
         if (cursor->row == rowBefore) {
                 if (amount > 0) {
                         cursor->column = lineLength;
@@ -266,24 +244,30 @@ void EditBuffer_cursorMoveV (EditBuffer *editBuffer, int amount) {
         }
 }
 
-void EditBuffer_cursorMoveWordH (EditBuffer *editBuffer, int);
-void EditBuffer_cursorMoveWordV (EditBuffer *editBuffer, int);
+void EditBuffer_Cursor_moveWordH (EditBuffer_Cursor *cursor, int);
+void EditBuffer_Cursor_moveWordV (EditBuffer_Cursor *cursor, int);
 
-/* EditBuffer_cursorMoveTo
+/* EditBuffer_Cursor_moveTo
  * Moves the cursor of the edit buffer to the specified row and column.
  */
-void EditBuffer_cursorMoveTo (
-        EditBuffer *editBuffer,
+void EditBuffer_Cursor_moveTo (
+        EditBuffer_Cursor *cursor,
         size_t column,
         size_t row
 ) {
-        EditBuffer_Cursor *cursor = &editBuffer->cursor;
         cursor->column = column;
         cursor->row    = row;
 }
 
-void EditBuffer_changeIndent (EditBuffer *editBuffer, int);
-void EditBuffer_insertBuffer (EditBuffer *editBuffer, const char *);
+void EditBuffer_Cursor_changeIndent (EditBuffer_Cursor *cursor, int);
+void EditBuffer_Cursor_insertString (EditBuffer_Cursor *cursor, String *string);
+
+/* EditBuffer_Cursor_getCurrentLine
+ * Returns a pointer to the line that the cursor is currently on.
+ */
+String *EditBuffer_Cursor_getCurrentLine (EditBuffer_Cursor *cursor) {
+        return cursor->parent->lines[cursor->row];
+}
 
 /* EditBuffer_placeLine
  * Inserts a line at the specified index, moving all lines after it downwards.
@@ -347,7 +331,6 @@ static void EditBuffer_shiftUp (
  */
 static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
         if (newLength == editBuffer->length) { return; }
-        EditBuffer_Cursor *cursor = &editBuffer->cursor;
 
         if (newLength < editBuffer->size) {
                 // if the buffer is shrinking, just set the size to the new
@@ -372,8 +355,8 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
                 editBuffer->scroll = editBuffer->length;
         }
 
-        if (cursor->row >= editBuffer->length) {
-                cursor->row = editBuffer->length;
+        if (editBuffer->cursor.row >= editBuffer->length) {
+                editBuffer->cursor.row = editBuffer->length;
         }
 }
 
