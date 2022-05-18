@@ -4,5 +4,6 @@
 
 A minimalist graphical text editor built with xlib and cairo.
 
-This is currently in early development. It cannot edit text yet, it can only
-display it, and all configuration values are hard-coded.
+This is currently in early development. ~~It cannot edit text yet, it can only
+display it~~, and all configuration values are hard-coded. Ok it can *kind of*
+edit text now but you can't save it though.
