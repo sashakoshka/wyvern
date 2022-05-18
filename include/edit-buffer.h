@@ -18,7 +18,7 @@ struct EditBuffer_Cursor {
 };
 
 struct EditBuffer {
-        EditBuffer_Cursor cursor[EDITBUFFER_MAX_CURSORS];
+        EditBuffer_Cursor cursors[EDITBUFFER_MAX_CURSORS];
         size_t            amountOfCursors;
         
         size_t scroll;
@@ -37,6 +37,7 @@ Error EditBuffer_open              (EditBuffer *, const char *);
 void  EditBuffer_copy              (EditBuffer *, const char *);
 void  EditBuffer_reset             (EditBuffer *);
 void  EditBuffer_clearExtraCursors (EditBuffer *);
+void  EditBuffer_addNewCursor      (EditBuffer *, size_t, size_t);
 
 void EditBuffer_scroll (EditBuffer *, int);
 

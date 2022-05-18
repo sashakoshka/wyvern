@@ -97,8 +97,7 @@ void EditBuffer_reset (EditBuffer *editBuffer) {
         }
 
         *editBuffer = (const EditBuffer) { 0 };
-        
-        // TODO: call cursor add function
+        EditBuffer_addNewCursor(editBuffer, 0, 0);
 }
 
 /* EditBuffer_clearExtraCursors
@@ -108,7 +107,24 @@ void EditBuffer_clearExtraCursors (EditBuffer *editBuffer) {
         editBuffer->amountOfCursors = 0;
 }
 
-// TODO: cursor add function
+/* EditBuffer_addNewCursor
+ * Adds a new cursor at the specified row and column.
+ */
+void EditBuffer_addNewCursor (
+        EditBuffer *editBuffer,
+        size_t column,
+        size_t row
+) {
+        // don't add a new cursor if we are at the max
+        if (editBuffer->amountOfCursors >= EDITBUFFER_MAX_CURSORS - 1) {
+                return;
+        }
+        
+        editBuffer->cursors[editBuffer->amountOfCursors].parent = editBuffer;
+        editBuffer->cursors[editBuffer->amountOfCursors].column = column;
+        editBuffer->cursors[editBuffer->amountOfCursors].row    = row;
+        editBuffer->amountOfCursors ++;
+}
 
 /* EditBuffer_Cursor_insertRune
  * Inserts a character at the current cursor position. If there are no lines in
@@ -248,27 +264,27 @@ static void EditBuffer_shiftUp (
  * Inserts a rune at all cursors.
  */
 void EditBuffer_cursorsInsertRune (EditBuffer *editBuffer, Rune rune) {
-        EditBuffer_Cursor_insertRune(&editBuffer->cursor, rune);
+        EditBuffer_Cursor_insertRune(&editBuffer->cursors[0], rune);
 }
 /* EditBuffer_cursorsInsertRune
  * Deletes a rune at all cursors.
  */
 void EditBuffer_cursorsDeleteRune (EditBuffer *editBuffer) {
-        EditBuffer_Cursor_deleteRune(&editBuffer->cursor);
+        EditBuffer_Cursor_deleteRune(&editBuffer->cursors[0]);
 }
 
 /* EditBuffer_cursorsMoveH
  * Moves all cursors horizontally by amount.
  */
 void EditBuffer_cursorsMoveH (EditBuffer *editBuffer, int amount) {
-        EditBuffer_Cursor_moveH(&editBuffer->cursor, amount);
+        EditBuffer_Cursor_moveH(&editBuffer->cursors[0], amount);
 }
 
 /* EditBuffer_cursorsMoveV
  * Moves all cursors vertically by amount.
  */
 void EditBuffer_cursorsMoveV (EditBuffer *editBuffer, int amount) {
-        EditBuffer_Cursor_moveV(&editBuffer->cursor, amount);
+        EditBuffer_Cursor_moveV(&editBuffer->cursors[0], amount);
 }
 
 // TODO
@@ -287,7 +303,7 @@ void EditBuffer_cursorsMoveTo (
         size_t column,
         size_t row
 ) {
-        EditBuffer_Cursor_moveTo(&editBuffer->cursor, column, row);
+        EditBuffer_Cursor_moveTo(&editBuffer->cursors[0], column, row);
 }
 
 // TODO
@@ -324,8 +340,8 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
                 editBuffer->scroll = editBuffer->length;
         }
 
-        if (editBuffer->cursor.row >= editBuffer->length) {
-                editBuffer->cursor.row = editBuffer->length;
+        if (editBuffer->cursors[0].row >= editBuffer->length) {
+                editBuffer->cursors[0].row = editBuffer->length;
         }
 }
 
