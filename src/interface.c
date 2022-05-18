@@ -436,7 +436,7 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                                 textDisplay,
                                 cellX, cellY,
                                 &realX, &realY);
-                        EditBuffer_cursorMoveTo(editBuffer, realX, realY);
+                        EditBuffer_cursorsMoveTo(editBuffer, realX, realY);
                         Interface_editView_drawChars(1);
                 }
                 break;
@@ -486,28 +486,28 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
 
         case WINDOW_KEY_UP:
                 if (state == Window_State_on) {
-                        EditBuffer_cursorMoveV(editBuffer, -1);
+                        EditBuffer_cursorsMoveV(editBuffer, -1);
                         Interface_editView_drawChars(1);
                 }
                 return;
         
         case WINDOW_KEY_DOWN:
                 if (state == Window_State_on) {
-                        EditBuffer_cursorMoveV(editBuffer, 1);
+                        EditBuffer_cursorsMoveV(editBuffer, 1);
                         Interface_editView_drawChars(1);
                 }
                 return;
         
         case WINDOW_KEY_LEFT:
                 if (state == Window_State_on) {
-                        EditBuffer_cursorMoveH(editBuffer, -1);
+                        EditBuffer_cursorsMoveH(editBuffer, -1);
                         Interface_editView_drawChars(1);
                 }
                 return;
         
         case WINDOW_KEY_RIGHT:
                 if (state == Window_State_on) {
-                        EditBuffer_cursorMoveH(editBuffer, 1);
+                        EditBuffer_cursorsMoveH(editBuffer, 1);
                         Interface_editView_drawChars(1);
                 }
                 return;
@@ -517,7 +517,7 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                 if (state == Window_State_on) {
                         // TODO: move horizontally in here, not in
                         // EditBuffer_insertRune
-                        EditBuffer_insertRune(editBuffer, '\n');
+                        EditBuffer_cursorsInsertRune(editBuffer, '\n');
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();
                 }
@@ -525,9 +525,9 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
 
         case WINDOW_KEY_TAB:
                 if (state == Window_State_on) {
-                        EditBuffer_insertRune(editBuffer, '\t');
+                        EditBuffer_cursorsInsertRune(editBuffer, '\t');
                         if (!Options_tabsToSpaces) {
-                                EditBuffer_cursorMoveH(editBuffer, 1);
+                                EditBuffer_cursorsMoveH(editBuffer, 1);
                         }
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();
@@ -540,8 +540,8 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                                 editBuffer->cursor.row    > 0 ||
                                 editBuffer->cursor.column > 0)
                 ) {
-                        EditBuffer_cursorMoveH(editBuffer, -1);
-                        EditBuffer_deleteRune(editBuffer);
+                        EditBuffer_cursorsMoveH(editBuffer, -1);
+                        EditBuffer_cursorsDeleteRune(editBuffer);
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();
                 }
@@ -549,7 +549,7 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         
         case WINDOW_KEY_DELETE:
                 if (state == Window_State_on) {
-                        EditBuffer_deleteRune(editBuffer);
+                        EditBuffer_cursorsDeleteRune(editBuffer);
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();
                 }
@@ -557,8 +557,8 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         }
 
         if (keySym >> 8 == 0 && state == Window_State_on) {
-                EditBuffer_insertRune(editBuffer, rune);
-                EditBuffer_cursorMoveH(editBuffer, 1);
+                EditBuffer_cursorsInsertRune(editBuffer, rune);
+                EditBuffer_cursorsMoveH(editBuffer, 1);
                 Interface_editView_drawChars(1);
         }
 

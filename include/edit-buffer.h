@@ -38,15 +38,15 @@ void EditBuffer_scroll (EditBuffer *, int);
 
 String *EditBuffer_getLine (EditBuffer *, size_t);
 
-void EditBuffer_insertRune         (EditBuffer *, Rune);
-void EditBuffer_deleteRune         (EditBuffer *);
-void EditBuffer_cursorMoveH        (EditBuffer *, int);
-void EditBuffer_cursorMoveV        (EditBuffer *, int);
-void EditBuffer_cursorMoveWordH    (EditBuffer *, int);
-void EditBuffer_cursorMoveWordV    (EditBuffer *, int);
-void EditBuffer_cursorMoveTo       (EditBuffer *, size_t, size_t);
-void EditBuffer_cursorChangeIndent (EditBuffer *, int);
-void EditBuffer_cursorInsertBuffer (EditBuffer *, const char *);
+void EditBuffer_cursorsInsertRune   (EditBuffer *, Rune);
+void EditBuffer_cursorsDeleteRune   (EditBuffer *);
+void EditBuffer_cursorsMoveH        (EditBuffer *, int);
+void EditBuffer_cursorsMoveV        (EditBuffer *, int);
+void EditBuffer_cursorsMoveWordH    (EditBuffer *, int);
+void EditBuffer_cursorsMoveWordV    (EditBuffer *, int);
+void EditBuffer_cursorsMoveTo       (EditBuffer *, size_t, size_t);
+void EditBuffer_cursorsChangeIndent (EditBuffer *, int);
+void EditBuffer_cursorsInsertString (EditBuffer *, String *);
 
 // TODO: create methods for backspacing, overwriting, and inserting + moving 1
 // forward

@@ -170,6 +170,14 @@ void EditBuffer_scroll (EditBuffer *editBuffer, int amount) {
                 editBuffer->length);
 }
 
+/* EditBuffer_getLine
+ * Returns the line at row.
+ */
+String *EditBuffer_getLine (EditBuffer *editBuffer, size_t row) {
+        return editBuffer->lines[row];
+}
+
+
 /* EditBuffer_placeLine
  * Inserts a line at the specified index, moving all lines after it downwards.
  */
@@ -226,7 +234,57 @@ static void EditBuffer_shiftUp (
         EditBuffer_realloc(editBuffer, end);
 }
 
-/* String_realloc
+/* EditBuffer_cursorsInsertRune
+ * Inserts a rune at all cursors.
+ */
+void EditBuffer_cursorsInsertRune (EditBuffer *editBuffer, Rune rune) {
+        EditBuffer_Cursor_insertRune(&editBuffer->cursor, rune);
+}
+/* EditBuffer_cursorsInsertRune
+ * Deletes a rune at all cursors.
+ */
+void EditBuffer_cursorsDeleteRune (EditBuffer *editBuffer) {
+        EditBuffer_Cursor_deleteRune(&editBuffer->cursor);
+}
+
+/* EditBuffer_cursorsMoveH
+ * Moves all cursors horizontally by amount.
+ */
+void EditBuffer_cursorsMoveH (EditBuffer *editBuffer, int amount) {
+        EditBuffer_Cursor_moveH(&editBuffer->cursor, amount);
+}
+
+/* EditBuffer_cursorsMoveV
+ * Moves all cursors vertically by amount.
+ */
+void EditBuffer_cursorsMoveV (EditBuffer *editBuffer, int amount) {
+        EditBuffer_Cursor_moveV(&editBuffer->cursor, amount);
+}
+
+// TODO
+void EditBuffer_cursorsMoveWordH    (EditBuffer *editBuffer, int amount);
+void EditBuffer_cursorsMoveWordV    (EditBuffer *editBuffer, int amount);
+
+/* EditBuffer_cursorsMoveTo
+ * Moves all cursors to one location.
+ *
+ * TODO: when multiple cursors are fully implemented, make another function to
+ * check if cursors overlap eachother and delete duplicates. Run this function
+ * whenever cursors change position.
+ */
+void EditBuffer_cursorsMoveTo ( 
+        EditBuffer *editBuffer,
+        size_t column,
+        size_t row
+) {
+        EditBuffer_Cursor_moveTo(&editBuffer->cursor, column, row);
+}
+
+// TODO
+void EditBuffer_cursorsChangeIndent (EditBuffer *, int);
+void EditBuffer_cursorsInsertString (EditBuffer *, String *);
+
+/* EditBuffer_realloc
  * Resizes the internal buffer of the edit buffer to accomodate a file of
  * newLength lines.
  */
@@ -264,12 +322,6 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
                   /* * * * * * * * * * * * * * * * * * * *
                    * EditBuffer_Cursor member functions  *
                    * * * * * * * * * * * * * * * * * * * */
-
-/* TODO
- * Make new struct called EditBuffer_Cursor_, and make all functions that depend
- * on cursor position (such as text insertion, deletion, and movement) members
- * of that struct. Also make functions to do it to all of them at once.
- */
 
 /* EditBuffer_Cursor_moveH
  * Horizontally moves the cursor by amount. This function does bounds checking.
@@ -321,6 +373,10 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
  * 2. if so, scroll it first
  * 3. go up/down a row
  * 4. set new cursor position to the real position of that character
+ *
+ * actually that might be a bad idea due to multiple cursors. it would not
+ * really work. possibly make a function in the unicode module that takes in a
+ * column and figures out the width of a rune and use that in various places.
  */
 void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
         size_t rowBefore = cursor->row;
@@ -343,6 +399,7 @@ void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
         }
 }
 
+// TODO
 void EditBuffer_Cursor_moveWordH (EditBuffer_Cursor *cursor, int);
 void EditBuffer_Cursor_moveWordV (EditBuffer_Cursor *cursor, int);
 
@@ -358,6 +415,7 @@ void EditBuffer_Cursor_moveTo (
         cursor->row    = row;
 }
 
+// TODO
 void EditBuffer_Cursor_changeIndent (EditBuffer_Cursor *cursor, int);
 void EditBuffer_Cursor_insertString (EditBuffer_Cursor *cursor, String *string);
 
@@ -365,7 +423,7 @@ void EditBuffer_Cursor_insertString (EditBuffer_Cursor *cursor, String *string);
  * Returns a pointer to the line that the cursor is currently on.
  */
 String *EditBuffer_Cursor_getCurrentLine (EditBuffer_Cursor *cursor) {
-        return cursor->parent->lines[cursor->row];
+        return EditBuffer_getLine(cursor->parent, cursor->row);
 }
 
                             /* * * * * * * * * * *
