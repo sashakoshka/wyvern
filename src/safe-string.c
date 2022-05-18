@@ -174,16 +174,15 @@ static void String_realloc (String *string, size_t newLength) {
         // TODO: stop allocating extra byte
         if (newLength == string->length) { return; }
 
-        size_t newSize = newLength + 1;
-        if (newSize < string->size) {
+        if (newLength < string->size) {
                 // if the string is shrinking, just set the size to the new
                 // size.
-                string->size = newSize;
+                string->size = newLength;
         } else {
                 // try multiplying the current size by 2
                 string->size *= 2;
                 // if that isn't enough, just exactly match the new size.
-                if (newSize > string->size) { string->size = newSize; }
+                if (newLength > string->size) { string->size = newLength; }
         }
         
         string->buffer = realloc(string->buffer, string->size * sizeof(Rune));
