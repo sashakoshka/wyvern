@@ -513,6 +513,7 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                 return;
 
         case WINDOW_KEY_ENTER:
+        case WINDOW_KEY_PAD_ENTER:
                 if (state == Window_State_on) {
                         EditBuffer_insertRune(editBuffer, '\n');
                         Interface_editView_drawChars(1);

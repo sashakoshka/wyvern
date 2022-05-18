@@ -11,7 +11,7 @@ char *Options_fontName;
  * Intializes the options module.
  */
 void Options_start () {
-        Options_tabSize      = 4;
+        Options_tabSize      = 8;
         Options_tabsToSpaces = 1;
         Options_scrollSize   = 8;
         Options_cursorSize   = 2;
