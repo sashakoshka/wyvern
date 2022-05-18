@@ -114,6 +114,12 @@ case $1 in
   run)
     buildAll && "./$DEBUG_PATH"
     ;;
+
+  lint)
+    clang-tidy \
+      -checks=portability-*,bugprone-*,-bugprone-macro-parentheses \
+      --warnings-as-errors=* "$SRC_PATH"/* -- $FLAGS_CFLAGS
+    ;;
     
   *) buildModule $1 $2 ;;
 esac
