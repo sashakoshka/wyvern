@@ -11,6 +11,10 @@ static void EditBuffer_shiftUp   (EditBuffer *, size_t, size_t, int);
 
 static size_t constrainChange (size_t, int, size_t);
 
+                      /* * * * * * * * * * * * * * * *
+                       * EditBuffer member functions *
+                       * * * * * * * * * * * * * * * */
+
 /* EditBuffer_new
  * Creates and initializes a new edit buffer.
  */
@@ -166,6 +170,101 @@ void EditBuffer_scroll (EditBuffer *editBuffer, int amount) {
                 editBuffer->length);
 }
 
+/* EditBuffer_placeLine
+ * Inserts a line at the specified index, moving all lines after it downwards.
+ */
+static void EditBuffer_placeLine (
+        EditBuffer *editBuffer,
+        String     *line,
+        size_t     index
+) {
+        EditBuffer_shiftDown(editBuffer, index, 1);
+        editBuffer->lines[index] = line;
+}
+
+/* EditBuffer_shiftDown
+ * Shifts the contents of the edit buffer down after index, leaving a gap of
+ * NULL pointers. This reallocates the buffer to accommodate the gap.
+ */
+static void EditBuffer_shiftDown (
+        EditBuffer *editBuffer,
+        size_t     index,
+        size_t     amount
+) {
+        size_t end       = editBuffer->length + amount;
+        size_t beginning = index + amount - 1;
+        EditBuffer_realloc(editBuffer, end);
+
+        for (size_t current = end - 1; current > beginning; current --) {
+                size_t target = current - amount;
+                editBuffer->lines[current] = editBuffer->lines[target];
+                editBuffer->lines[target] = NULL;
+        }
+}
+
+/* EditBuffer_shiftUp
+ * Shifts the contents of the edit buffer up after index. If keep is 0, the
+ * overwritten lines will be freed. Unless something else needs to be done with
+ * them, this should always be set to 0!
+ */
+static void EditBuffer_shiftUp (
+        EditBuffer *editBuffer,
+        size_t     index,
+        size_t     amount,
+        int        keep
+) {
+        size_t end      = editBuffer->length - amount;
+        size_t toDelete = amount;
+        for (; index < end; index ++) {
+                if (!keep && toDelete > 0) {
+                        String_free(editBuffer->lines[index]);
+                        toDelete --;
+                }
+                editBuffer->lines[index] = editBuffer->lines[index + amount];
+        }
+        
+        EditBuffer_realloc(editBuffer, end);
+}
+
+/* String_realloc
+ * Resizes the internal buffer of the edit buffer to accomodate a file of
+ * newLength lines.
+ */
+static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
+        if (newLength == editBuffer->length) { return; }
+
+        if (newLength < editBuffer->size) {
+                // if the buffer is shrinking, just set the size to the new
+                // size.
+                editBuffer->size = newLength;
+        } else {
+                // try multiplying the current size by 2
+                editBuffer->size *= 2;
+                // if that isn't enough, just exactly match the new size.
+                if (newLength > editBuffer->size) {
+                        editBuffer->size = newLength;
+                }
+        }
+        
+        editBuffer->lines = realloc (
+                editBuffer->lines,
+                editBuffer->size * sizeof(String *));
+        editBuffer->length = newLength;
+
+        // make sure cursor parameters are within bounds
+        if (editBuffer->scroll >= editBuffer->length) {
+                editBuffer->scroll = editBuffer->length;
+        }
+
+        if (editBuffer->cursor.row >= editBuffer->length) {
+                editBuffer->cursor.row = editBuffer->length;
+        }
+}
+
+                  /* * * * * * * * * * * * * * * * * * * *
+                   * EditBuffer_Cursor member functions  *
+                   * * * * * * * * * * * * * * * * * * * */
+
 /* TODO
  * Make new struct called EditBuffer_Cursor_, and make all functions that depend
  * on cursor position (such as text insertion, deletion, and movement) members
@@ -269,96 +368,9 @@ String *EditBuffer_Cursor_getCurrentLine (EditBuffer_Cursor *cursor) {
         return cursor->parent->lines[cursor->row];
 }
 
-/* EditBuffer_placeLine
- * Inserts a line at the specified index, moving all lines after it downwards.
- */
-static void EditBuffer_placeLine (
-        EditBuffer *editBuffer,
-        String     *line,
-        size_t     index
-) {
-        EditBuffer_shiftDown(editBuffer, index, 1);
-        editBuffer->lines[index] = line;
-}
-
-/* EditBuffer_shiftDown
- * Shifts the contents of the edit buffer down after index, leaving a gap of
- * NULL pointers. This reallocates the buffer to accommodate the gap.
- */
-static void EditBuffer_shiftDown (
-        EditBuffer *editBuffer,
-        size_t     index,
-        size_t     amount
-) {
-        size_t end       = editBuffer->length + amount;
-        size_t beginning = index + amount - 1;
-        EditBuffer_realloc(editBuffer, end);
-
-        for (size_t current = end - 1; current > beginning; current --) {
-                size_t target = current - amount;
-                editBuffer->lines[current] = editBuffer->lines[target];
-                editBuffer->lines[target] = NULL;
-        }
-}
-
-/* EditBuffer_shiftUp
- * Shifts the contents of the edit buffer up after index. If keep is 0, the
- * overwritten lines will be freed. Unless something else needs to be done with
- * them, this should always be set to 0!
- */
-static void EditBuffer_shiftUp (
-        EditBuffer *editBuffer,
-        size_t     index,
-        size_t     amount,
-        int        keep
-) {
-        size_t end      = editBuffer->length - amount;
-        size_t toDelete = amount;
-        for (; index < end; index ++) {
-                if (!keep && toDelete > 0) {
-                        String_free(editBuffer->lines[index]);
-                        toDelete --;
-                }
-                editBuffer->lines[index] = editBuffer->lines[index + amount];
-        }
-        
-        EditBuffer_realloc(editBuffer, end);
-}
-
-/* String_realloc
- * Resizes the internal buffer of the edit buffer to accomodate a file of
- * newLength lines.
- */
-static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
-        if (newLength == editBuffer->length) { return; }
-
-        if (newLength < editBuffer->size) {
-                // if the buffer is shrinking, just set the size to the new
-                // size.
-                editBuffer->size = newLength;
-        } else {
-                // try multiplying the current size by 2
-                editBuffer->size *= 2;
-                // if that isn't enough, just exactly match the new size.
-                if (newLength > editBuffer->size) {
-                        editBuffer->size = newLength;
-                }
-        }
-        
-        editBuffer->lines = realloc (
-                editBuffer->lines,
-                editBuffer->size * sizeof(String *));
-        editBuffer->length = newLength;
-
-        // make sure cursor parameters are within bounds
-        if (editBuffer->scroll >= editBuffer->length) {
-                editBuffer->scroll = editBuffer->length;
-        }
-
-        if (editBuffer->cursor.row >= editBuffer->length) {
-                editBuffer->cursor.row = editBuffer->length;
-        }
-}
+                            /* * * * * * * * * * *
+                             * Utility functions *
+                             * * * * * * * * * * */
 
 /* constrainChange
  * Constrains a change in initial of amount, to a lower bound of 0 and an upper
