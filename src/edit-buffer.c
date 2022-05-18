@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
+
 #include "edit-buffer.h"
+#include "options.h"
 
 static void EditBuffer_placeLine (EditBuffer *, String *, size_t);
 static void EditBuffer_realloc   (EditBuffer *, size_t);
@@ -108,6 +110,20 @@ void EditBuffer_insertRune (EditBuffer *editBuffer, Rune rune) {
                 editBuffer->column = 0;
 
                 EditBuffer_placeLine(editBuffer, newLine, editBuffer->row);
+                return;
+        }
+
+        if (rune == '\t' && Options_tabsToSpaces) {
+                size_t spacesNeeded =
+                        (size_t)(Options_tabSize) - (
+                                editBuffer->column %
+                                (size_t)(Options_tabSize));
+                
+                while (spacesNeeded --> 0) {
+                        String_insertRune (
+                                editBuffer->lines[editBuffer->row],
+                                ' ', editBuffer->column);
+                }
                 return;
         }
 
