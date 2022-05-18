@@ -293,13 +293,17 @@ static void EditBuffer_shiftUp (
         size_t     amount,
         int        keep
 ) {
-        size_t end = index + amount;
+        size_t end      = editBuffer->length - amount;
+        size_t toDelete = amount;
         for (; index < end; index ++) {
-                if (!keep) { String_free(editBuffer->lines[index]); }
+                if (!keep && toDelete > 0) {
+                        String_free(editBuffer->lines[index]);
+                        toDelete --;
+                }
                 editBuffer->lines[index] = editBuffer->lines[index + amount];
         }
         
-        EditBuffer_realloc(editBuffer, editBuffer->length - amount);
+        EditBuffer_realloc(editBuffer, end);
 }
 
 /* String_realloc
@@ -324,7 +328,7 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
         
         editBuffer->lines = realloc (
                 editBuffer->lines,
-                editBuffer->size * sizeof(editBuffer->lines));
+                editBuffer->size * sizeof(String *));
         editBuffer->length = newLength;
 
         // make sure cursor parameters are within bounds

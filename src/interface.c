@@ -521,6 +521,7 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                         EditBuffer_cursorMoveH(editBuffer, -1);
                         EditBuffer_deleteRune(editBuffer);
                         Interface_editView_drawChars(1);
+                        Interface_editView_drawRuler();
                 }
                 return;
         
@@ -528,6 +529,7 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                 if (state == Window_State_on) {
                         EditBuffer_deleteRune(editBuffer);
                         Interface_editView_drawChars(1);
+                        Interface_editView_drawRuler();
                 }
                 return;
         }
