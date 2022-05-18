@@ -1,7 +1,9 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "text-display.h"
+#include "options.h"
 
 static void TextDisplay_grabRow (TextDisplay *, size_t);
 static void TextDisplay_clear   (TextDisplay *);
@@ -72,7 +74,7 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                 TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
 
                 // if we are at a tab stop, stop looking for it (if we even are) 
-                if (column % TAB_WIDTH == 0) {
+                if (column % (size_t)(Options_tabSize) == 0) {
                         findNextTabStop = 0;
                 }
 

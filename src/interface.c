@@ -5,6 +5,7 @@
 #include FT_FREETYPE_H
 
 #include "interface.h"
+#include "options.h"
 #include "window.h"
 #include "stdio.h"
 #include "text-display.h"
@@ -46,16 +47,10 @@ static void onKey         (Window_KeySym, Rune, Window_State);
 static FT_Library         freetypeHandle     = { 0 };
 static FT_Face            freetypeFaceNormal = { 0 };
 static cairo_font_face_t *fontFaceNormal     = NULL;
-static char              *fontName           =
-        "/home/sashakoshka/.local/share/fonts/DMMono-Light.ttf";
 
-static int    fontSize       = 14;
 static double glyphHeight    = 0;
 static double lineHeight     = 0;
 static double glyphWidth     = 0;
-
-static int scrollSize = 8;
-static int cursorSize = 2;
 
 Interface interface = { 0 };
 static EditBuffer  *editBuffer  = NULL;
@@ -89,7 +84,10 @@ void Interface_setEditBuffer (EditBuffer *newEditBuffer) {
 static Error Interface_setup (void) {
         int err = FT_Init_FreeType(&freetypeHandle);
         if (err) { return Error_cantInitFreetype; }
-        err = FT_New_Face(freetypeHandle, fontName, 0, &freetypeFaceNormal);
+        err = FT_New_Face (
+                freetypeHandle,
+                Options_fontName,
+                0, &freetypeFaceNormal);
         if (err) { return Error_cantLoadFont; }
         fontFaceNormal = cairo_ft_font_face_create_for_ft_face (
                 freetypeFaceNormal, 0);
@@ -286,7 +284,7 @@ static void Interface_editView_drawCharsRow (size_t y) {
                 int isSpace = isspace((char)(cell->rune));
                 if (!isSpace) { inIndent = 0; }
                 
-                if (x % TAB_WIDTH == 0 && inIndent) {
+                if (x % (size_t)(Options_tabSize) == 0 && inIndent) {
                         cairo_set_source_rgb(Window_context, RULER_COLOR);
                         cairo_set_line_width(Window_context, 2);
                         cairo_move_to(Window_context, realX + 1, realY);
@@ -299,14 +297,16 @@ static void Interface_editView_drawCharsRow (size_t y) {
                 
                 if (cell->hasCursor && editView->cursorBlink) {
                         cairo_set_source_rgb(Window_context, CURSOR_COLOR);
-                        cairo_set_line_width(Window_context, cursorSize);
+                        cairo_set_line_width (
+                                Window_context,
+                                Options_cursorSize);
                         cairo_move_to (
                                 Window_context,
-                                realX + cursorSize / 2,
+                                realX + Options_cursorSize / 2,
                                 realY);
                         cairo_line_to (
                                 Window_context,
-                                realX + cursorSize / 2,
+                                realX + Options_cursorSize / 2,
                                 realY + glyphHeight);
                         cairo_stroke(Window_context);
                 }
@@ -371,7 +371,7 @@ static void Interface_editView_drawCharsRow (size_t y) {
 }
 
 static void fontNormal (void) {
-        cairo_set_font_size(Window_context, fontSize);
+        cairo_set_font_size(Window_context, Options_fontSize);
         cairo_set_font_face(Window_context, fontFaceNormal);
 }
 
@@ -448,7 +448,7 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                 break;
         case Window_MouseButton_scrollUp:
                 if (state == Window_State_on && inCell) {
-                        EditBuffer_scroll(editBuffer, scrollSize * -1);
+                        EditBuffer_scroll(editBuffer, Options_scrollSize * -1);
                         Interface_editView_drawRuler();
                         Interface_editView_drawChars(1);
                 }
@@ -456,7 +456,7 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                 
         case Window_MouseButton_scrollDown:
                 if (state == Window_State_on && inCell) {
-                        EditBuffer_scroll(editBuffer, scrollSize);
+                        EditBuffer_scroll(editBuffer, Options_scrollSize);
                         Interface_editView_drawRuler();
                         Interface_editView_drawChars(1);
                 }
