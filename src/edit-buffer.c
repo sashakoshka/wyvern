@@ -16,6 +16,7 @@ static size_t constrainChange (size_t, int, size_t);
  */
 EditBuffer *EditBuffer_new (void) {
         EditBuffer *editBuffer = calloc(1, sizeof(EditBuffer));
+        EditBuffer_reset(editBuffer);
         return editBuffer;
 }
 
@@ -23,7 +24,7 @@ EditBuffer *EditBuffer_new (void) {
  * Clears and frees an edit buffer.
  */
 void EditBuffer_free (EditBuffer *editBuffer) {
-        EditBuffer_clear(editBuffer);
+        EditBuffer_reset(editBuffer);
         free(editBuffer);
 }
 
@@ -31,7 +32,7 @@ void EditBuffer_free (EditBuffer *editBuffer) {
  * Loads a file into an edit buffer.
  */
 Error EditBuffer_open (EditBuffer *editBuffer, const char *filePath) {
-        EditBuffer_clear(editBuffer);
+        EditBuffer_reset(editBuffer);
         strncpy(editBuffer->filePath, filePath, PATH_MAX);
 
         FILE *file = fopen(filePath, "r");
@@ -64,7 +65,7 @@ Error EditBuffer_open (EditBuffer *editBuffer, const char *filePath) {
  * Copies in a char buffer into an edit buffer.
  */
 void EditBuffer_copy (EditBuffer *editBuffer, const char *buffer) {
-        EditBuffer_clear(editBuffer);
+        EditBuffer_reset(editBuffer);
 
         String *line = String_new("");
         char ch;
@@ -81,16 +82,17 @@ void EditBuffer_copy (EditBuffer *editBuffer, const char *buffer) {
         }
 }
 
-/* EditBuffer_clear
+/* EditBuffer_reset
  * Resets the buffer, clearing and freeing its contents. After this function,
  * the buffer itself can be safely freed, or new content can be loaded or
  * entered in.
  */
-void EditBuffer_clear (EditBuffer *editBuffer) {
+void EditBuffer_reset (EditBuffer *editBuffer) {
         for (size_t index = 0; index < editBuffer->length; index ++) {
                 String_free(editBuffer->lines[index]);
         }
 
+        editBuffer->cursor.parent = editBuffer;
         *editBuffer = (const EditBuffer) { 0 };
 }
 

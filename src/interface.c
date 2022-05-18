@@ -537,8 +537,8 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         case WINDOW_KEY_BACKSPACE:
                 if (
                         state == Window_State_on && (
-                                editBuffer->row    > 0 ||
-                                editBuffer->column > 0)
+                                editBuffer->cursor.row    > 0 ||
+                                editBuffer->cursor.column > 0)
                 ) {
                         EditBuffer_cursorMoveH(editBuffer, -1);
                         EditBuffer_deleteRune(editBuffer);

@@ -5,12 +5,17 @@
 #include "safe-string.h"
 #include "error.h"
 
-typedef struct {
+typedef struct EditBuffer_Cursor EditBuffer_Cursor;
+typedef struct EditBuffer        EditBuffer;
+
+struct EditBuffer_Cursor {
         size_t row;
         size_t column;
-} EditBuffer_Cursor;
 
-typedef struct {
+        EditBuffer *parent;
+};
+
+struct EditBuffer {
         EditBuffer_Cursor cursor;
         
         size_t scroll;
@@ -20,14 +25,14 @@ typedef struct {
         String **lines;
 
         char filePath[PATH_MAX];
-} EditBuffer;
+};
 
 EditBuffer *EditBuffer_new  (void);
 void        EditBuffer_free (EditBuffer *);
 
 Error EditBuffer_open  (EditBuffer *, const char *);
 void  EditBuffer_copy  (EditBuffer *, const char *);
-void  EditBuffer_clear (EditBuffer *editBuffer);
+void  EditBuffer_reset (EditBuffer *editBuffer);
 
 void EditBuffer_insertRune (EditBuffer *, Rune);
 void EditBuffer_deleteRune (EditBuffer *);
