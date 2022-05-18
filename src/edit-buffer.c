@@ -184,10 +184,24 @@ void EditBuffer_cursorMoveH (EditBuffer *editBuffer, int amount) {
  * Vertically moves the cursor by amount. This function does bounds checking.
  */
 void EditBuffer_cursorMoveV (EditBuffer *editBuffer, int amount) {
+        size_t rowBefore = editBuffer->row;
         editBuffer->row = constrainChange (
                 editBuffer->row,
                 amount,
                 editBuffer->length);
+
+        size_t lineLength = EditBuffer_getCurrentLine(editBuffer)->length;
+        if (editBuffer->row == rowBefore) {
+                if (amount > 0) {
+                        editBuffer->column = lineLength;
+                } else {
+                        editBuffer->column = 0;
+                }
+        }
+
+        if (editBuffer->column > lineLength) {
+                editBuffer->column = lineLength;
+        }
 }
 
 void EditBuffer_cursorMoveWordH (EditBuffer *editBuffer, int);
