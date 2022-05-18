@@ -8,6 +8,8 @@
 typedef struct EditBuffer_Cursor EditBuffer_Cursor;
 typedef struct EditBuffer        EditBuffer;
 
+#define EDITBUFFER_MAX_CURSORS 32
+
 struct EditBuffer_Cursor {
         size_t row;
         size_t column;
@@ -16,7 +18,8 @@ struct EditBuffer_Cursor {
 };
 
 struct EditBuffer {
-        EditBuffer_Cursor cursor;
+        EditBuffer_Cursor cursor[EDITBUFFER_MAX_CURSORS];
+        size_t            amountOfCursors;
         
         size_t scroll;
         
@@ -30,9 +33,10 @@ struct EditBuffer {
 EditBuffer *EditBuffer_new  (void);
 void        EditBuffer_free (EditBuffer *);
 
-Error EditBuffer_open  (EditBuffer *, const char *);
-void  EditBuffer_copy  (EditBuffer *, const char *);
-void  EditBuffer_reset (EditBuffer *editBuffer);
+Error EditBuffer_open              (EditBuffer *, const char *);
+void  EditBuffer_copy              (EditBuffer *, const char *);
+void  EditBuffer_reset             (EditBuffer *);
+void  EditBuffer_clearExtraCursors (EditBuffer *);
 
 void EditBuffer_scroll (EditBuffer *, int);
 

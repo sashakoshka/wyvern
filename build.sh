@@ -120,6 +120,11 @@ case $1 in
       -checks=portability-*,bugprone-*,-bugprone-macro-parentheses \
       --warnings-as-errors=* "$SRC_PATH"/* -- $FLAGS_CFLAGS
     ;;
+
+  val)
+    buildAll
+    valgrind --tool=memcheck --leak-check=yes $DEBUG_PATH
+    ;;
     
   *) buildModule $1 $2 ;;
 esac

@@ -97,8 +97,18 @@ void EditBuffer_reset (EditBuffer *editBuffer) {
         }
 
         *editBuffer = (const EditBuffer) { 0 };
-        editBuffer->cursor.parent = editBuffer;
+        
+        // TODO: call cursor add function
 }
+
+/* EditBuffer_clearExtraCursors
+ * Remove all cursors except the original one.
+ */
+void EditBuffer_clearExtraCursors (EditBuffer *editBuffer) {
+        editBuffer->amountOfCursors = 0;
+}
+
+// TODO: cursor add function
 
 /* EditBuffer_Cursor_insertRune
  * Inserts a character at the current cursor position. If there are no lines in
