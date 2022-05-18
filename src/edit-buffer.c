@@ -4,6 +4,14 @@
 #include "edit-buffer.h"
 #include "options.h"
 
+#define FOR_ALL_CURSORS(editBuffer)               \
+        for (                                      \
+                size_t index = 0;                   \
+                index < editBuffer->amountOfCursors; \
+                index ++                              \
+        ) { EditBuffer_Cursor *cursor = editBuffer->cursors + index;
+#define END }
+
 static void EditBuffer_placeLine (EditBuffer *, String *, size_t);
 static void EditBuffer_realloc   (EditBuffer *, size_t);
 static void EditBuffer_shiftDown (EditBuffer *, size_t, size_t);
@@ -147,66 +155,6 @@ int EditBuffer_hasCursorAt (EditBuffer *editBuffer, size_t column, size_t row) {
         return 0;
 }
 
-/* EditBuffer_Cursor_insertRune
- * Inserts a character at the current cursor position. If there are no lines in
- * the edit buffer, this function does nothing.
- */
-void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
-        if (cursor->parent->length == 0) { return; }
-        String *currentLine = EditBuffer_Cursor_getCurrentLine(cursor);
-
-        if (rune == '\n') {
-                String *newLine = String_new("");
-                String_splitInto(currentLine, newLine, cursor->column);
-
-                cursor->row ++;
-                cursor->column = 0;
-
-                EditBuffer_placeLine(cursor->parent, newLine, cursor->row);
-                return;
-        }
-
-        if (rune == '\t' && Options_tabsToSpaces) {
-                size_t spacesNeeded =
-                        (size_t)(Options_tabSize) - (
-                                cursor->column %
-                                (size_t)(Options_tabSize));
-
-                size_t spacesLeft = spacesNeeded;
-                while (spacesLeft --> 0) {
-                        String_insertRune(currentLine, ' ', cursor->column);
-                }
-
-                cursor->column += spacesNeeded;
-                return;
-        }
-
-        String_insertRune(currentLine, rune, cursor->column);
-}
-
-/* EditBuffer_Cursor_deleteRune
- * Deletes the char at the cursor. If there are no lines in the edit buffer,
- * this function does nothing.
- */
-void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
-        if (cursor->parent->length == 0) { return; }
-        String *currentLine = EditBuffer_Cursor_getCurrentLine(cursor);
-        
-        // if we within a line, we can just delete the rune we are on
-        if (cursor->column < currentLine->length) {
-                String_deleteRune(currentLine, cursor->column);
-                return;
-        }
-
-        // cannot combine a line below
-        if (cursor->row >= cursor->parent->length - 1) { return; }
-
-        // lift next line out and combine it with this one
-        String *nextLine = EditBuffer_getLine(cursor->parent, cursor->row + 1);
-        String_addString(currentLine, nextLine);
-        EditBuffer_shiftUp(cursor->parent, cursor->row + 1, 1, 0);
-}
-
 /* EditBuffer_scroll
  * Scrolls the edit buffer by amount. This function does bounds checking.
  */
@@ -285,27 +233,35 @@ static void EditBuffer_shiftUp (
  * Inserts a rune at all cursors.
  */
 void EditBuffer_cursorsInsertRune (EditBuffer *editBuffer, Rune rune) {
-        EditBuffer_Cursor_insertRune(&editBuffer->cursors[0], rune);
+        FOR_ALL_CURSORS (editBuffer)
+                EditBuffer_Cursor_insertRune(cursor, rune);
+        END
 }
 /* EditBuffer_cursorsInsertRune
  * Deletes a rune at all cursors.
  */
 void EditBuffer_cursorsDeleteRune (EditBuffer *editBuffer) {
-        EditBuffer_Cursor_deleteRune(&editBuffer->cursors[0]);
+        FOR_ALL_CURSORS (editBuffer)
+                EditBuffer_Cursor_deleteRune(cursor);
+        END
 }
 
 /* EditBuffer_cursorsMoveH
  * Moves all cursors horizontally by amount.
  */
 void EditBuffer_cursorsMoveH (EditBuffer *editBuffer, int amount) {
-        EditBuffer_Cursor_moveH(&editBuffer->cursors[0], amount);
+        FOR_ALL_CURSORS (editBuffer)
+                EditBuffer_Cursor_moveH(cursor, amount);
+        END
 }
 
 /* EditBuffer_cursorsMoveV
  * Moves all cursors vertically by amount.
  */
 void EditBuffer_cursorsMoveV (EditBuffer *editBuffer, int amount) {
-        EditBuffer_Cursor_moveV(&editBuffer->cursors[0], amount);
+        FOR_ALL_CURSORS (editBuffer)
+                EditBuffer_Cursor_moveV(cursor, amount);
+        END
 }
 
 // TODO
@@ -325,6 +281,7 @@ void EditBuffer_cursorsMoveTo (
         size_t row
 ) {
         EditBuffer_Cursor_moveTo(&editBuffer->cursors[0], column, row);
+        EditBuffer_clearExtraCursors(editBuffer);
 }
 
 // TODO
@@ -369,6 +326,66 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
                   /* * * * * * * * * * * * * * * * * * * *
                    * EditBuffer_Cursor member functions  *
                    * * * * * * * * * * * * * * * * * * * */
+
+/* EditBuffer_Cursor_insertRune
+ * Inserts a character at the current cursor position. If there are no lines in
+ * the edit buffer, this function does nothing.
+ */
+void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
+        if (cursor->parent->length == 0) { return; }
+        String *currentLine = EditBuffer_Cursor_getCurrentLine(cursor);
+
+        if (rune == '\n') {
+                String *newLine = String_new("");
+                String_splitInto(currentLine, newLine, cursor->column);
+
+                cursor->row ++;
+                cursor->column = 0;
+
+                EditBuffer_placeLine(cursor->parent, newLine, cursor->row);
+                return;
+        }
+
+        if (rune == '\t' && Options_tabsToSpaces) {
+                size_t spacesNeeded =
+                        (size_t)(Options_tabSize) - (
+                                cursor->column %
+                                (size_t)(Options_tabSize));
+
+                size_t spacesLeft = spacesNeeded;
+                while (spacesLeft --> 0) {
+                        String_insertRune(currentLine, ' ', cursor->column);
+                }
+
+                cursor->column += spacesNeeded;
+                return;
+        }
+
+        String_insertRune(currentLine, rune, cursor->column);
+}
+
+/* EditBuffer_Cursor_deleteRune
+ * Deletes the char at the cursor. If there are no lines in the edit buffer,
+ * this function does nothing.
+ */
+void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
+        if (cursor->parent->length == 0) { return; }
+        String *currentLine = EditBuffer_Cursor_getCurrentLine(cursor);
+        
+        // if we within a line, we can just delete the rune we are on
+        if (cursor->column < currentLine->length) {
+                String_deleteRune(currentLine, cursor->column);
+                return;
+        }
+
+        // cannot combine a line below
+        if (cursor->row >= cursor->parent->length - 1) { return; }
+
+        // lift next line out and combine it with this one
+        String *nextLine = EditBuffer_getLine(cursor->parent, cursor->row + 1);
+        String_addString(currentLine, nextLine);
+        EditBuffer_shiftUp(cursor->parent, cursor->row + 1, 1, 0);
+}
 
 /* EditBuffer_Cursor_moveH
  * Horizontally moves the cursor by amount. This function does bounds checking.
