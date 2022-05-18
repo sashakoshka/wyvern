@@ -526,16 +526,9 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         case WINDOW_KEY_TAB:
                 if (state == Window_State_on) {
                         EditBuffer_insertRune(editBuffer, '\t');
-                        if (Options_tabsToSpaces) {
-                                size_t distance = (size_t)(Options_tabSize) - (
-                                        editBuffer->column %
-                                        (size_t)(Options_tabSize)) - 1;
-
-                                while (distance --> 0) {
-                                        EditBuffer_cursorMoveH(editBuffer, 1);
-                                }
+                        if (!Options_tabsToSpaces) {
+                                EditBuffer_cursorMoveH(editBuffer, 1);
                         }
-                        EditBuffer_cursorMoveH(editBuffer, 1);
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();
                 }

@@ -118,12 +118,15 @@ void EditBuffer_insertRune (EditBuffer *editBuffer, Rune rune) {
                         (size_t)(Options_tabSize) - (
                                 editBuffer->column %
                                 (size_t)(Options_tabSize));
-                
-                while (spacesNeeded --> 0) {
+
+                size_t spacesLeft = spacesNeeded;
+                while (spacesLeft --> 0) {
                         String_insertRune (
                                 editBuffer->lines[editBuffer->row],
                                 ' ', editBuffer->column);
                 }
+
+                editBuffer->column += spacesNeeded;
                 return;
         }
 
