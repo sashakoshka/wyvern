@@ -96,8 +96,8 @@ void EditBuffer_reset (EditBuffer *editBuffer) {
                 String_free(editBuffer->lines[index]);
         }
 
-        editBuffer->cursor.parent = editBuffer;
         *editBuffer = (const EditBuffer) { 0 };
+        editBuffer->cursor.parent = editBuffer;
 }
 
 /* EditBuffer_Cursor_insertRune
