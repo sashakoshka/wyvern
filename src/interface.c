@@ -21,8 +21,8 @@
 // #define ACTIVE_TAB_COLOR 0.188, 0.212, 0.263
 
 #define HITBOX(xx, yy, element) \
-        xx > element.x && xx < element.x + element.width && \
-        yy > element.y && yy < element.y + element.height
+        xx > (element.x) && xx < (element.x) + (element.width) && \
+        yy > (element.y) && yy < (element.y) + (element.height)
 
 static Error Interface_setup                 (void);
 static void  Interface_recalculate           (int, int);
@@ -302,11 +302,11 @@ static void Interface_editView_drawCharsRow (size_t y) {
                                 Options_cursorSize);
                         cairo_move_to (
                                 Window_context,
-                                realX + Options_cursorSize / 2,
+                                realX + (double)(Options_cursorSize) / 2,
                                 realY);
                         cairo_line_to (
                                 Window_context,
-                                realX + Options_cursorSize / 2,
+                                realX + (double)(Options_cursorSize) / 2,
                                 realY + glyphHeight);
                         cairo_stroke(Window_context);
                 }

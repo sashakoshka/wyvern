@@ -296,9 +296,9 @@ static int nextXEventOrTimeout (XEvent *event, time_t milliseconds) {
 static Timestamp currentTimestamp () {
         struct timeval time; 
         gettimeofday(&time, NULL);
-        Timestamp milliseconds = (Timestamp) (
-                time.tv_sec  * 1000 +
-                time.tv_usec / 1000);
+        Timestamp milliseconds =
+                (Timestamp) (time.tv_sec  * 1000) +
+                (Timestamp) (time.tv_usec / 1000);
         return milliseconds;
 }
 

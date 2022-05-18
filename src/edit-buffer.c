@@ -35,7 +35,7 @@ Error EditBuffer_open (EditBuffer *editBuffer, const char *filePath) {
         FILE *file = fopen(filePath, "r");
         if (file == NULL) { return Error_cantOpenFile; }
 
-        String *line = line = String_new("");
+        String *line = String_new("");
         EditBuffer_placeLine (
                 editBuffer, line,
                 editBuffer->length);
@@ -64,8 +64,8 @@ Error EditBuffer_open (EditBuffer *editBuffer, const char *filePath) {
 void EditBuffer_copy (EditBuffer *editBuffer, const char *buffer) {
         EditBuffer_clear(editBuffer);
 
-        String *line = line = String_new("");
-        int ch;
+        String *line = String_new("");
+        char ch;
         for (size_t index = 0; (ch = buffer[index]); index ++) {
                 if (ch == '\n') {
                         EditBuffer_placeLine (
