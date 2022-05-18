@@ -171,7 +171,6 @@ void String_splitInto (String *string, String *destination, size_t point) {
  * newLength, excluding the null terminator.
  */
 static void String_realloc (String *string, size_t newLength) {
-        // TODO: stop allocating extra byte
         if (newLength == string->length) { return; }
 
         if (newLength < string->size) {
