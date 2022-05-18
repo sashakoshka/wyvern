@@ -38,6 +38,7 @@ void  EditBuffer_copy              (EditBuffer *, const char *);
 void  EditBuffer_reset             (EditBuffer *);
 void  EditBuffer_clearExtraCursors (EditBuffer *);
 void  EditBuffer_addNewCursor      (EditBuffer *, size_t, size_t);
+int   EditBuffer_hasCursorAt       (EditBuffer *, size_t, size_t);
 
 void EditBuffer_scroll (EditBuffer *, int);
 

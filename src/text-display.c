@@ -98,12 +98,9 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                         new = ' ';
                 }
 
-                // TODO: have function in EditBuffer to check if there is a
-                // cursor at the specified coordinates.
-                int hasCursor =
-                        realRow    == textDisplay->model->cursors[0].row    &&
-                        realColumn == textDisplay->model->cursors[0].column &&
-                        isOwnRune;
+                int hasCursor = EditBuffer_hasCursorAt (
+                        textDisplay->model,
+                        realColumn, realRow) && isOwnRune;
 
                 uint8_t damaged =
                         cell->rune != new |

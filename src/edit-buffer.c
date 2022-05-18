@@ -126,6 +126,27 @@ void EditBuffer_addNewCursor (
         editBuffer->amountOfCursors ++;
 }
 
+/* EditBuffer_hasCursorAt
+ * Returns 1 if there is a cursor at the specified coordinates, otherwise
+ * returns zero.
+ */
+int EditBuffer_hasCursorAt (EditBuffer *editBuffer, size_t column, size_t row) {
+        for (
+                size_t cursor = 0;
+                cursor < editBuffer->amountOfCursors;
+                cursor ++
+        ) {
+                if (
+                        editBuffer->cursors[cursor].column == column &&
+                        editBuffer->cursors[cursor].row    == row
+                ) {
+                        return 1;
+                }
+        }
+
+        return 0;
+}
+
 /* EditBuffer_Cursor_insertRune
  * Inserts a character at the current cursor position. If there are no lines in
  * the edit buffer, this function does nothing.
