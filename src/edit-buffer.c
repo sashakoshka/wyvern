@@ -596,8 +596,8 @@ static void EditBuffer_Cursor_wrangle (EditBuffer_Cursor *cursor) {
         
         line = EditBuffer_Cursor_getCurrentLine(cursor);
 
-        if (cursor->column >= line->length) {
-                cursor->column = line->length - 1;
+        if (cursor->column > line->length) {
+                cursor->column = line->length;
         }
 }
 
