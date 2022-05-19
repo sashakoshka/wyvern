@@ -244,16 +244,16 @@ static void EditBuffer_placeLine (
 }
 
 /* EditBuffer_shiftDown
- * Shifts the contents of the edit buffer down after index, leaving a gap of
+ * Shifts the contents of the edit buffer down after location, leaving a gap of
  * NULL pointers. This reallocates the buffer to accommodate the gap.
  */
 static void EditBuffer_shiftDown (
         EditBuffer *editBuffer,
-        size_t     index,
+        size_t     location,
         size_t     amount
 ) {
         size_t end       = editBuffer->length + amount;
-        size_t beginning = index + amount - 1;
+        size_t beginning = location + amount - 1;
         EditBuffer_realloc(editBuffer, end);
 
         for (size_t current = end - 1; current > beginning; current --) {
@@ -264,27 +264,35 @@ static void EditBuffer_shiftDown (
 }
 
 /* EditBuffer_shiftUp
- * Shifts the contents of the edit buffer up after index. If keep is 0, the
+ * Shifts the contents of the edit buffer up after location. If keep is 0, the
  * overwritten lines will be freed. Unless something else needs to be done with
  * them, this should always be set to 0!
  */
 static void EditBuffer_shiftUp (
         EditBuffer *editBuffer,
-        size_t     index,
+        size_t     location,
         size_t     amount,
         int        keep
 ) {
         size_t end      = editBuffer->length - amount;
         size_t toDelete = amount;
-        for (; index < end; index ++) {
+        for (size_t index = location; index < end; index ++) {
                 if (!keep && toDelete > 0) {
                         String_free(editBuffer->lines[index]);
                         toDelete --;
                 }
-                editBuffer->lines[index] = editBuffer->lines[index + amount];
+                editBuffer->lines[index] =
+                        editBuffer->lines[index + amount];
         }
         
         EditBuffer_realloc(editBuffer, end);
+
+        size_t cursorShiftStart = location + amount - 1;
+        START_ALL_CURSORS
+                if (cursor->row > cursorShiftStart) {
+                        EditBuffer_Cursor_moveV(cursor, -1 * (int)(amount));
+                }
+        END_ALL_CURSORS
 
         // since we deleted lines, there might be cursors that are now out of
         // bounds, and we need to bring them back in.
