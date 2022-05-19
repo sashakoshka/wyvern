@@ -12,10 +12,11 @@
         ) { EditBuffer_Cursor *cursor = editBuffer->cursors + index;
 #define END }
 
-static void EditBuffer_placeLine (EditBuffer *, String *, size_t);
-static void EditBuffer_realloc   (EditBuffer *, size_t);
-static void EditBuffer_shiftDown (EditBuffer *, size_t, size_t);
-static void EditBuffer_shiftUp   (EditBuffer *, size_t, size_t, int);
+static void EditBuffer_placeLine    (EditBuffer *, String *, size_t);
+static void EditBuffer_realloc      (EditBuffer *, size_t);
+static void EditBuffer_shiftDown    (EditBuffer *, size_t, size_t);
+static void EditBuffer_shiftUp      (EditBuffer *, size_t, size_t, int);
+static void EditBuffer_mergeCursors (EditBuffer *);
 
 static size_t constrainChange (size_t, int, size_t);
 
@@ -153,6 +154,53 @@ int EditBuffer_hasCursorAt (EditBuffer *editBuffer, size_t column, size_t row) {
         }
 
         return 0;
+}
+
+/* EditBuffer_mergeCursors
+ * Removes redundant, overlapping cursors. This should be called whenever a
+ * cursor moves.
+ */
+static void EditBuffer_mergeCursors (EditBuffer *editBuffer) {
+        // TODO: sort cursors by their distance to the main cursor
+
+        FOR_ALL_CURSORS (editBuffer)
+                for (
+                        size_t secondCursorIndex = 1;
+                        secondCursorIndex < editBuffer->amountOfCursors;
+                        secondCursorIndex ++
+                ) {
+                        EditBuffer_Cursor *secondCursor =
+                                editBuffer->cursors + secondCursorIndex;
+                        
+                        if (secondCursor->parent == NULL) { continue; }
+                        if (secondCursor == cursor)       { continue; }
+                        
+                        if (
+                                secondCursor->row    == cursor->row &&
+                                secondCursor->column == cursor->column
+                        ) {
+                                secondCursor->parent = NULL;
+                        }
+                }
+        END
+
+        FOR_ALL_CURSORS (editBuffer)
+                if (cursor->parent != NULL) { continue; }
+                EditBuffer_Cursor *previousCursor = cursor;
+                
+                for (
+                        size_t secondCursorIndex = 1;
+                        secondCursorIndex < editBuffer->amountOfCursors;
+                        secondCursorIndex ++
+                ) {
+                        EditBuffer_Cursor *secondCursor =
+                                editBuffer->cursors + secondCursorIndex;
+
+                        *previousCursor = *secondCursor;
+                        previousCursor = secondCursor;
+                }
+                editBuffer->amountOfCursors --;
+        END
 }
 
 /* EditBuffer_scroll
@@ -324,13 +372,9 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
                 editBuffer->size * sizeof(String *));
         editBuffer->length = newLength;
 
-        // make sure cursor parameters are within bounds
+        // make sure scroll is within bounds
         if (editBuffer->scroll >= editBuffer->length) {
                 editBuffer->scroll = editBuffer->length;
-        }
-
-        if (editBuffer->cursors[0].row >= editBuffer->length) {
-                editBuffer->cursors[0].row = editBuffer->length;
         }
 }
 
@@ -443,6 +487,8 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
                 amountAbs = (size_t)(amount);
                 cursor->column += amountAbs;
         }
+
+        EditBuffer_mergeCursors(cursor->parent);
 }
 
 /* EditBuffer_Cursor_moveV
@@ -482,6 +528,8 @@ void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
         if (cursor->column > lineLength) {
                 cursor->column = lineLength;
         }
+
+        EditBuffer_mergeCursors(cursor->parent);
 }
 
 // TODO
@@ -498,6 +546,8 @@ void EditBuffer_Cursor_moveTo (
 ) {
         cursor->column = column;
         cursor->row    = row;
+
+        EditBuffer_mergeCursors(cursor->parent);
 }
 
 // TODO
