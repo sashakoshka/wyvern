@@ -219,9 +219,10 @@ void EditBuffer_scroll (EditBuffer *editBuffer, int amount) {
 }
 
 /* EditBuffer_getLine
- * Returns the line at row.
+ * Returns the line at row. If it does not exist, this function returns NULL.
  */
 String *EditBuffer_getLine (EditBuffer *editBuffer, size_t row) {
+        if (row >= editBuffer->length) { return NULL; }
         return editBuffer->lines[row];
 }
 
@@ -395,8 +396,6 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
         if (editBuffer->scroll >= editBuffer->length) {
                 editBuffer->scroll = editBuffer->length;
         }
-
-        // EditBuffer_cursorsWrangle(editBuffer);
 }
 
                   /* * * * * * * * * * * * * * * * * * * *
@@ -448,7 +447,7 @@ void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
         if (cursor->parent->length == 0) { return; }
         String *currentLine = EditBuffer_Cursor_getCurrentLine(cursor);
         
-        // if we within a line, we can just delete the rune we are on
+        // if we are within a line, we can just delete the rune we are on
         if (cursor->column < currentLine->length) {
                 String_deleteRune(currentLine, cursor->column);
                 return;
@@ -461,6 +460,11 @@ void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
         String *nextLine = EditBuffer_getLine(cursor->parent, cursor->row + 1);
         String_addString(currentLine, nextLine);
         EditBuffer_shiftUp(cursor->parent, cursor->row + 1, 1, 0);
+
+        // since we deleted a line, there might be other cursors that are now
+        // out of bounds, and we need to bring them back in.
+        printf("%zu\n", cursor->parent->length);
+        EditBuffer_cursorsWrangle(cursor->parent);
 }
 
 /* EditBuffer_Cursor_backspaceRune
@@ -581,15 +585,19 @@ void EditBuffer_Cursor_insertString (EditBuffer_Cursor *cursor, String *string);
  */
 static void EditBuffer_Cursor_wrangle (EditBuffer_Cursor *cursor) {
         if (cursor->parent->length == 0) { return; }
+        String *line;
         
-        if (cursor->column >= cursor->parent->length) {
-                cursor->column = cursor->parent->length - 1;
+        if (cursor->row >= cursor->parent->length) {
+                cursor->row = cursor->parent->length - 1;
+                line = EditBuffer_Cursor_getCurrentLine(cursor);
+                cursor->column = line->length;
+                return;
         }
         
-        String *line = EditBuffer_Cursor_getCurrentLine(cursor);
+        line = EditBuffer_Cursor_getCurrentLine(cursor);
 
-        if (cursor->row >= line->length) {
-                cursor->row = line->length - 1;
+        if (cursor->column >= line->length) {
+                cursor->column = line->length - 1;
         }
 }
 
