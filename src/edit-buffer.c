@@ -112,7 +112,7 @@ void EditBuffer_reset (EditBuffer *editBuffer) {
  * Remove all cursors except the original one.
  */
 void EditBuffer_clearExtraCursors (EditBuffer *editBuffer) {
-        editBuffer->amountOfCursors = 0;
+        editBuffer->amountOfCursors = 1;
 }
 
 /* EditBuffer_addNewCursor
