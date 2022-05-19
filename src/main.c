@@ -7,7 +7,7 @@
 int main () {
         Options_start();
         EditBuffer *editBuffer = EditBuffer_new();
-        EditBuffer_open(editBuffer, "/home/sashakoshka/lab/ioccc/banks.c");
+        EditBuffer_open(editBuffer, "testfile");
         Interface_setEditBuffer(editBuffer);
         Interface_run();
 }

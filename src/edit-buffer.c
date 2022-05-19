@@ -12,11 +12,13 @@
         ) { EditBuffer_Cursor *cursor = editBuffer->cursors + index;
 #define END }
 
-static void EditBuffer_placeLine    (EditBuffer *, String *, size_t);
-static void EditBuffer_realloc      (EditBuffer *, size_t);
-static void EditBuffer_shiftDown    (EditBuffer *, size_t, size_t);
-static void EditBuffer_shiftUp      (EditBuffer *, size_t, size_t, int);
-static void EditBuffer_mergeCursors (EditBuffer *);
+static void EditBuffer_placeLine      (EditBuffer *, String *, size_t);
+static void EditBuffer_realloc        (EditBuffer *, size_t);
+static void EditBuffer_shiftDown      (EditBuffer *, size_t, size_t);
+static void EditBuffer_shiftUp        (EditBuffer *, size_t, size_t, int);
+static void EditBuffer_mergeCursors   (EditBuffer *);
+static void EditBuffer_cursorsWrangle (EditBuffer *);
+static void EditBuffer_Cursor_wrangle (EditBuffer_Cursor *);
 
 static size_t constrainChange (size_t, int, size_t);
 
@@ -161,11 +163,11 @@ int EditBuffer_hasCursorAt (EditBuffer *editBuffer, size_t column, size_t row) {
  * cursor moves.
  */
 static void EditBuffer_mergeCursors (EditBuffer *editBuffer) {
-        // TODO: sort cursors by their distance to the main cursor
+        // TODO: sort cursors by their distance from the main cursor
 
         FOR_ALL_CURSORS (editBuffer)
                 for (
-                        size_t secondCursorIndex = 1;
+                        size_t secondCursorIndex = index + 1;
                         secondCursorIndex < editBuffer->amountOfCursors;
                         secondCursorIndex ++
                 ) {
@@ -346,6 +348,15 @@ void EditBuffer_cursorsMoveTo (
 // TODO
 void EditBuffer_cursorsChangeIndent (EditBuffer *, int);
 void EditBuffer_cursorsInsertString (EditBuffer *, String *);
+
+/* EditBuffer_cursorsWrangle
+ * Moves all cursors within bounds.
+ */
+static void EditBuffer_cursorsWrangle (EditBuffer *editBuffer) {
+        FOR_ALL_CURSORS (editBuffer)
+                EditBuffer_Cursor_wrangle(cursor);
+        END
+}
 
 /* EditBuffer_realloc
  * Resizes the internal buffer of the edit buffer to accomodate a file of
@@ -553,6 +564,14 @@ void EditBuffer_Cursor_moveTo (
 // TODO
 void EditBuffer_Cursor_changeIndent (EditBuffer_Cursor *cursor, int);
 void EditBuffer_Cursor_insertString (EditBuffer_Cursor *cursor, String *string);
+
+/* EditBuffer_Cursor_wrangle
+ * Moves cursor within bounds.
+ */
+static void EditBuffer_Cursor_wrangle (EditBuffer_Cursor *cursor) {
+        String *line = EditBuffer_Cursor_getCurrentLine(cursor);
+        // TODO:
+}
 
 /* EditBuffer_Cursor_getCurrentLine
  * Returns a pointer to the line that the cursor is currently on.
