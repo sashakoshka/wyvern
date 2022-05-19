@@ -27,6 +27,8 @@ struct EditBuffer {
         size_t size;
         String **lines;
 
+        int dontMerge;
+
         char filePath[PATH_MAX];
 };
 

@@ -4,13 +4,15 @@
 #include "edit-buffer.h"
 #include "options.h"
 
-#define FOR_ALL_CURSORS(editBuffer)               \
-        for (                                      \
-                size_t index = 0;                   \
-                index < editBuffer->amountOfCursors; \
-                index ++                              \
-        ) { EditBuffer_Cursor *cursor = editBuffer->cursors + index;
-#define END }
+#define FOR_ALL_CURSORS                                            \
+        for (                                                       \
+                size_t index = 0;                                    \
+                index < editBuffer->amountOfCursors;                  \
+                index ++                                               \
+        ) {                                                             \
+                EditBuffer_Cursor *cursor = editBuffer->cursors + index; \
+                editBuffer->dontMerge = 1;
+#define END } editBuffer->dontMerge = 0;
 
 static void EditBuffer_placeLine      (EditBuffer *, String *, size_t);
 static void EditBuffer_realloc        (EditBuffer *, size_t);
@@ -163,9 +165,10 @@ int EditBuffer_hasCursorAt (EditBuffer *editBuffer, size_t column, size_t row) {
  * cursor moves.
  */
 static void EditBuffer_mergeCursors (EditBuffer *editBuffer) {
-        // TODO: sort cursors by their distance from the main cursor
+        // if we are currently looping over all cursors, don't merge yet
+        if (editBuffer->dontMerge) { return; }
 
-        FOR_ALL_CURSORS (editBuffer)
+        FOR_ALL_CURSORS
                 for (
                         size_t secondCursorIndex = index + 1;
                         secondCursorIndex < editBuffer->amountOfCursors;
@@ -186,7 +189,7 @@ static void EditBuffer_mergeCursors (EditBuffer *editBuffer) {
                 }
         END
 
-        FOR_ALL_CURSORS (editBuffer)
+        FOR_ALL_CURSORS
                 if (cursor->parent != NULL) { continue; }
                 EditBuffer_Cursor *previousCursor = cursor;
                 
@@ -283,7 +286,7 @@ static void EditBuffer_shiftUp (
  * Inserts a rune at all cursors.
  */
 void EditBuffer_cursorsInsertRune (EditBuffer *editBuffer, Rune rune) {
-        FOR_ALL_CURSORS (editBuffer)
+        FOR_ALL_CURSORS
                 EditBuffer_Cursor_insertRune(cursor, rune);
         END
 }
@@ -292,9 +295,10 @@ void EditBuffer_cursorsInsertRune (EditBuffer *editBuffer, Rune rune) {
  * Deletes a rune at all cursors.
  */
 void EditBuffer_cursorsDeleteRune (EditBuffer *editBuffer) {
-        FOR_ALL_CURSORS (editBuffer)
+        FOR_ALL_CURSORS
                 EditBuffer_Cursor_deleteRune(cursor);
         END
+        EditBuffer_mergeCursors(editBuffer);
 }
 
 /* EditBuffer_cursorsBackspaceRune
@@ -302,27 +306,30 @@ void EditBuffer_cursorsDeleteRune (EditBuffer *editBuffer) {
  * Cursors that cannot be moved back do not delete a rune.
  */
 void EditBuffer_cursorsBackspaceRune (EditBuffer *editBuffer) {
-        FOR_ALL_CURSORS (editBuffer)
+        FOR_ALL_CURSORS
                 EditBuffer_Cursor_backspaceRune(cursor);
         END
+        EditBuffer_mergeCursors(editBuffer);
 }
 
 /* EditBuffer_cursorsMoveH
  * Moves all cursors horizontally by amount.
  */
 void EditBuffer_cursorsMoveH (EditBuffer *editBuffer, int amount) {
-        FOR_ALL_CURSORS (editBuffer)
+        FOR_ALL_CURSORS
                 EditBuffer_Cursor_moveH(cursor, amount);
         END
+        EditBuffer_mergeCursors(editBuffer);
 }
 
 /* EditBuffer_cursorsMoveV
  * Moves all cursors vertically by amount.
  */
 void EditBuffer_cursorsMoveV (EditBuffer *editBuffer, int amount) {
-        FOR_ALL_CURSORS (editBuffer)
+        FOR_ALL_CURSORS
                 EditBuffer_Cursor_moveV(cursor, amount);
         END
+        EditBuffer_mergeCursors(editBuffer);
 }
 
 // TODO
@@ -353,9 +360,10 @@ void EditBuffer_cursorsInsertString (EditBuffer *, String *);
  * Moves all cursors within bounds.
  */
 static void EditBuffer_cursorsWrangle (EditBuffer *editBuffer) {
-        FOR_ALL_CURSORS (editBuffer)
+        FOR_ALL_CURSORS
                 EditBuffer_Cursor_wrangle(cursor);
         END
+        EditBuffer_mergeCursors(editBuffer);
 }
 
 /* EditBuffer_realloc
@@ -387,6 +395,8 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
         if (editBuffer->scroll >= editBuffer->length) {
                 editBuffer->scroll = editBuffer->length;
         }
+
+        // EditBuffer_cursorsWrangle(editBuffer);
 }
 
                   /* * * * * * * * * * * * * * * * * * * *
@@ -566,11 +576,21 @@ void EditBuffer_Cursor_changeIndent (EditBuffer_Cursor *cursor, int);
 void EditBuffer_Cursor_insertString (EditBuffer_Cursor *cursor, String *string);
 
 /* EditBuffer_Cursor_wrangle
- * Moves cursor within bounds.
+ * Moves cursor within bounds. If there are no lines in the edit buffer, this
+ * function does nothing.
  */
 static void EditBuffer_Cursor_wrangle (EditBuffer_Cursor *cursor) {
+        if (cursor->parent->length == 0) { return; }
+        
+        if (cursor->column >= cursor->parent->length) {
+                cursor->column = cursor->parent->length - 1;
+        }
+        
         String *line = EditBuffer_Cursor_getCurrentLine(cursor);
-        // TODO:
+
+        if (cursor->row >= line->length) {
+                cursor->row = line->length - 1;
+        }
 }
 
 /* EditBuffer_Cursor_getCurrentLine
