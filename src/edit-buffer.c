@@ -54,7 +54,7 @@ Error EditBuffer_open (EditBuffer *editBuffer, const char *filePath) {
         EditBuffer_placeLine (
                 editBuffer, line,
                 editBuffer->length);
-        int  reachedEnd = 0;
+        int reachedEnd = 0;
         while (!reachedEnd) {
                 Rune rune = Unicode_utf8FileGetRune(file, &reachedEnd);
                 if (rune == 0) { continue; }
@@ -237,12 +237,23 @@ void EditBuffer_cursorsInsertRune (EditBuffer *editBuffer, Rune rune) {
                 EditBuffer_Cursor_insertRune(cursor, rune);
         END
 }
+
 /* EditBuffer_cursorsInsertRune
  * Deletes a rune at all cursors.
  */
 void EditBuffer_cursorsDeleteRune (EditBuffer *editBuffer) {
         FOR_ALL_CURSORS (editBuffer)
                 EditBuffer_Cursor_deleteRune(cursor);
+        END
+}
+
+/* EditBuffer_cursorsBackspaceRune
+ * Moves all cursors back once, and then deletes the runes at the cursors.
+ * Cursors that cannot be moved back do not delete a rune.
+ */
+void EditBuffer_cursorsBackspaceRune (EditBuffer *editBuffer) {
+        FOR_ALL_CURSORS (editBuffer)
+                EditBuffer_Cursor_backspaceRune(cursor);
         END
 }
 
@@ -365,7 +376,7 @@ void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
 }
 
 /* EditBuffer_Cursor_deleteRune
- * Deletes the char at the cursor. If there are no lines in the edit buffer,
+ * Deletes the rune at the cursor. If there are no lines in the edit buffer,
  * this function does nothing.
  */
 void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
@@ -385,6 +396,16 @@ void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
         String *nextLine = EditBuffer_getLine(cursor->parent, cursor->row + 1);
         String_addString(currentLine, nextLine);
         EditBuffer_shiftUp(cursor->parent, cursor->row + 1, 1, 0);
+}
+
+/* EditBuffer_Cursor_backspaceRune
+ * Moves the cursor back once, and then deletes the rune at the cursor. If the
+ * cursor cannot be moved back, this function does nothing.
+ */
+void EditBuffer_Cursor_backspaceRune (EditBuffer_Cursor *cursor) {
+        if (cursor->column == 0 && cursor->row == 0) { return; }
+        EditBuffer_Cursor_moveH(cursor, -1);
+        EditBuffer_Cursor_deleteRune(cursor);
 }
 
 /* EditBuffer_Cursor_moveH

@@ -44,20 +44,22 @@ void EditBuffer_scroll (EditBuffer *, int);
 
 String *EditBuffer_getLine (EditBuffer *, size_t);
 
-void EditBuffer_cursorsInsertRune   (EditBuffer *, Rune);
-void EditBuffer_cursorsDeleteRune   (EditBuffer *);
-void EditBuffer_cursorsMoveH        (EditBuffer *, int);
-void EditBuffer_cursorsMoveV        (EditBuffer *, int);
-void EditBuffer_cursorsMoveWordH    (EditBuffer *, int);
-void EditBuffer_cursorsMoveWordV    (EditBuffer *, int);
-void EditBuffer_cursorsMoveTo       (EditBuffer *, size_t, size_t);
-void EditBuffer_cursorsChangeIndent (EditBuffer *, int);
-void EditBuffer_cursorsInsertString (EditBuffer *, String *);
+void EditBuffer_cursorsInsertRune    (EditBuffer *, Rune);
+void EditBuffer_cursorsDeleteRune    (EditBuffer *);
+void EditBuffer_cursorsBackspaceRune (EditBuffer *);
+void EditBuffer_cursorsMoveH         (EditBuffer *, int);
+void EditBuffer_cursorsMoveV         (EditBuffer *, int);
+void EditBuffer_cursorsMoveWordH     (EditBuffer *, int);
+void EditBuffer_cursorsMoveWordV     (EditBuffer *, int);
+void EditBuffer_cursorsMoveTo        (EditBuffer *, size_t, size_t);
+void EditBuffer_cursorsChangeIndent  (EditBuffer *, int);
+void EditBuffer_cursorsInsertString  (EditBuffer *, String *);
 
 // TODO: create methods for backspacing, overwriting, and inserting + moving 1
 // forward
 void EditBuffer_Cursor_insertRune        (EditBuffer_Cursor *, Rune);
 void EditBuffer_Cursor_deleteRune        (EditBuffer_Cursor *);
+void EditBuffer_Cursor_backspaceRune     (EditBuffer_Cursor *);
 void EditBuffer_Cursor_moveH             (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveV             (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveWordH         (EditBuffer_Cursor *, int);

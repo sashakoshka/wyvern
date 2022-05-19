@@ -4,7 +4,7 @@
 #include "error.h"
 #include "unicode.h"
 
-#define WINDOW_KEY_ESC         0xFF1B
+#define WINDOW_KEY_ESCAPE      0xFF1B
 #define WINDOW_KEY_PAUSE_BREAK 0xFF13
 #define WINDOW_KEY_MENU        0xFF67
 
