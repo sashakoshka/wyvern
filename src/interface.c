@@ -440,6 +440,15 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                                 textDisplay,
                                 cellX, cellY,
                                 &realX, &realY);
+                        
+                        if (modKeys.ctrl) {
+                                EditBuffer_addNewCursor (
+                                        editBuffer,
+                                        realX, realY);
+                                Interface_editView_drawChars(1);
+                                break;
+                        }
+                        
                         EditBuffer_cursorsMoveTo(editBuffer, realX, realY);
                         Interface_editView_drawChars(1);
                 }
@@ -479,6 +488,10 @@ static void onInterval (void) {
 }
 
 static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
+        // if (state == Window_State_on) {
+                // printf("%lx\n", keySym);
+        // }
+
         // something is going to move or change - we need the cursor to be
         // visible
         interface.editView.cursorBlink = 1;
@@ -542,13 +555,6 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                 EditBuffer_cursorsMoveH(editBuffer, 1);
                 Interface_editView_drawChars(1);
         }
-
-        // if (state == Window_State_on) {
-                // printf("%lx\n", keySym);
-        // }
-        (void)(keySym);
-        (void)(rune);
-        (void)(state);
 }
 
 static void onKeyUp (Window_State state) {
