@@ -552,7 +552,6 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
 
         if (keySym >> 8 == 0 && state == Window_State_on) {
                 EditBuffer_cursorsInsertRune(editBuffer, rune);
-                EditBuffer_cursorsMoveH(editBuffer, 1);
                 Interface_editView_drawChars(1);
         }
 }

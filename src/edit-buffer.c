@@ -261,6 +261,16 @@ static void EditBuffer_shiftDown (
                 editBuffer->lines[current] = editBuffer->lines[target];
                 editBuffer->lines[target] = NULL;
         }
+
+        // TODO: this doesn't work, fix
+        // if there are cursors that need to be shifted down, do so
+        // size_t cursorShiftStart = location + amount - 1;
+        // START_ALL_CURSORS
+                // printf("%zu\t%zu\n", cursor->row, cursorShiftStart);
+                // if (cursor->row > cursorShiftStart) {
+                        // EditBuffer_Cursor_moveV(cursor, (int)(amount));
+                // }
+        // END_ALL_CURSORS
 }
 
 /* EditBuffer_shiftUp
@@ -287,6 +297,7 @@ static void EditBuffer_shiftUp (
         
         EditBuffer_realloc(editBuffer, end);
 
+        // if there are cursors that need to be shifted up, do so
         size_t cursorShiftStart = location + amount - 1;
         START_ALL_CURSORS
                 if (cursor->row > cursorShiftStart) {
@@ -430,10 +441,8 @@ void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
                 String *newLine = String_new("");
                 String_splitInto(currentLine, newLine, cursor->column);
 
-                cursor->row ++;
-                cursor->column = 0;
-
-                EditBuffer_placeLine(cursor->parent, newLine, cursor->row);
+                EditBuffer_placeLine(cursor->parent, newLine, cursor->row + 1);
+                EditBuffer_Cursor_moveH(cursor, 1);
                 return;
         }
 
@@ -453,6 +462,7 @@ void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
         }
 
         String_insertRune(currentLine, rune, cursor->column);
+        EditBuffer_Cursor_moveH(cursor, 1);
 }
 
 /* EditBuffer_Cursor_deleteRune
