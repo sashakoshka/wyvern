@@ -184,14 +184,13 @@ void EditBuffer_insertRuneAt (
                 // fancy things relating to line breaks
                 String *newLine = String_new("");
                 String_splitInto(currentLine, newLine, column);
-
                 EditBuffer_placeLine(editBuffer, newLine, row + 1);
-                // EditBuffer_Cursor_moveH(cursor, 1);
+                
                 START_ALL_CURSORS
                         if (cursor->row == row) {
                                 cursor->row ++;
                                 // if (cursor->column > column) {
-                                        // cursor->column -= currentLine->length;
+                                        // cursor->column = currentLine->length;
                                 // } else {
                                         cursor->column = 0;
                                 // }
@@ -253,6 +252,14 @@ void EditBuffer_deleteRuneAt (
         String *nextLine = EditBuffer_getLine(editBuffer, row + 1);
         String_addString(currentLine, nextLine);
         EditBuffer_shiftUp(editBuffer, row + 1, 1, 0);
+
+        START_ALL_CURSORS
+                if (cursor->row == row && cursor->column > column) {
+                        
+                } else if (cursor->row > row) {
+                        cursor->row --;
+                }
+        END_ALL_CURSORS
 }
 
 /* EditBuffer_shiftCursorsInLineAfter
