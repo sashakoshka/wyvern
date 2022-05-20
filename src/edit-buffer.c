@@ -4,12 +4,12 @@
 #include "edit-buffer.h"
 #include "options.h"
 
-#define START_ALL_CURSORS                                                \
-        for (                                                       \
-                size_t index = 0;                                    \
-                index < editBuffer->amountOfCursors;                  \
-                index ++                                               \
-        ) {                                                             \
+#define START_ALL_CURSORS                         \
+        for (                                      \
+                size_t index = 0;                   \
+                index < editBuffer->amountOfCursors; \
+                index ++                              \
+        ) {                                            \
                 EditBuffer_Cursor *cursor = editBuffer->cursors + index;
 #define START_ALL_CURSORS_BATCH_OPERATION START_ALL_CURSORS \
         editBuffer->dontMerge = 1;
@@ -187,6 +187,18 @@ void EditBuffer_insertRuneAt (
 
                 EditBuffer_placeLine(editBuffer, newLine, row + 1);
                 // EditBuffer_Cursor_moveH(cursor, 1);
+                START_ALL_CURSORS
+                        if (cursor->row == row) {
+                                cursor->row ++;
+                                // if (cursor->column > column) {
+                                        // cursor->column -= currentLine->length;
+                                // } else {
+                                        cursor->column = 0;
+                                // }
+                        } else if (cursor->row > row) {
+                                cursor->row ++;
+                        }
+                END_ALL_CURSORS
                 return;
         }
 
@@ -201,7 +213,6 @@ void EditBuffer_insertRuneAt (
                         String_insertRune(currentLine, ' ', column);
                 }
 
-                // cursor->column += spacesNeeded;
                 EditBuffer_shiftCursorsInLineAfter (
                         editBuffer,
                         column, row,
@@ -211,11 +222,6 @@ void EditBuffer_insertRuneAt (
 
         // This is just a normal rune insertion
         String_insertRune(currentLine, rune, column);
-        // EditBuffer_Cursor_moveH(cursor, 1);
-        // TODO: move all cursors at and after this point forward. This will
-        // preserve the position of the inactive cursors and advance the active
-        // cursor forward at the same time!
-
         EditBuffer_shiftCursorsInLineAfter(editBuffer, column, row, 1);
 }
 
@@ -233,7 +239,10 @@ void EditBuffer_deleteRuneAt (
         // if we are within a line, we can just delete the rune we are on
         if (column < currentLine->length) {
                 String_deleteRune(currentLine, column);
-                EditBuffer_shiftCursorsInLineAfter(editBuffer, column + 1, row, - 1);
+                EditBuffer_shiftCursorsInLineAfter (
+                        editBuffer,
+                        column + 1, row,
+                        -1);
                 return;
         }
 
