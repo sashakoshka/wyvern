@@ -228,12 +228,12 @@ void EditBuffer_deleteRuneAt (
         EditBuffer *editBuffer,
         size_t column, size_t row
 ) {
-        
         String *currentLine = EditBuffer_getLine(editBuffer, row);
         
         // if we are within a line, we can just delete the rune we are on
         if (column < currentLine->length) {
                 String_deleteRune(currentLine, column);
+                EditBuffer_shiftCursorsInLineAfter(editBuffer, column + 1, row, - 1);
                 return;
         }
 
