@@ -22,6 +22,10 @@ static void EditBuffer_placeLine      (EditBuffer *, String *, size_t);
 static void EditBuffer_realloc        (EditBuffer *, size_t);
 static void EditBuffer_shiftDown      (EditBuffer *, size_t, size_t);
 static void EditBuffer_shiftUp        (EditBuffer *, size_t, size_t, int);
+static void EditBuffer_shiftCursorsInLineAfter (
+        EditBuffer *,
+        size_t, size_t,
+        int);
 static void EditBuffer_mergeCursors   (EditBuffer *);
 static void EditBuffer_cursorsWrangle (EditBuffer *);
 static void EditBuffer_Cursor_wrangle (EditBuffer_Cursor *);
@@ -198,6 +202,10 @@ void EditBuffer_insertRuneAt (
                 }
 
                 // cursor->column += spacesNeeded;
+                EditBuffer_shiftCursorsInLineAfter (
+                        editBuffer,
+                        column, row,
+                        (int)(spacesNeeded));
                 return;
         }
 
@@ -207,6 +215,8 @@ void EditBuffer_insertRuneAt (
         // TODO: move all cursors at and after this point forward. This will
         // preserve the position of the inactive cursors and advance the active
         // cursor forward at the same time!
+
+        EditBuffer_shiftCursorsInLineAfter(editBuffer, column, row, 1);
 }
 
 /* EditBuffer_deleteRuneAt
@@ -234,6 +244,25 @@ void EditBuffer_deleteRuneAt (
         String *nextLine = EditBuffer_getLine(editBuffer, row + 1);
         String_addString(currentLine, nextLine);
         EditBuffer_shiftUp(editBuffer, row + 1, 1, 0);
+}
+
+/* EditBuffer_shiftCursorsInLineAfter
+ * Shifts all cursors in row that are positioned at or equal to column by
+ * amount. This function should ONLY be used in rune insertion and deletion, and
+ * not as a replacement for EditBuffer_Cursor_moveH.
+ */
+static void EditBuffer_shiftCursorsInLineAfter (
+        EditBuffer *editBuffer,
+        size_t column, size_t row,
+        int amount
+) {
+        START_ALL_CURSORS
+                // printf("%zu %zu | %zu %zu\n", row, column, cursor->row, cursor->column);
+                if (cursor->row == row && cursor->column >= column) {
+                        puts("wow");
+                        cursor->column ++;
+                }
+        END_ALL_CURSORS
 }
 
 /* EditBuffer_mergeCursors
