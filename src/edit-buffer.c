@@ -249,15 +249,17 @@ void EditBuffer_deleteRuneAt (
         if (row >= editBuffer->length - 1) { return; }
 
         // lift next line out and combine it with this one
+        size_t previousLength = currentLine->length;
         String *nextLine = EditBuffer_getLine(editBuffer, row + 1);
         String_addString(currentLine, nextLine);
         EditBuffer_shiftUp(editBuffer, row + 1, 1, 0);
 
         START_ALL_CURSORS
-                if (cursor->row == row && cursor->column > column) {
-                        
-                } else if (cursor->row > row) {
+                if (cursor->row > row) {
                         cursor->row --;
+                        if (cursor->row == row) {
+                                cursor->column += previousLength;
+                        }
                 }
         END_ALL_CURSORS
 }
