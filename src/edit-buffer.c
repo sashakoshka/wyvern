@@ -257,10 +257,15 @@ static void EditBuffer_shiftCursorsInLineAfter (
         int amount
 ) {
         START_ALL_CURSORS
-                // printf("%zu %zu | %zu %zu\n", row, column, cursor->row, cursor->column);
                 if (cursor->row == row && cursor->column >= column) {
-                        puts("wow");
-                        cursor->column ++;
+                        size_t amountAbs;
+                        if (amount > 0) {
+                                amountAbs = (size_t)(amount);
+                                cursor->column += amountAbs;
+                        } else {
+                                amountAbs = (size_t)(-1 * amount);
+                                cursor->column -= amountAbs;
+                        }
                 }
         END_ALL_CURSORS
 }
