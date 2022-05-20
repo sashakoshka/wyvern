@@ -187,13 +187,22 @@ void EditBuffer_insertRuneAt (
                 EditBuffer_placeLine(editBuffer, newLine, row + 1);
                 
                 START_ALL_CURSORS
+                        // shift down cursors after the new line break
                         if (cursor->row == row) {
                                 cursor->row ++;
-                                // if (cursor->column > column) {
-                                        // cursor->column = currentLine->length;
-                                // } else {
+                                if (cursor->column > column) {
+                                        // this cursor was previously on the
+                                        // part of the line that got split and
+                                        // made into its own line. it needs to
+                                        // have its position set to the proper
+                                        // place on that new line.
+                                        cursor->column -= currentLine->length;
+                                } else {
+                                        // this is the cursor that caused the
+                                        // insertion, so it should wrap around
+                                        // to the beginning of the next line
                                         cursor->column = 0;
-                                // }
+                                }
                         } else if (cursor->row > row) {
                                 cursor->row ++;
                         }
@@ -255,9 +264,13 @@ void EditBuffer_deleteRuneAt (
         EditBuffer_shiftUp(editBuffer, row + 1, 1, 0);
 
         START_ALL_CURSORS
+                // shift up cursors under the current line
                 if (cursor->row > row) {
                         cursor->row --;
                         if (cursor->row == row) {
+                                // if the cursor was on a line that got merged
+                                // in, we need to shift the position over to the
+                                // right after it gets shifted up.
                                 cursor->column += previousLength;
                         }
                 }
