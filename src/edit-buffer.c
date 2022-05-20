@@ -189,18 +189,19 @@ void EditBuffer_insertRuneAt (
                 START_ALL_CURSORS
                         // shift down cursors after the new line break
                         if (cursor->row == row) {
-                                cursor->row ++;
                                 if (cursor->column > column) {
                                         // this cursor was previously on the
                                         // part of the line that got split and
                                         // made into its own line. it needs to
                                         // have its position set to the proper
                                         // place on that new line.
+                                        cursor->row ++;
                                         cursor->column -= currentLine->length;
-                                } else {
+                                } else if (cursor->column == column) {
                                         // this is the cursor that caused the
                                         // insertion, so it should wrap around
                                         // to the beginning of the next line
+                                        cursor->row ++;
                                         cursor->column = 0;
                                 }
                         } else if (cursor->row > row) {
