@@ -43,6 +43,10 @@ static void onMouseButton (Window_MouseButton, Window_State);
 static void onMouseMove   (int, int);
 static void onInterval    (void);
 static void onKey         (Window_KeySym, Rune, Window_State);
+static void onKeyUp       (Window_State);
+static void onKeyDown     (Window_State);
+static void onKeyLeft     (Window_State);
+static void onKeyRight    (Window_State);
 
 static FT_Library         freetypeHandle     = { 0 };
 static FT_Face            freetypeFaceNormal = { 0 };
@@ -436,7 +440,16 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                                 textDisplay,
                                 cellX, cellY,
                                 &realX, &realY);
-                        EditBuffer_cursorMoveTo(editBuffer, realX, realY);
+                        
+                        if (modKeys.ctrl) {
+                                EditBuffer_addNewCursor (
+                                        editBuffer,
+                                        realX, realY);
+                                Interface_editView_drawChars(1);
+                                break;
+                        }
+                        
+                        EditBuffer_cursorsMoveTo(editBuffer, realX, realY);
                         Interface_editView_drawChars(1);
                 }
                 break;
@@ -475,6 +488,10 @@ static void onInterval (void) {
 }
 
 static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
+        // if (state == Window_State_on) {
+                // printf("%lx\n", keySym);
+        // }
+
         // something is going to move or change - we need the cursor to be
         // visible
         interface.editView.cursorBlink = 1;
@@ -484,40 +501,22 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         case WINDOW_KEY_CTRL:  modKeys.ctrl  = state; return;
         case WINDOW_KEY_ALT:   modKeys.alt   = state; return;
 
-        case WINDOW_KEY_UP:
-                if (state == Window_State_on) {
-                        EditBuffer_cursorMoveV(editBuffer, -1);
-                        Interface_editView_drawChars(1);
-                }
-                return;
-        
-        case WINDOW_KEY_DOWN:
-                if (state == Window_State_on) {
-                        EditBuffer_cursorMoveV(editBuffer, 1);
-                        Interface_editView_drawChars(1);
-                }
-                return;
-        
-        case WINDOW_KEY_LEFT:
-                if (state == Window_State_on) {
-                        EditBuffer_cursorMoveH(editBuffer, -1);
-                        Interface_editView_drawChars(1);
-                }
-                return;
-        
-        case WINDOW_KEY_RIGHT:
-                if (state == Window_State_on) {
-                        EditBuffer_cursorMoveH(editBuffer, 1);
-                        Interface_editView_drawChars(1);
-                }
-                return;
+        case WINDOW_KEY_UP:    onKeyUp(state);    return;
+        case WINDOW_KEY_DOWN:  onKeyDown(state);  return;
+        case WINDOW_KEY_LEFT:  onKeyLeft(state);  return;
+        case WINDOW_KEY_RIGHT: onKeyRight(state); return;
+
+        case WINDOW_KEY_ESCAPE:
+                EditBuffer_clearExtraCursors(editBuffer);
+                Interface_editView_drawChars(1);
+                break;
 
         case WINDOW_KEY_ENTER:
         case WINDOW_KEY_PAD_ENTER:
                 if (state == Window_State_on) {
                         // TODO: move horizontally in here, not in
                         // EditBuffer_insertRune
-                        EditBuffer_insertRune(editBuffer, '\n');
+                        EditBuffer_cursorsInsertRune(editBuffer, '\n');
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();
                 }
@@ -525,9 +524,9 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
 
         case WINDOW_KEY_TAB:
                 if (state == Window_State_on) {
-                        EditBuffer_insertRune(editBuffer, '\t');
+                        EditBuffer_cursorsInsertRune(editBuffer, '\t');
                         if (!Options_tabsToSpaces) {
-                                EditBuffer_cursorMoveH(editBuffer, 1);
+                                EditBuffer_cursorsMoveH(editBuffer, 1);
                         }
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();
@@ -535,13 +534,8 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
                 return;
         
         case WINDOW_KEY_BACKSPACE:
-                if (
-                        state == Window_State_on && (
-                                editBuffer->row    > 0 ||
-                                editBuffer->column > 0)
-                ) {
-                        EditBuffer_cursorMoveH(editBuffer, -1);
-                        EditBuffer_deleteRune(editBuffer);
+                if (state == Window_State_on) {
+                        EditBuffer_cursorsBackspaceRune(editBuffer);
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();
                 }
@@ -549,7 +543,7 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         
         case WINDOW_KEY_DELETE:
                 if (state == Window_State_on) {
-                        EditBuffer_deleteRune(editBuffer);
+                        EditBuffer_cursorsDeleteRune(editBuffer);
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();
                 }
@@ -557,16 +551,45 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         }
 
         if (keySym >> 8 == 0 && state == Window_State_on) {
-                EditBuffer_insertRune(editBuffer, rune);
-                EditBuffer_cursorMoveH(editBuffer, 1);
+                EditBuffer_cursorsInsertRune(editBuffer, rune);
                 Interface_editView_drawChars(1);
         }
-
-        // if (state == Window_State_on) {
-                // printf("%lx\n", keySym);
-        // }
-        (void)(keySym);
-        (void)(rune);
-        (void)(state);
 }
 
+static void onKeyUp (Window_State state) {
+        if (state != Window_State_on) { return; }
+        if (modKeys.shift && modKeys.alt) {
+                size_t column = editBuffer->cursors[0].column;
+                size_t row    = editBuffer->cursors[0].row;
+                EditBuffer_Cursor_moveV(editBuffer->cursors, -1);
+                EditBuffer_addNewCursor(editBuffer, column, row);
+        } else {
+                EditBuffer_cursorsMoveV(editBuffer, -1);
+        }
+        Interface_editView_drawChars(1);
+}
+
+static void onKeyDown (Window_State state) {
+        if (state != Window_State_on) { return; }
+        if (modKeys.shift && modKeys.alt) {
+                size_t column = editBuffer->cursors[0].column;
+                size_t row    = editBuffer->cursors[0].row;
+                EditBuffer_Cursor_moveV(editBuffer->cursors, 1);
+                EditBuffer_addNewCursor(editBuffer, column, row);
+        } else {
+                EditBuffer_cursorsMoveV(editBuffer, 1);
+        }
+        Interface_editView_drawChars(1);
+}
+
+static void onKeyLeft (Window_State state) {
+        if (state != Window_State_on) { return; }
+        EditBuffer_cursorsMoveH(editBuffer, -1);
+        Interface_editView_drawChars(1);
+}
+
+static void onKeyRight (Window_State state) {
+        if (state != Window_State_on) { return; }
+        EditBuffer_cursorsMoveH(editBuffer, 1);
+        Interface_editView_drawChars(1);
+}

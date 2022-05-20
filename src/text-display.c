@@ -98,10 +98,9 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                         new = ' ';
                 }
 
-                int hasCursor =
-                        realRow    == textDisplay->model->row    &&
-                        realColumn == textDisplay->model->column &&
-                        isOwnRune;
+                int hasCursor = EditBuffer_hasCursorAt (
+                        textDisplay->model,
+                        realColumn, realRow) && isOwnRune;
 
                 uint8_t damaged =
                         cell->rune != new |

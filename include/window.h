@@ -4,7 +4,7 @@
 #include "error.h"
 #include "unicode.h"
 
-#define WINDOW_KEY_ESC         0xFF1B
+#define WINDOW_KEY_ESCAPE      0xFF1B
 #define WINDOW_KEY_PAUSE_BREAK 0xFF13
 #define WINDOW_KEY_MENU        0xFF67
 
@@ -71,8 +71,8 @@ typedef enum {
 } Window_MouseButton;
 
 typedef enum {
-        Window_State_on,
-        Window_State_off,
+        Window_State_on  = 1,
+        Window_State_off = 0,
 } Window_State;
 
 typedef unsigned long Window_KeySym;
