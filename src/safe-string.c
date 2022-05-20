@@ -63,8 +63,8 @@ void String_addString (String *string, String *addition) {
  * Appends a single rune to the end of a string.
  */
 void String_addRune (String *string, Rune rune) {
-        string->buffer[string->length] = rune;
         String_realloc(string, string->length + 1);
+        string->buffer[string->length - 1] = rune;
 }
 
 /* String_insertBuffer
