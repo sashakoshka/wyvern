@@ -561,7 +561,7 @@ static void onKeyUp (Window_State state) {
         if (modKeys.shift && modKeys.alt) {
                 size_t column = editBuffer->cursors[0].column;
                 size_t row    = editBuffer->cursors[0].row;
-                EditBuffer_cursorsMoveV(editBuffer, -1);
+                EditBuffer_Cursor_moveV(editBuffer->cursors, -1);
                 EditBuffer_addNewCursor(editBuffer, column, row);
         } else {
                 EditBuffer_cursorsMoveV(editBuffer, -1);
@@ -574,7 +574,7 @@ static void onKeyDown (Window_State state) {
         if (modKeys.shift && modKeys.alt) {
                 size_t column = editBuffer->cursors[0].column;
                 size_t row    = editBuffer->cursors[0].row;
-                EditBuffer_cursorsMoveV(editBuffer, 1);
+                EditBuffer_Cursor_moveV(editBuffer->cursors, 1);
                 EditBuffer_addNewCursor(editBuffer, column, row);
         } else {
                 EditBuffer_cursorsMoveV(editBuffer, 1);
