@@ -148,6 +148,7 @@ void EditBuffer_addNewCursor (
                 }
         END_ALL_CURSORS
         
+        editBuffer->cursors[editBuffer->amountOfCursors].hasSelection = 0;
         editBuffer->cursors[editBuffer->amountOfCursors].parent = editBuffer;
         
         editBuffer->cursors[editBuffer->amountOfCursors].column    = column;
@@ -189,10 +190,7 @@ int EditBuffer_hasSelectionAt (
         size_t row
 ) {
         START_ALL_CURSORS
-                if (
-                        cursor->column == cursor->endColumn &&
-                        cursor->row    == cursor->endRow
-                ) { continue; }
+                if (!cursor->hasSelection) { continue; }
         
                 // TODO: check whether coordinates are in bounds of selection
                 // range
@@ -700,6 +698,7 @@ void EditBuffer_Cursor_moveTo (
         size_t column,
         size_t row
 ) {
+        cursor->hasSelection = 0;
         cursor->column = column;
         cursor->row    = row;
         cursor->endColumn = column;
@@ -719,6 +718,8 @@ void EditBuffer_Cursor_selectTo (
         size_t column,
         size_t row
 ) {
+        cursor->hasSelection = 1;
+
         if (
                 (row < cursor->row) ||
                 (row == cursor->row && column < cursor->column)

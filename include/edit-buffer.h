@@ -18,6 +18,8 @@ struct EditBuffer_Cursor {
         size_t endColumn;
 
         EditBuffer *parent;
+        
+        int hasSelection;
 };
 
 struct EditBuffer {
