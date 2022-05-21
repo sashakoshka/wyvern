@@ -102,12 +102,20 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                         textDisplay->model,
                         realColumn, realRow) && isOwnRune;
 
+                TextDisplay_CursorState cursorState;
+                if (hasCursor) {
+                        cursorState = TextDisplay_CursorState_cursor;
+                } else {
+                        cursorState = TextDisplay_CursorState_none;
+                }
+                
+
                 uint8_t damaged =
                         cell->rune != new |
-                        cell->hasCursor != hasCursor;
-                cell->damaged   = damaged;
-                cell->rune      = new;
-                cell->hasCursor = (uint8_t)hasCursor;
+                        cell->cursorState != cursorState;
+                cell->damaged    = damaged;
+                cell->rune       = new;
+                cell->cursorState = cursorState;
                 
                 if (realRow >= textDisplay->model->length) {
                         cell->realRow    = textDisplay->model->length - 1;

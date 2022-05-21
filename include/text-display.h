@@ -6,13 +6,19 @@
 
 #define TEXTDISPLAY_EMPTY_CELL 1
 
+typedef enum {
+        TextDisplay_CursorState_none      = 0,
+        TextDisplay_CursorState_cursor    = 1,
+        TextDisplay_CursorState_selection = 2
+} TextDisplay_CursorState;
+
 typedef struct {
-        Rune    rune;
-        uint8_t damaged;
-        uint8_t color;
-        uint8_t hasCursor;
-        size_t  realRow;
-        size_t  realColumn;
+        TextDisplay_CursorState cursorState;
+        Rune                    rune;
+        uint8_t                 damaged;
+        uint8_t                 color;
+        size_t                  realRow;
+        size_t                  realColumn;
 } TextDisplay_Cell;
 
 typedef struct {

@@ -276,7 +276,10 @@ static void Interface_editView_drawCharsRow (size_t y) {
                 size_t coordinate = y * textDisplay->width + x;
                 TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
                 
-                if (!cell->damaged && !cell->hasCursor) { continue; }
+                if (
+                        !cell->damaged &&
+                        cell->cursorState == TextDisplay_CursorState_none
+                ) { continue; }
                 textDisplay->cells[coordinate].damaged = 0;
                 
                 double realX = editView->textX;
@@ -305,7 +308,10 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         cairo_stroke(Window_context);
                 }
                 
-                if (cell->hasCursor && editView->cursorBlink) {
+                if (
+                        cell->cursorState == TextDisplay_CursorState_cursor &&
+                        editView->cursorBlink
+                ) {
                         cairo_set_source_rgb(Window_context, CURSOR_COLOR);
                         cairo_set_line_width (
                                 Window_context,
