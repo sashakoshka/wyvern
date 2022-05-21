@@ -306,16 +306,6 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         glyphWidth, lineHeight);
                 cairo_fill(Window_context);
 
-                // selection highlight
-                if (cell->cursorState == TextDisplay_CursorState_selection) {
-                        cairo_set_source_rgb(Window_context, SELECTION_COLOR);
-                        cairo_rectangle (
-                                Window_context,
-                                realX, realY,
-                                glyphWidth, glyphHeight);
-                        cairo_fill(Window_context);
-                }
-
                 // draw indentation markers every tab stop
                 int isSpace = isspace((char)(cell->rune));
                 if (!isSpace) { inIndent = 0; }                
@@ -328,6 +318,16 @@ static void Interface_editView_drawCharsRow (size_t y) {
                                 realX + 1,
                                 realY + glyphHeight);
                         cairo_stroke(Window_context);
+                }
+
+                // selection highlight
+                if (cell->cursorState == TextDisplay_CursorState_selection) {
+                        cairo_set_source_rgb(Window_context, SELECTION_COLOR);
+                        cairo_rectangle (
+                                Window_context,
+                                realX, realY,
+                                glyphWidth, glyphHeight);
+                        cairo_fill(Window_context);
                 }
 
                 // draw 80 column marker
@@ -469,11 +469,7 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
         // visible
         interface.editView.cursorBlink = 1;
 
-        mouse.dragOriginX = mouse.x;
-        mouse.dragOriginY = mouse.y;
-
         int inCell = HITBOX(mouse.x, mouse.y, interface.editView);
-        mouse.dragOriginInCell = inCell;
         
         size_t cellX;
         size_t cellY;
@@ -481,6 +477,10 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
 
         switch (button) {
         case Window_MouseButton_left:
+                mouse.dragOriginX = mouse.x;
+                mouse.dragOriginY = mouse.y;
+                mouse.dragOriginInCell = inCell;
+        
                 mouse.left = state;
         
                 // TODO: selection, etc.
@@ -499,7 +499,8 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                                 Interface_editView_drawChars(1);
                                 break;
                         }
-                        
+
+                        EditBuffer_clearExtraCursors(editBuffer);
                         EditBuffer_Cursor_moveTo (
                                 editBuffer->cursors,
                                 realX, realY);
@@ -507,10 +508,18 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                 }
                 break;
         case Window_MouseButton_middle:
+                mouse.dragOriginX = mouse.x;
+                mouse.dragOriginY = mouse.y;
+                mouse.dragOriginInCell = inCell;
+                
                 mouse.middle = state;
                 // TODO: copy/paste
                 break;
         case Window_MouseButton_right:
+                mouse.dragOriginX = mouse.x;
+                mouse.dragOriginY = mouse.y;
+                mouse.dragOriginInCell = inCell;
+                
                 mouse.right = state;
                 // TODO: context menu
                 break;
