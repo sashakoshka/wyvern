@@ -539,6 +539,13 @@ static void onMouseMove (int x, int y) {
         size_t cellX;
         size_t cellY;
         findMouseHoverCell(mouse.x, mouse.y, &cellX, &cellY);
+
+        size_t realX;
+        size_t realY;
+        TextDisplay_getRealCoords (
+                textDisplay,
+                cellX, cellY,
+                &realX, &realY);
         
         size_t dragOriginCellX;
         size_t dragOriginCellY;
@@ -547,13 +554,20 @@ static void onMouseMove (int x, int y) {
                 mouse.dragOriginY,
                 &dragOriginCellX,
                 &dragOriginCellY);
+        
+        size_t dragOriginRealX;
+        size_t dragOriginRealY;
+        TextDisplay_getRealCoords (
+                textDisplay,
+                dragOriginCellX, dragOriginCellY,
+                &dragOriginRealX, &dragOriginRealY);
 
         if (mouse.left && mouse.dragOriginInCell) {
                 EditBuffer_Cursor_moveTo (
                         editBuffer->cursors,
-                        dragOriginCellX,
-                        dragOriginCellY);
-                EditBuffer_Cursor_selectTo(editBuffer->cursors, cellX, cellY);
+                        dragOriginRealX,
+                        dragOriginRealY);
+                EditBuffer_Cursor_selectTo(editBuffer->cursors, realX, realY);
                 Interface_editView_drawChars(1);
         }
 }
