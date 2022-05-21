@@ -179,6 +179,33 @@ int EditBuffer_hasCursorAt (EditBuffer *editBuffer, size_t column, size_t row) {
         return 0;
 }
 
+/* EditBuffer_hasSelectionAt
+ * Returns 1 if there is a selection at the specified coordinates, otherwise
+ * returns zero.
+ */
+int EditBuffer_hasSelectionAt (
+        EditBuffer *editBuffer,
+        size_t column,
+        size_t row
+) {
+        START_ALL_CURSORS
+                if (
+                        cursor->column == cursor->endColumn &&
+                        cursor->row    == cursor->endRow
+                ) { continue; }
+        
+                // TODO: check whether coordinates are in bounds of selection
+                // range
+                if (
+                        cursor->endColumn == column &&
+                        cursor->endRow    == row
+                ) {
+                        return 1;
+                }
+        END_ALL_CURSORS
+        return 0;
+}
+
 /* EditBuffer_insertRuneAt
  * This function inserts a rune at a specific column and row. This should be
  * used for cursor functionality, and for advanced programmatic text

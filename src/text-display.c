@@ -102,14 +102,18 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                         textDisplay->model,
                         realColumn, realRow) && isOwnRune;
 
+                int hasSelection = EditBuffer_hasSelectionAt (
+                        textDisplay->model,
+                        realColumn, realRow) && isOwnRune;
+
                 TextDisplay_CursorState cursorState;
-                if (hasCursor) {
+                if (hasSelection) {
+                        cursorState = TextDisplay_CursorState_selection;
+                } else if (hasCursor) {
                         cursorState = TextDisplay_CursorState_cursor;
                 } else {
                         cursorState = TextDisplay_CursorState_none;
                 }
-                
-
                 uint8_t damaged =
                         cell->rune != new |
                         cell->cursorState != cursorState;
