@@ -18,6 +18,7 @@
 #define RULER_TEXT_COLOR 0.298, 0.337, 0.416
 #define CURSOR_COLOR     0.298, 0.337, 0.416
 #define BAD_CHAR_COLOR   0.749, 0.380, 0.419
+#define SELECTION_COLOR  0.298, 0.337, 0.416
 // #define ACTIVE_TAB_COLOR 0.188, 0.212, 0.263
 
 #define HITBOX(xx, yy, element) \
@@ -275,19 +276,29 @@ static void Interface_editView_drawCharsRow (size_t y) {
         for (size_t x = 0; x < textDisplay->width; x ++) {
                 size_t coordinate = y * textDisplay->width + x;
                 TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
-                
+
+                // if the cell is undamaged, we don't want to render it.
+                // however, we'll make an exception for cursors because those
+                // need to blink.
                 if (
                         !cell->damaged &&
-                        cell->cursorState == TextDisplay_CursorState_none
+                        cell->cursorState != TextDisplay_CursorState_cursor
                 ) { continue; }
+                
                 textDisplay->cells[coordinate].damaged = 0;
                 
                 double realX = editView->textX;
                 double realY = editView->innerY;
                 realX += (double)(x) * glyphWidth;
                 realY += (double)(y) * lineHeight;
-                
-                cairo_set_source_rgb(Window_context, BACKGROUND_COLOR);
+
+                // we want a different background color for selected and
+                // un-selected text.
+                if (cell->cursorState == TextDisplay_CursorState_selection) {
+                        cairo_set_source_rgb(Window_context, SELECTION_COLOR);
+                } else {
+                        cairo_set_source_rgb(Window_context, BACKGROUND_COLOR);
+                }
                 cairo_rectangle (
                         Window_context,
                         realX, realY,
