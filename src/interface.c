@@ -34,6 +34,8 @@ static void  Interface_editView_drawRuler    (void);
 static void  Interface_editView_drawChars    (int);
 static void  Interface_editView_drawCharsRow (size_t);
 
+static void findMouseHoverCell (int *, size_t *, size_t *);
+
 static void fontNormal     (void);
 // static void fontBold       (void);
 // static void fontItalic     (void);
@@ -319,6 +321,8 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         cairo_stroke(Window_context);
                 }
 
+                // draw 80 column marker
+                // TODO: set the position of this in options
                 if (x == 80) {
                         cairo_set_source_rgb(Window_context, RULER_COLOR);
                         cairo_set_line_width(Window_context, 2);
@@ -399,6 +403,32 @@ static void Interface_editView_drawCharsRow (size_t y) {
         }
 }
 
+static void findMouseHoverCell (int *inCell, size_t *cellX, size_t *cellY) {
+        *inCell = HITBOX(mouse.x, mouse.y, interface.editView);
+        
+        if (inCell) {
+                int intCellX = (int) (
+                        (mouse.x - interface.editView.textX) /
+                        glyphWidth);
+                int intCellY = (int) (
+                        (mouse.y - interface.editView.innerY) /
+                        lineHeight);
+
+                *cellX = (size_t)(intCellX);
+                *cellY = (size_t)(intCellY);
+                
+                if (intCellX < 0) { *cellX = 0; }
+                if (intCellY < 0) { *cellY = 0; }
+                
+                if (*cellX >= textDisplay->width) {
+                        *cellX = textDisplay->width - 1;
+                }
+                if (*cellY >= textDisplay->height) {
+                        *cellY = textDisplay->height - 1;
+                }
+        }
+}
+
 static void fontNormal (void) {
         cairo_set_font_size(Window_context, Options_fontSize);
         cairo_set_font_face(Window_context, fontFaceNormal);
@@ -429,31 +459,10 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
         // visible
         interface.editView.cursorBlink = 1;
 
-        int inCell = HITBOX(mouse.x, mouse.y, interface.editView);
-
-        size_t cellX = 0;
-        size_t cellY = 0;
-        if (inCell) {
-                int intCellX = (int) (
-                        (mouse.x - interface.editView.textX) /
-                        glyphWidth);
-                int intCellY = (int) (
-                        (mouse.y - interface.editView.innerY) /
-                        lineHeight);
-
-                cellX = (size_t)(intCellX);
-                cellY = (size_t)(intCellY);
-                
-                if (intCellX < 0) { cellX = 0; }
-                if (intCellY < 0) { cellY = 0; }
-                
-                if (cellX >= textDisplay->width) {
-                        cellX = textDisplay->width - 1;
-                }
-                if (cellY >= textDisplay->height) {
-                        cellY = textDisplay->height - 1;
-                }
-        }
+        int    inCell;
+        size_t cellX;
+        size_t cellY;
+        findMouseHoverCell(&inCell, &cellX, &cellY);
 
         switch (button) {
         case Window_MouseButton_left:
@@ -511,6 +520,10 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
 static void onMouseMove (int x, int y) {
         mouse.x = x;
         mouse.y = y;
+
+        // if (mouse.left) {
+                // EditBuffer_Cursor_selectTo(editBuffer->cursors, )
+        // }
 }
 
 static void onInterval (void) {
