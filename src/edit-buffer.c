@@ -196,12 +196,18 @@ int EditBuffer_hasSelectionAt (
         
                 // TODO: check whether coordinates are in bounds of selection
                 // range
-                if (
-                        cursor->endColumn == column &&
-                        cursor->endRow    == row
-                ) {
-                        return 1;
+                if (row < cursor->row)    { continue; }
+                if (row > cursor->endRow) { continue; }
+                
+                if (row == cursor->row && column < cursor->column ) {
+                        continue;
                 }
+                
+                if (row == cursor->endRow && column > cursor->endColumn ) {
+                        continue;
+                }
+                
+                return 1;
         END_ALL_CURSORS
         return 0;
 }
