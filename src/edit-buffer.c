@@ -140,6 +140,13 @@ void EditBuffer_addNewCursor (
         if (editBuffer->amountOfCursors >= EDITBUFFER_MAX_CURSORS - 1) {
                 return;
         }
+
+        // don't add if there is already a cursor in that spot
+        START_ALL_CURSORS
+                if (cursor->column == column && cursor->row == row) {
+                        return;
+                }
+        END_ALL_CURSORS
         
         editBuffer->cursors[editBuffer->amountOfCursors].parent = editBuffer;
         editBuffer->cursors[editBuffer->amountOfCursors].column = column;
