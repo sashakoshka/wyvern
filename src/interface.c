@@ -294,18 +294,23 @@ static void Interface_editView_drawCharsRow (size_t y) {
                 realX += (double)(x) * glyphWidth;
                 realY += (double)(y) * lineHeight;
 
-                // we want a different background color for selected and
-                // un-selected text.
-                if (cell->cursorState == TextDisplay_CursorState_selection) {
-                        cairo_set_source_rgb(Window_context, SELECTION_COLOR);
-                } else {
-                        cairo_set_source_rgb(Window_context, BACKGROUND_COLOR);
-                }
+                // background to clear what was previously there
+                cairo_set_source_rgb(Window_context, BACKGROUND_COLOR);
                 cairo_rectangle (
                         Window_context,
                         realX, realY,
                         glyphWidth, lineHeight);
                 cairo_fill(Window_context);
+
+                // selection highlight
+                if (cell->cursorState == TextDisplay_CursorState_selection) {
+                        cairo_set_source_rgb(Window_context, SELECTION_COLOR);
+                        cairo_rectangle (
+                                Window_context,
+                                realX, realY,
+                                glyphWidth, glyphHeight);
+                        cairo_fill(Window_context);
+                }
 
                 // draw indentation markers every tab stop
                 int isSpace = isspace((char)(cell->rune));
