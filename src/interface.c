@@ -305,9 +305,9 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         glyphWidth, lineHeight);
                 cairo_fill(Window_context);
 
+                // draw indentation markers every tab stop
                 int isSpace = isspace((char)(cell->rune));
-                if (!isSpace) { inIndent = 0; }
-                
+                if (!isSpace) { inIndent = 0; }                
                 if (x % (size_t)(Options_tabSize) == 0 && inIndent) {
                         cairo_set_source_rgb(Window_context, RULER_COLOR);
                         cairo_set_line_width(Window_context, 2);
@@ -318,7 +318,66 @@ static void Interface_editView_drawCharsRow (size_t y) {
                                 realY + glyphHeight);
                         cairo_stroke(Window_context);
                 }
+
+                if (x == 80) {
+                        cairo_set_source_rgb(Window_context, RULER_COLOR);
+                        cairo_set_line_width(Window_context, 2);
+                        cairo_move_to(Window_context, realX + 1, realY);
+                        cairo_line_to (
+                                Window_context,
+                                realX + 1,
+                                realY + lineHeight);
+                        cairo_stroke(Window_context);
+                }
+
+                // don't attempt to render whitespace
+                if (cell->rune != TEXTDISPLAY_EMPTY_CELL && !isSpace) {
+                        unsigned int index = FT_Get_Char_Index (
+                                freetypeFaceNormal,
+                                cell->rune);
+
+                        // if we couldn't find the character, display a red
+                        // error symbol
+                        if (index == 0) {
+                                cairo_set_source_rgb (
+                                        Window_context,
+                                        BAD_CHAR_COLOR);
+                                double scale   = glyphWidth / 3;
+                                double centerX = realX + glyphWidth / 2;
+                                double centerY = realY + glyphHeight / 2;
+                                cairo_set_line_width(Window_context, 2);
+                                cairo_move_to (
+                                        Window_context,
+                                        centerX - scale,
+                                        centerY - scale);
+                                cairo_line_to (
+                                        Window_context,
+                                        centerX + scale,
+                                        centerY + scale);
+                                        cairo_stroke(Window_context);
+                                cairo_move_to (
+                                        Window_context,
+                                        centerX + scale,
+                                        centerY - scale);
+                                cairo_line_to (
+                                        Window_context,
+                                        centerX - scale,
+                                        centerY + scale);
+                                        cairo_stroke(Window_context);
+                                continue;
+                        }
+                        
+                        cairo_glyph_t glyph = {
+                                .index = index,
+                                .x     = realX,
+                                .y     = realY + glyphHeight * 0.8
+                        };
+                        fontNormal();
+                        cairo_set_source_rgb(Window_context, TEXT_COLOR);
+                        cairo_show_glyphs(Window_context, &glyph, 1);
+                }
                 
+                // draw blinking cursor yayayayayayaya
                 if (
                         cell->cursorState == TextDisplay_CursorState_cursor &&
                         editView->cursorBlink
@@ -337,63 +396,6 @@ static void Interface_editView_drawCharsRow (size_t y) {
                                 realY + glyphHeight);
                         cairo_stroke(Window_context);
                 }
-
-                if (x == 80) {
-                        cairo_set_source_rgb(Window_context, RULER_COLOR);
-                        cairo_set_line_width(Window_context, 2);
-                        cairo_move_to(Window_context, realX + 1, realY);
-                        cairo_line_to (
-                                Window_context,
-                                realX + 1,
-                                realY + lineHeight);
-                        cairo_stroke(Window_context);
-                }
-
-                // don't attempt to render whitespace
-                if (cell->rune == TEXTDISPLAY_EMPTY_CELL || isSpace) {
-                        continue;
-                }
-                
-                unsigned int index = FT_Get_Char_Index (
-                        freetypeFaceNormal,
-                        cell->rune);
-
-                // if we couldn't find the character, display a red error symbol
-                if (index == 0) {
-                        cairo_set_source_rgb(Window_context, BAD_CHAR_COLOR);
-                        double scale   = glyphWidth / 3;
-                        double centerX = realX + glyphWidth / 2;
-                        double centerY = realY + glyphHeight / 2;
-                        cairo_set_line_width(Window_context, 2);
-                        cairo_move_to (
-                                Window_context,
-                                centerX - scale,
-                                centerY - scale);
-                        cairo_line_to (
-                                Window_context,
-                                centerX + scale,
-                                centerY + scale);
-                                cairo_stroke(Window_context);
-                        cairo_move_to (
-                                Window_context,
-                                centerX + scale,
-                                centerY - scale);
-                        cairo_line_to (
-                                Window_context,
-                                centerX - scale,
-                                centerY + scale);
-                                cairo_stroke(Window_context);
-                        continue;
-                }
-                
-                cairo_glyph_t glyph = {
-                        .index = index,
-                        .x     = realX,
-                        .y     = realY + glyphHeight * 0.8
-                };
-                fontNormal();
-                cairo_set_source_rgb(Window_context, TEXT_COLOR);
-                cairo_show_glyphs(Window_context, &glyph, 1);
         }
 }
 
