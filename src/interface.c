@@ -34,7 +34,7 @@ static void  Interface_editView_drawRuler    (void);
 static void  Interface_editView_drawChars    (int);
 static void  Interface_editView_drawCharsRow (size_t);
 
-static void findMouseHoverCell (int *, size_t *, size_t *);
+static void findMouseHoverCell (size_t *, size_t *);
 
 static void fontNormal     (void);
 // static void fontBold       (void);
@@ -70,6 +70,10 @@ static struct {
         Window_State left;
         Window_State middle;
         Window_State right;
+
+        int dragOriginX;
+        int dragOriginY;
+        int dragOriginInCell;
 } mouse = { 0 };
 
 static struct {
@@ -408,29 +412,25 @@ static void Interface_editView_drawCharsRow (size_t y) {
         }
 }
 
-static void findMouseHoverCell (int *inCell, size_t *cellX, size_t *cellY) {
-        *inCell = HITBOX(mouse.x, mouse.y, interface.editView);
-        
-        if (inCell) {
-                int intCellX = (int) (
-                        (mouse.x - interface.editView.textX) /
-                        glyphWidth);
-                int intCellY = (int) (
-                        (mouse.y - interface.editView.innerY) /
-                        lineHeight);
+static void findMouseHoverCell (size_t *cellX, size_t *cellY) {
+        int intCellX = (int) (
+                (mouse.x - interface.editView.textX) /
+                glyphWidth);
+        int intCellY = (int) (
+                (mouse.y - interface.editView.innerY) /
+                lineHeight);
 
-                *cellX = (size_t)(intCellX);
-                *cellY = (size_t)(intCellY);
-                
-                if (intCellX < 0) { *cellX = 0; }
-                if (intCellY < 0) { *cellY = 0; }
-                
-                if (*cellX >= textDisplay->width) {
-                        *cellX = textDisplay->width - 1;
-                }
-                if (*cellY >= textDisplay->height) {
-                        *cellY = textDisplay->height - 1;
-                }
+        *cellX = (size_t)(intCellX);
+        *cellY = (size_t)(intCellY);
+        
+        if (intCellX < 0) { *cellX = 0; }
+        if (intCellY < 0) { *cellY = 0; }
+        
+        if (*cellX >= textDisplay->width) {
+                *cellX = textDisplay->width - 1;
+        }
+        if (*cellY >= textDisplay->height) {
+                *cellY = textDisplay->height - 1;
         }
 }
 
@@ -464,10 +464,15 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
         // visible
         interface.editView.cursorBlink = 1;
 
+        mouse.dragOriginX = mouse.x;
+        mouse.dragOriginY = mouse.y;
+
+        int inCell = HITBOX(mouse.x, mouse.y, interface.editView);
+        mouse.dragOriginInCell = inCell;
+        
         size_t cellX;
         size_t cellY;
-        int    inCell;
-        findMouseHoverCell(&inCell, &cellX, &cellY);
+        findMouseHoverCell(&cellX, &cellY);
 
         switch (button) {
         case Window_MouseButton_left:
@@ -528,10 +533,9 @@ static void onMouseMove (int x, int y) {
 
         size_t cellX;
         size_t cellY;
-        int    inCell;
-        findMouseHoverCell(&inCell, &cellX, &cellY);
+        findMouseHoverCell(&cellX, &cellY);
 
-        if (mouse.left) {
+        if (mouse.left && mouse.dragOriginInCell) {
                 EditBuffer_Cursor_selectTo(editBuffer->cursors, cellX, cellY);
                 Interface_editView_drawChars(1);
         }

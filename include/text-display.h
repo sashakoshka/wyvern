@@ -6,6 +6,7 @@
 
 #define TEXTDISPLAY_EMPTY_CELL 1
 
+// TODO: make one for the currently active selected line(s) and the main cursor
 typedef enum {
         TextDisplay_CursorState_none      = 0,
         TextDisplay_CursorState_cursor    = 1,
