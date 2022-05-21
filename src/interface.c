@@ -457,7 +457,9 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                                 break;
                         }
                         
-                        EditBuffer_cursorsMoveTo(editBuffer, realX, realY);
+                        EditBuffer_Cursor_moveTo (
+                                editBuffer->cursors,
+                                realX, realY);
                         Interface_editView_drawChars(1);
                 }
                 break;
@@ -524,8 +526,6 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         case WINDOW_KEY_ENTER:
         case WINDOW_KEY_PAD_ENTER:
                 if (state == Window_State_on) {
-                        // TODO: move horizontally in here, not in
-                        // EditBuffer_insertRune
                         EditBuffer_cursorsInsertRune(editBuffer, '\n');
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();

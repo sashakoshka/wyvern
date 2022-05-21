@@ -495,24 +495,6 @@ void EditBuffer_cursorsMoveV (EditBuffer *editBuffer, int amount) {
 // TODO
 void EditBuffer_cursorsMoveWordH (EditBuffer *editBuffer, int amount);
 void EditBuffer_cursorsMoveWordV (EditBuffer *editBuffer, int amount);
-
-/* EditBuffer_cursorsMoveTo
- * Moves all cursors to one location.
- *
- * TODO: when multiple cursors are fully implemented, make another function to
- * check if cursors overlap eachother and delete duplicates. Run this function
- * whenever cursors change position.
- */
-void EditBuffer_cursorsMoveTo ( 
-        EditBuffer *editBuffer,
-        size_t column,
-        size_t row
-) {
-        EditBuffer_Cursor_moveTo(&editBuffer->cursors[0], column, row);
-        EditBuffer_clearExtraCursors(editBuffer);
-}
-
-// TODO
 void EditBuffer_cursorsChangeIndent (EditBuffer *, int);
 void EditBuffer_cursorsInsertString (EditBuffer *, String *);
 
@@ -677,7 +659,8 @@ void EditBuffer_Cursor_moveWordH (EditBuffer_Cursor *cursor, int);
 void EditBuffer_Cursor_moveWordV (EditBuffer_Cursor *cursor, int);
 
 /* EditBuffer_Cursor_moveTo
- * Moves the cursor of the edit buffer to the specified row and column.
+ * Moves the cursor of the edit buffer to the specified row and column. This
+ * resets the selection.
  */
 void EditBuffer_Cursor_moveTo (
         EditBuffer_Cursor *cursor,
@@ -686,6 +669,8 @@ void EditBuffer_Cursor_moveTo (
 ) {
         cursor->column = column;
         cursor->row    = row;
+        cursor->endColumn = column;
+        cursor->endRow    = row;
 
         EditBuffer_mergeCursors(cursor->parent);
 }
