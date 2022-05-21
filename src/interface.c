@@ -71,9 +71,11 @@ static struct {
         Window_State middle;
         Window_State right;
 
-        int dragOriginX;
-        int dragOriginY;
-        int dragOriginInCell;
+        int    dragOriginX;
+        int    dragOriginY;
+        int    dragOriginInCell;
+        size_t dragOriginRealX;
+        size_t dragOriginRealY;
 } mouse = { 0 };
 
 static struct {
@@ -491,6 +493,9 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                                 textDisplay,
                                 cellX, cellY,
                                 &realX, &realY);
+
+                        mouse.dragOriginRealX = realX;
+                        mouse.dragOriginRealY = realY;
                         
                         if (modKeys.ctrl) {
                                 EditBuffer_addNewCursor (
@@ -507,22 +512,17 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                         Interface_editView_drawChars(1);
                 }
                 break;
+        
         case Window_MouseButton_middle:
-                mouse.dragOriginX = mouse.x;
-                mouse.dragOriginY = mouse.y;
-                mouse.dragOriginInCell = inCell;
-                
                 mouse.middle = state;
                 // TODO: copy/paste
                 break;
+        
         case Window_MouseButton_right:
-                mouse.dragOriginX = mouse.x;
-                mouse.dragOriginY = mouse.y;
-                mouse.dragOriginInCell = inCell;
-                
                 mouse.right = state;
                 // TODO: context menu
                 break;
+        
         case Window_MouseButton_scrollUp:
                 if (state == Window_State_on && inCell) {
                         EditBuffer_scroll(editBuffer, Options_scrollSize * -1);
@@ -555,27 +555,12 @@ static void onMouseMove (int x, int y) {
                 textDisplay,
                 cellX, cellY,
                 &realX, &realY);
-        
-        size_t dragOriginCellX;
-        size_t dragOriginCellY;
-        findMouseHoverCell (
-                mouse.dragOriginX,
-                mouse.dragOriginY,
-                &dragOriginCellX,
-                &dragOriginCellY);
-        
-        size_t dragOriginRealX;
-        size_t dragOriginRealY;
-        TextDisplay_getRealCoords (
-                textDisplay,
-                dragOriginCellX, dragOriginCellY,
-                &dragOriginRealX, &dragOriginRealY);
 
         if (mouse.left && mouse.dragOriginInCell) {
                 EditBuffer_Cursor_moveTo (
                         editBuffer->cursors,
-                        dragOriginRealX,
-                        dragOriginRealY);
+                        mouse.dragOriginRealX,
+                        mouse.dragOriginRealY);
                 EditBuffer_Cursor_selectTo(editBuffer->cursors, realX, realY);
                 Interface_editView_drawChars(1);
         }
