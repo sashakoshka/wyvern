@@ -459,9 +459,9 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
         // visible
         interface.editView.cursorBlink = 1;
 
-        int    inCell;
         size_t cellX;
         size_t cellY;
+        int    inCell;
         findMouseHoverCell(&inCell, &cellX, &cellY);
 
         switch (button) {
@@ -521,9 +521,15 @@ static void onMouseMove (int x, int y) {
         mouse.x = x;
         mouse.y = y;
 
-        // if (mouse.left) {
-                // EditBuffer_Cursor_selectTo(editBuffer->cursors, )
-        // }
+        size_t cellX;
+        size_t cellY;
+        int    inCell;
+        findMouseHoverCell(&inCell, &cellX, &cellY);
+
+        if (mouse.left) {
+                EditBuffer_Cursor_selectTo(editBuffer->cursors, cellX, cellY);
+                Interface_editView_drawChars(1);
+        }
 }
 
 static void onInterval (void) {
