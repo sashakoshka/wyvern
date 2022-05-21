@@ -723,8 +723,21 @@ void EditBuffer_Cursor_selectTo (
                 (row < cursor->row) ||
                 (row == cursor->row && column < cursor->column)
         ) {
-                cursor->endRow    = cursor->row;
-                cursor->endColumn = cursor->column;
+                cursor->endRow = cursor->row;
+
+                if (cursor->column == 0) {
+                        if (cursor->endRow == 0) {
+                                cursor->endColumn = 0;
+                        } else {
+                                cursor->endRow --;
+                                String *line = EditBuffer_getLine (
+                                        cursor->parent, cursor->endRow);
+                                cursor->endColumn = line->length;
+                        }
+                } else {
+                        cursor->endColumn = cursor->column - 1;
+                }
+                
                 cursor->row    = row;
                 cursor->column = column;
         } else {

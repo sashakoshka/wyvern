@@ -34,7 +34,7 @@ static void  Interface_editView_drawRuler    (void);
 static void  Interface_editView_drawChars    (int);
 static void  Interface_editView_drawCharsRow (size_t);
 
-static void findMouseHoverCell (size_t *, size_t *);
+static void findMouseHoverCell (int, int, size_t *, size_t *);
 
 static void fontNormal     (void);
 // static void fontBold       (void);
@@ -412,12 +412,17 @@ static void Interface_editView_drawCharsRow (size_t y) {
         }
 }
 
-static void findMouseHoverCell (size_t *cellX, size_t *cellY) {
+static void findMouseHoverCell (
+        int mouseX,
+        int mouseY,
+        size_t *cellX,
+        size_t *cellY
+) {
         int intCellX = (int) (
-                (mouse.x - interface.editView.textX) /
+                (mouseX - interface.editView.textX) /
                 glyphWidth);
         int intCellY = (int) (
-                (mouse.y - interface.editView.innerY) /
+                (mouseY - interface.editView.innerY) /
                 lineHeight);
 
         *cellX = (size_t)(intCellX);
@@ -472,7 +477,7 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
         
         size_t cellX;
         size_t cellY;
-        findMouseHoverCell(&cellX, &cellY);
+        findMouseHoverCell(mouse.x, mouse.y, &cellX, &cellY);
 
         switch (button) {
         case Window_MouseButton_left:
@@ -533,9 +538,21 @@ static void onMouseMove (int x, int y) {
 
         size_t cellX;
         size_t cellY;
-        findMouseHoverCell(&cellX, &cellY);
+        findMouseHoverCell(mouse.x, mouse.y, &cellX, &cellY);
+        
+        size_t dragOriginCellX;
+        size_t dragOriginCellY;
+        findMouseHoverCell (
+                mouse.dragOriginX,
+                mouse.dragOriginY,
+                &dragOriginCellX,
+                &dragOriginCellY);
 
         if (mouse.left && mouse.dragOriginInCell) {
+                EditBuffer_Cursor_moveTo (
+                        editBuffer->cursors,
+                        dragOriginCellX,
+                        dragOriginCellY);
                 EditBuffer_Cursor_selectTo(editBuffer->cursors, cellX, cellY);
                 Interface_editView_drawChars(1);
         }
