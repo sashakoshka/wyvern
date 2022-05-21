@@ -71,6 +71,7 @@ void EditBuffer_Cursor_moveV             (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveWordH         (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveWordV         (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveTo            (EditBuffer_Cursor *, size_t, size_t);
+void EditBuffer_Cursor_selectTo          (EditBuffer_Cursor *, size_t, size_t);
 void EditBuffer_Cursor_changeIndent      (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_insertString      (EditBuffer_Cursor *, String *);
 String *EditBuffer_Cursor_getCurrentLine (EditBuffer_Cursor *);

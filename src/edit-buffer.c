@@ -675,6 +675,31 @@ void EditBuffer_Cursor_moveTo (
         EditBuffer_mergeCursors(cursor->parent);
 }
 
+/* EditBuffer_Cursor_selectTo
+ * Extends the selection of the cursor to the specified row and column. The
+ * selection end must always come after the cursor origin - so this function
+ * will automatically swap them if the given column and row are positioned
+ * before the cursor origin.
+ */
+void EditBuffer_Cursor_selectTo (
+        EditBuffer_Cursor *cursor,
+        size_t column,
+        size_t row
+) {
+        if (
+                (row < cursor->row) ||
+                (row == cursor->row && column < cursor->column)
+        ) {
+                cursor->endRow    = cursor->row;
+                cursor->endColumn = cursor->column;
+                cursor->row    = row;
+                cursor->column = column;
+        } else {
+                cursor->endRow    = row;
+                cursor->endColumn = column;
+        }
+}
+
 // TODO
 void EditBuffer_Cursor_changeIndent (EditBuffer_Cursor *cursor, int);
 void EditBuffer_Cursor_insertString (EditBuffer_Cursor *cursor, String *string);
