@@ -13,6 +13,9 @@ typedef struct EditBuffer        EditBuffer;
 struct EditBuffer_Cursor {
         size_t row;
         size_t column;
+        
+        size_t endRow;
+        size_t endColumn;
 
         EditBuffer *parent;
 };

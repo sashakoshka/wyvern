@@ -60,8 +60,14 @@ Interface interface = { 0 };
 static EditBuffer  *editBuffer  = NULL;
 static TextDisplay *textDisplay = NULL;
 
-static int mouseX = 0;
-static int mouseY = 0;
+static struct {
+        int x;
+        int y;
+
+        Window_State left;
+        Window_State middle;
+        Window_State right;
+} mouse = { 0 };
 
 static struct {
         Window_State shift;
@@ -404,16 +410,16 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
         // visible
         interface.editView.cursorBlink = 1;
 
-        int inCell = HITBOX(mouseX, mouseY, interface.editView);
+        int inCell = HITBOX(mouse.x, mouse.y, interface.editView);
 
         size_t cellX = 0;
         size_t cellY = 0;
         if (inCell) {
                 int intCellX = (int) (
-                        (mouseX - interface.editView.textX) /
+                        (mouse.x - interface.editView.textX) /
                         glyphWidth);
                 int intCellY = (int) (
-                        (mouseY - interface.editView.innerY) /
+                        (mouse.y - interface.editView.innerY) /
                         lineHeight);
 
                 cellX = (size_t)(intCellX);
@@ -432,6 +438,8 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
 
         switch (button) {
         case Window_MouseButton_left:
+                mouse.left = state;
+        
                 // TODO: selection, etc.
                 if (state == Window_State_on && inCell) {
                         size_t realX = 0;
@@ -454,9 +462,11 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                 }
                 break;
         case Window_MouseButton_middle:
+                mouse.middle = state;
                 // TODO: copy/paste
                 break;
         case Window_MouseButton_right:
+                mouse.right = state;
                 // TODO: context menu
                 break;
         case Window_MouseButton_scrollUp:
@@ -478,8 +488,8 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
 }
 
 static void onMouseMove (int x, int y) {
-        mouseX = x;
-        mouseY = y;
+        mouse.x = x;
+        mouse.y = y;
 }
 
 static void onInterval (void) {

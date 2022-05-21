@@ -149,8 +149,12 @@ void EditBuffer_addNewCursor (
         END_ALL_CURSORS
         
         editBuffer->cursors[editBuffer->amountOfCursors].parent = editBuffer;
-        editBuffer->cursors[editBuffer->amountOfCursors].column = column;
-        editBuffer->cursors[editBuffer->amountOfCursors].row    = row;
+        
+        editBuffer->cursors[editBuffer->amountOfCursors].column    = column;
+        editBuffer->cursors[editBuffer->amountOfCursors].row       = row;
+        editBuffer->cursors[editBuffer->amountOfCursors].endColumn = column;
+        editBuffer->cursors[editBuffer->amountOfCursors].endRow    = row;
+        
         editBuffer->amountOfCursors ++;
 }
 
