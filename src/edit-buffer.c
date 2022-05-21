@@ -334,7 +334,7 @@ static void EditBuffer_mergeCursors (EditBuffer *editBuffer) {
         START_ALL_CURSORS
                 if (cursor->parent != NULL) { continue; }
                 EditBuffer_Cursor *previousCursor = cursor;
-                
+
                 for (
                         size_t secondCursorIndex = 1;
                         secondCursorIndex < editBuffer->amountOfCursors;
@@ -347,6 +347,7 @@ static void EditBuffer_mergeCursors (EditBuffer *editBuffer) {
                         previousCursor = secondCursor;
                 }
                 editBuffer->amountOfCursors --;
+                index --;
         END_ALL_CURSORS
 }
 
