@@ -34,7 +34,8 @@ static void  Interface_editView_drawRuler    (void);
 static void  Interface_editView_drawChars    (int);
 static void  Interface_editView_drawCharsRow (size_t);
 
-static void findMouseHoverCell (int, int, size_t *, size_t *);
+static void findMouseHoverCell  (int, int, size_t *, size_t *);
+static void updateTextSelection (void);
 
 static void fontNormal     (void);
 // static void fontBold       (void);
@@ -441,6 +442,25 @@ static void findMouseHoverCell (
         }
 }
 
+static void updateTextSelection (void) {
+        size_t cellX = 0;
+        size_t cellY = 0;
+        findMouseHoverCell(mouse.x, mouse.y, &cellX, &cellY);
+        
+        size_t realX;
+        size_t realY;
+        TextDisplay_getRealCoords (
+                textDisplay,
+                cellX, cellY,
+                &realX, &realY);
+
+        EditBuffer_Cursor_moveTo (
+                editBuffer->cursors,
+                mouse.dragOriginRealX,
+                mouse.dragOriginRealY);
+        EditBuffer_Cursor_selectTo(editBuffer->cursors, realX, realY);
+}
+
 static void fontNormal (void) {
         cairo_set_font_size(Window_context, Options_fontSize);
         cairo_set_font_face(Window_context, fontFaceNormal);
@@ -473,12 +493,13 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
 
         int inCell = HITBOX(mouse.x, mouse.y, interface.editView);
         
-        size_t cellX;
-        size_t cellY;
-        findMouseHoverCell(mouse.x, mouse.y, &cellX, &cellY);
+        size_t cellX = 0;
+        size_t cellY = 0;
 
         switch (button) {
         case Window_MouseButton_left:
+                findMouseHoverCell(mouse.x, mouse.y, &cellX, &cellY);
+                
                 mouse.dragOriginX = mouse.x;
                 mouse.dragOriginY = mouse.y;
                 mouse.dragOriginInCell = inCell;
@@ -526,16 +547,29 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
         case Window_MouseButton_scrollUp:
                 if (state == Window_State_on && inCell) {
                         EditBuffer_scroll(editBuffer, Options_scrollSize * -1);
+                        TextDisplay_grab(textDisplay);
+
+                        if (mouse.left && mouse.dragOriginInCell) {
+                                updateTextSelection();
+                        }
+        
                         Interface_editView_drawRuler();
-                        Interface_editView_drawChars(1);
+                        Interface_editView_drawChars(0);
                 }
                 break;
                 
         case Window_MouseButton_scrollDown:
                 if (state == Window_State_on && inCell) {
                         EditBuffer_scroll(editBuffer, Options_scrollSize);
+                        TextDisplay_grab(textDisplay);
+
+                        if (mouse.left && mouse.dragOriginInCell) {
+                                updateTextSelection();
+                                TextDisplay_grab(textDisplay);
+                        }
+                        
                         Interface_editView_drawRuler();
-                        Interface_editView_drawChars(1);
+                        Interface_editView_drawChars(0);
                 }
                 break;
         }
@@ -545,23 +579,8 @@ static void onMouseMove (int x, int y) {
         mouse.x = x;
         mouse.y = y;
 
-        size_t cellX;
-        size_t cellY;
-        findMouseHoverCell(mouse.x, mouse.y, &cellX, &cellY);
-
-        size_t realX;
-        size_t realY;
-        TextDisplay_getRealCoords (
-                textDisplay,
-                cellX, cellY,
-                &realX, &realY);
-
         if (mouse.left && mouse.dragOriginInCell) {
-                EditBuffer_Cursor_moveTo (
-                        editBuffer->cursors,
-                        mouse.dragOriginRealX,
-                        mouse.dragOriginRealY);
-                EditBuffer_Cursor_selectTo(editBuffer->cursors, realX, realY);
+                updateTextSelection();
                 Interface_editView_drawChars(1);
         }
 }

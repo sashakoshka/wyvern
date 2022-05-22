@@ -192,8 +192,6 @@ int EditBuffer_hasSelectionAt (
         START_ALL_CURSORS
                 if (!cursor->hasSelection) { continue; }
         
-                // TODO: check whether coordinates are in bounds of selection
-                // range
                 if (row < cursor->row)    { continue; }
                 if (row > cursor->endRow) { continue; }
                 
