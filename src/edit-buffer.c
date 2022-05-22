@@ -523,7 +523,29 @@ void EditBuffer_cursorsMoveV (EditBuffer *editBuffer, int amount) {
 
 // TODO
 void EditBuffer_cursorsMoveWordH (EditBuffer *editBuffer, int amount);
-void EditBuffer_cursorsMoveWordV (EditBuffer *editBuffer, int amount);
+void EditBuffer_cursorsMoveMoreV (EditBuffer *editBuffer, int amount);
+
+/* EditBuffer_cursorsSelectH
+ * Extends the selection of all cursors horizontally by amount
+ */
+void EditBuffer_cursorsSelectH (EditBuffer *editBuffer, int amount) {
+        START_ALL_CURSORS_BATCH_OPERATION
+                EditBuffer_Cursor_selectH(cursor, amount);
+        END_ALL_CURSORS_BATCH_OPERATION
+}
+
+/* EditBuffer_cursorsSelectV
+ * Extends the selection of all cursors vertically by amount
+ */
+void EditBuffer_cursorsSelectV (EditBuffer *editBuffer, int amount) {
+        START_ALL_CURSORS_BATCH_OPERATION
+                EditBuffer_Cursor_selectV(cursor, amount);
+        END_ALL_CURSORS_BATCH_OPERATION
+}
+
+// TODO
+void EditBuffer_cursorsSelectWordH (EditBuffer *, int);
+void EditBuffer_cursorsSelectMoreV (EditBuffer *, int);
 void EditBuffer_cursorsChangeIndent (EditBuffer *, int);
 void EditBuffer_cursorsInsertString (EditBuffer *, String *);
 
@@ -601,6 +623,24 @@ void EditBuffer_Cursor_backspaceRune (EditBuffer_Cursor *cursor) {
         if (cursor->column == 0 && cursor->row == 0) { return; }
         EditBuffer_Cursor_moveH(cursor, -1);
         EditBuffer_Cursor_deleteRune(cursor);
+}
+
+/* EditBuffer_Cursor_moveTo
+ * Moves the cursor of the edit buffer to the specified row and column. This
+ * resets the selection.
+ */
+void EditBuffer_Cursor_moveTo (
+        EditBuffer_Cursor *cursor,
+        size_t column,
+        size_t row
+) {
+        cursor->hasSelection = 0;
+        cursor->column = column;
+        cursor->row    = row;
+        cursor->endColumn = column;
+        cursor->endRow    = row;
+
+        EditBuffer_mergeCursors(cursor->parent);
 }
 
 /* EditBuffer_Cursor_moveH
@@ -685,25 +725,31 @@ void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
 
 // TODO
 void EditBuffer_Cursor_moveWordH (EditBuffer_Cursor *cursor, int);
-void EditBuffer_Cursor_moveWordV (EditBuffer_Cursor *cursor, int);
+void EditBuffer_Cursor_moveMoreV (EditBuffer_Cursor *cursor, int);
 
-/* EditBuffer_Cursor_moveTo
- * Moves the cursor of the edit buffer to the specified row and column. This
- * resets the selection.
+/* EditBuffer_Cursor_selectH
+ * Extends the selection of the cursor horizontally by amount. The selection end
+ * must always come after the cursor origin - so this function will
+ * automatically swap them if the given column and row are positioned before the
+ * cursor origin.
  */
-void EditBuffer_Cursor_moveTo (
-        EditBuffer_Cursor *cursor,
-        size_t column,
-        size_t row
-) {
-        cursor->hasSelection = 0;
-        cursor->column = column;
-        cursor->row    = row;
-        cursor->endColumn = column;
-        cursor->endRow    = row;
-
-        EditBuffer_mergeCursors(cursor->parent);
+void EditBuffer_Cursor_selectH (EditBuffer_Cursor *cursor, int amount) {
+        
 }
+
+/* EditBuffer_Cursor_selectV
+ * Extends the selection of the cursor vertically by amount. The selection end
+ * must always come after the cursor origin - so this function will
+ * automatically swap them if the given column and row are positioned before the
+ * cursor origin.
+ */
+void EditBuffer_Cursor_selectV (EditBuffer_Cursor *cursor, int amount) {
+        
+}
+
+// TODO
+void EditBuffer_Cursor_selectWordH (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_selectMoreV (EditBuffer_Cursor *, int);
 
 /* EditBuffer_Cursor_selectTo
  * Extends the selection of the cursor to the specified row and column. The

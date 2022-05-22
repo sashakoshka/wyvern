@@ -660,11 +660,15 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
 
 static void onKeyUp (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (modKeys.shift && modKeys.alt) {
-                size_t column = editBuffer->cursors[0].column;
-                size_t row    = editBuffer->cursors[0].row;
-                EditBuffer_Cursor_moveV(editBuffer->cursors, -1);
-                EditBuffer_addNewCursor(editBuffer, column, row);
+        if (modKeys.shift == Window_State_on) {
+                if (modKeys.alt == Window_State_on) {
+                        size_t column = editBuffer->cursors[0].column;
+                        size_t row    = editBuffer->cursors[0].row;
+                        EditBuffer_Cursor_moveV(editBuffer->cursors, -1);
+                        EditBuffer_addNewCursor(editBuffer, column, row);
+                } else {
+                        EditBuffer_cursorsSelectV(editBuffer, -1);
+                }
         } else {
                 EditBuffer_cursorsMoveV(editBuffer, -1);
         }
@@ -673,11 +677,15 @@ static void onKeyUp (Window_State state) {
 
 static void onKeyDown (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (modKeys.shift && modKeys.alt) {
-                size_t column = editBuffer->cursors[0].column;
-                size_t row    = editBuffer->cursors[0].row;
-                EditBuffer_Cursor_moveV(editBuffer->cursors, 1);
-                EditBuffer_addNewCursor(editBuffer, column, row);
+        if (modKeys.shift == Window_State_on) {
+                if (modKeys.alt == Window_State_on) {
+                        size_t column = editBuffer->cursors[0].column;
+                        size_t row    = editBuffer->cursors[0].row;
+                        EditBuffer_Cursor_moveV(editBuffer->cursors, 1);
+                        EditBuffer_addNewCursor(editBuffer, column, row);
+                } else {
+                        EditBuffer_cursorsSelectV(editBuffer, 1);
+                }
         } else {
                 EditBuffer_cursorsMoveV(editBuffer, 1);
         }
@@ -686,12 +694,20 @@ static void onKeyDown (Window_State state) {
 
 static void onKeyLeft (Window_State state) {
         if (state != Window_State_on) { return; }
-        EditBuffer_cursorsMoveH(editBuffer, -1);
+        if (modKeys.shift == Window_State_on) {
+                EditBuffer_cursorsSelectH(editBuffer, -1);
+        } else {
+                EditBuffer_cursorsMoveH(editBuffer, -1);
+        }
         Interface_editView_drawChars(1);
 }
 
 static void onKeyRight (Window_State state) {
         if (state != Window_State_on) { return; }
-        EditBuffer_cursorsMoveH(editBuffer, 1);
+        if (modKeys.shift == Window_State_on) {
+                EditBuffer_cursorsSelectH(editBuffer, 1);
+        } else {
+                EditBuffer_cursorsMoveH(editBuffer, 1);
+        }
         Interface_editView_drawChars(1);
 }
