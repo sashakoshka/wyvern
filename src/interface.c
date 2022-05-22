@@ -551,6 +551,7 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
 
                         if (mouse.left && mouse.dragOriginInCell) {
                                 updateTextSelection();
+                                TextDisplay_grab(textDisplay);
                         }
         
                         Interface_editView_drawRuler();

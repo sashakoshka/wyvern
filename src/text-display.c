@@ -117,8 +117,8 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                 uint8_t damaged =
                         cell->rune != new |
                         cell->cursorState != cursorState;
-                cell->damaged    = damaged;
-                cell->rune       = new;
+                cell->damaged    |= damaged;
+                cell->rune        = new;
                 cell->cursorState = cursorState;
                 
                 if (realRow >= textDisplay->model->length) {
