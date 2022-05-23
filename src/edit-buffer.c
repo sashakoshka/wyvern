@@ -714,10 +714,15 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
  */
 void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
         // if we have something selected, escape the selection.
-        // TODO: change column to beginning or end of selection first, depending
-        // on selection direction
         if (cursor->hasSelection) {
+                if (cursor->selectionDirection == EditBuffer_Direction_right) {
+                        cursor->column = cursor->endColumn + 1;
+                }
+                
                 cursor->hasSelection = 0;
+                if (amount > 0) {
+                        cursor->row = cursor->endRow;
+                }
         }
         
         size_t rowBefore = cursor->row;
@@ -753,7 +758,14 @@ void EditBuffer_Cursor_moveMoreV (EditBuffer_Cursor *cursor, int);
  * cursor origin.
  */
 void EditBuffer_Cursor_selectH (EditBuffer_Cursor *cursor, int amount) {
+        // these values may (will) change when we call the function to move the
+        // cursor, so we must save them!11!!1
+        size_t previousColumn = cursor->column;
+        size_t previousRow    = cursor->row;
         
+        if (amount > 0) {
+                
+        }
 }
 
 /* EditBuffer_Cursor_selectV
@@ -804,9 +816,14 @@ void EditBuffer_Cursor_selectTo (
                 
                 cursor->row    = row;
                 cursor->column = column;
+
+                cursor->selectionDirection = EditBuffer_Direction_left;
         } else {
+                
                 cursor->endRow    = row;
                 cursor->endColumn = column;
+                
+                cursor->selectionDirection = EditBuffer_Direction_right;
         }
 }
 

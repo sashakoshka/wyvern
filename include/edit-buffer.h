@@ -10,6 +10,11 @@ typedef struct EditBuffer        EditBuffer;
 
 #define EDITBUFFER_MAX_CURSORS 32
 
+typedef enum {
+        EditBuffer_Direction_left,
+        EditBuffer_Direction_right
+} EditBuffer_Direction;
+
 struct EditBuffer_Cursor {
         size_t row;
         size_t column;
@@ -20,6 +25,7 @@ struct EditBuffer_Cursor {
         EditBuffer *parent;
         
         int hasSelection;
+        EditBuffer_Direction selectionDirection;
 };
 
 struct EditBuffer {
