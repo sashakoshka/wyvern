@@ -31,6 +31,7 @@ static void EditBuffer_cursorsWrangle (EditBuffer *);
 static void EditBuffer_Cursor_wrangle (EditBuffer_Cursor *);
 
 static size_t constrainChange (size_t, int, size_t);
+static size_t addToSizeT      (size_t, int);
 
                       /* * * * * * * * * * * * * * * *
                        * EditBuffer member functions *
@@ -330,14 +331,7 @@ static void EditBuffer_shiftCursorsInLineAfter (
 ) {
         START_ALL_CURSORS
                 if (cursor->row == row && cursor->column >= column) {
-                        size_t amountAbs;
-                        if (amount > 0) {
-                                amountAbs = (size_t)(amount);
-                                cursor->column += amountAbs;
-                        } else {
-                                amountAbs = (size_t)(-1 * amount);
-                                cursor->column -= amountAbs;
-                        }
+                        cursor->column = addToSizeT(cursor->column, amount);
                 }
         END_ALL_CURSORS
 }
@@ -681,15 +675,12 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
                 }
                 return;
         }
-
-        size_t amountAbs;
-        if (amount < 0) {
-                amountAbs = (size_t)(0 - amount);
-                cursor->column -= amountAbs;
-        } else {
-                amountAbs = (size_t)(amount);
-                cursor->column += amountAbs;
-        }
+        
+        cursor->column = addToSizeT(cursor->column, amount);
+        
+        cursor->hasSelection = 0;
+        cursor->endRow    = cursor->row;
+        cursor->endColumn = cursor->column;
 
         EditBuffer_mergeCursors(cursor->parent);
 }
@@ -719,7 +710,6 @@ void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
                         cursor->column = cursor->endColumn + 1;
                 }
                 
-                cursor->hasSelection = 0;
                 if (amount > 0) {
                         cursor->row = cursor->endRow;
                 }
@@ -744,6 +734,10 @@ void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
                 cursor->column = lineLength;
         }
 
+        cursor->hasSelection = 0;
+        cursor->endRow    = cursor->row;
+        cursor->endColumn = cursor->column;
+        
         EditBuffer_mergeCursors(cursor->parent);
 }
 
@@ -758,14 +752,20 @@ void EditBuffer_Cursor_moveMoreV (EditBuffer_Cursor *cursor, int);
  * cursor origin.
  */
 void EditBuffer_Cursor_selectH (EditBuffer_Cursor *cursor, int amount) {
-        // these values may (will) change when we call the function to move the
-        // cursor, so we must save them!11!!1
-        size_t previousColumn = cursor->column;
-        size_t previousRow    = cursor->row;
+        // if (!cursor->hasSelection) {
+                // EditBuffer_Cursor_moveH(cursor, -1);
+        // }
         
-        if (amount > 0) {
+        if (cursor->selectionDirection == EditBuffer_Direction_left) {
+                if (cursor->hasSelection) {
+                        cursor->endColumn += amount;
+                }
                 
+        } else {
+                cursor->column += amount;
         }
+
+        cursor->hasSelection = 1;
 }
 
 /* EditBuffer_Cursor_selectV
@@ -888,4 +888,19 @@ static size_t constrainChange (size_t initial, int amount, size_t bound) {
         }
 
         return initial;
+}
+
+/* addToSizeT
+ * Behaves the same as constrainChange, but does not specify an upper bound.
+ */
+static size_t addToSizeT (size_t initial, int amount) {
+        size_t amountAbs;
+        
+        if (amount < 0) {
+                amountAbs = (size_t)(0 - amount);
+                return initial - amountAbs;
+        } else {
+                amountAbs = (size_t)(amount);
+                return initial + amountAbs;
+        }
 }
