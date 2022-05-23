@@ -34,6 +34,10 @@ static void EditBuffer_Cursor_predictMovement (
         EditBuffer_Cursor *,
         size_t *, size_t *,
         int, int);
+static void EditBuffer_Cursor_selectFromTo (
+        EditBuffer_Cursor *,
+        size_t, size_t,
+        size_t, size_t);
 
 static size_t constrainChange (size_t, int, size_t);
 static size_t addToSizeT      (size_t, int);
@@ -792,17 +796,36 @@ void EditBuffer_Cursor_moveMoreV (EditBuffer_Cursor *cursor, int);
  * cursor origin.
  */
 void EditBuffer_Cursor_selectH (EditBuffer_Cursor *cursor, int amount) {
+        if (!cursor->hasSelection) {
+                if (amount < 0) {
+                        cursor->selectionDirection = EditBuffer_Direction_left;
+                        EditBuffer_Cursor_moveH(cursor, -1);
+                        amount ++;
+                } else {
+                        cursor->selectionDirection = EditBuffer_Direction_right;
+                        amount --;
+                }
+        }
+        
+        size_t newColumn;
+        size_t newRow;
+
         if (cursor->selectionDirection == EditBuffer_Direction_left) {
-                // TODO: create function to return a new offset cursor position
-                // from input coords and a shift amount. use in move h and
-                // select h.
+                newColumn = cursor->column;
+                newRow    = cursor->row;
+                
+                EditBuffer_Cursor_predictMovement (
+                        cursor,
+                        &newColumn, &newRow,
+                        amount, 0);
 
+                // EditBuffer_Cursor_selectTo(cursor)
         } else {
-
+                newColumn = cursor->endColumn;
+                newRow    = cursor->endRow;
         }
 
-
-        // cursor->hasSelection = 1;
+        printf("%zu\t%zu\n", newColumn, newRow);
 }
 
 /* EditBuffer_Cursor_selectV
@@ -830,14 +853,33 @@ void EditBuffer_Cursor_selectTo (
         size_t column,
         size_t row
 ) {
+        EditBuffer_Cursor_selectFromTo (
+                cursor,
+                cursor->column, cursor->row,
+                column,         row);
+}
+
+/* EditBuffer_Cursor_selectFromTo
+ * Extends the selection of the cursor to the specified row and column. The
+ * selection end must always come after the cursor origin - so this function
+ * will automatically swap them if the given column and row are positioned
+ * before the cursor origin.
+ */
+static void EditBuffer_Cursor_selectFromTo (
+        EditBuffer_Cursor *cursor,
+        size_t fromColumn, size_t fromRow,
+        size_t toColumn,   size_t toRow
+) {
         cursor->hasSelection = 1;
 
         if (
-                (row < cursor->row) ||
-                (row == cursor->row && column < cursor->column)
+                (toRow < fromRow) ||
+                (toRow == fromRow && toColumn < fromColumn)
         ) {
-                cursor->endRow = cursor->row;
+                // to is behind from
+                cursor->endRow = fromRow;
 
+                // figure out where the ending column is
                 if (cursor->column == 0) {
                         if (cursor->endRow == 0) {
                                 cursor->endColumn = 0;
@@ -848,17 +890,19 @@ void EditBuffer_Cursor_selectTo (
                                 cursor->endColumn = line->length;
                         }
                 } else {
-                        cursor->endColumn = cursor->column - 1;
+                        cursor->endColumn = fromColumn - 1;
                 }
                 
-                cursor->row    = row;
-                cursor->column = column;
+                cursor->row    = toRow;
+                cursor->column = toColumn;
 
                 cursor->selectionDirection = EditBuffer_Direction_left;
         } else {
-                
-                cursor->endRow    = row;
-                cursor->endColumn = column;
+                // to is in front of from
+                cursor->row       = fromRow;
+                cursor->column    = fromColumn;
+                cursor->endRow    = toRow;
+                cursor->endColumn = toColumn;
                 
                 cursor->selectionDirection = EditBuffer_Direction_right;
         }
