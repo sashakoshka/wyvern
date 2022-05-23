@@ -84,7 +84,10 @@ void EditBuffer_Cursor_moveH             (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveV             (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveWordH         (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveMoreV         (EditBuffer_Cursor *, int);
-void EditBuffer_Cursor_selectTo          (EditBuffer_Cursor *, size_t, size_t);
+void EditBuffer_Cursor_selectFromTo (
+        EditBuffer_Cursor *,
+        size_t, size_t,
+        size_t, size_t);
 void EditBuffer_Cursor_selectH           (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_selectV           (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_selectWordH       (EditBuffer_Cursor *, int);

@@ -34,10 +34,6 @@ static void EditBuffer_Cursor_predictMovement (
         EditBuffer_Cursor *,
         size_t *, size_t *,
         int, int);
-static void EditBuffer_Cursor_selectFromTo (
-        EditBuffer_Cursor *,
-        size_t, size_t,
-        size_t, size_t);
 
 static size_t constrainChange (size_t, int, size_t);
 static size_t addToSizeT      (size_t, int);
@@ -842,30 +838,13 @@ void EditBuffer_Cursor_selectV (EditBuffer_Cursor *cursor, int amount) {
 void EditBuffer_Cursor_selectWordH (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_selectMoreV (EditBuffer_Cursor *, int);
 
-/* EditBuffer_Cursor_selectTo
- * Extends the selection of the cursor to the specified row and column. The
- * selection end must always come after the cursor origin - so this function
- * will automatically swap them if the given column and row are positioned
- * before the cursor origin.
- */
-void EditBuffer_Cursor_selectTo (
-        EditBuffer_Cursor *cursor,
-        size_t column,
-        size_t row
-) {
-        EditBuffer_Cursor_selectFromTo (
-                cursor,
-                cursor->column, cursor->row,
-                column,         row);
-}
-
 /* EditBuffer_Cursor_selectFromTo
- * Extends the selection of the cursor to the specified row and column. The
- * selection end must always come after the cursor origin - so this function
- * will automatically swap them if the given column and row are positioned
+ * Sets the selection origin and end to the specified coordinates. The selection
+ * end must always come after the cursor origin - so this function will
+ * automatically swap them if the given column and row are positioned
  * before the cursor origin.
  */
-static void EditBuffer_Cursor_selectFromTo (
+void EditBuffer_Cursor_selectFromTo (
         EditBuffer_Cursor *cursor,
         size_t fromColumn, size_t fromRow,
         size_t toColumn,   size_t toRow

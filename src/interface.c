@@ -454,11 +454,10 @@ static void updateTextSelection (void) {
                 cellX, cellY,
                 &realX, &realY);
 
-        EditBuffer_Cursor_moveTo (
+        EditBuffer_Cursor_selectFromTo (
                 editBuffer->cursors,
-                mouse.dragOriginRealX,
-                mouse.dragOriginRealY);
-        EditBuffer_Cursor_selectTo(editBuffer->cursors, realX, realY);
+                mouse.dragOriginRealX, mouse.dragOriginRealY,
+                realX, realY);
 }
 
 static void fontNormal (void) {
