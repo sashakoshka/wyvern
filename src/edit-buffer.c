@@ -655,14 +655,16 @@ static void EditBuffer_Cursor_predictMovement (
         int amountH, int amountV
 ) {
         // predict row
-        size_t rowBefore = cursor->row;
-        cursor->row = constrainChange (
+        size_t rowBefore = *resultRow;
+        *resultRow = constrainChange (
                 *resultRow,
                 amountV,
                 cursor->parent->length);
 
-        size_t lineLength = EditBuffer_Cursor_getCurrentLine(cursor)->length;
-        if (cursor->row == rowBefore && amountV != 0) {
+        size_t lineLength = EditBuffer_getLine (
+                cursor->parent,
+                *resultRow)->length;
+        if (*resultRow == rowBefore && amountV != 0) {
                 // we wanted to move someplace, and did not get there. this
                 // means we are at the end of the file, or the beginning of the
                 // file, and we should snap the cursor to the beginning or end
@@ -676,8 +678,8 @@ static void EditBuffer_Cursor_predictMovement (
 
         // ensure that the previous line jump did not send us into an invalid
         // spot
-        if (cursor->column > lineLength) {
-                cursor->column = lineLength;
+        if (*resultColumn > lineLength) {
+                *resultColumn = lineLength;
         }
 
         // predict column
@@ -693,7 +695,9 @@ static void EditBuffer_Cursor_predictMovement (
         }
 
         // if we have gone off the end of the line, wrap around to the next one.
-        lineLength = EditBuffer_Cursor_getCurrentLine(cursor)->length;
+        lineLength = EditBuffer_getLine (
+                cursor->parent,
+                *resultRow)->length;
         if (*resultColumn >= lineLength && amountH > 0) {
                 if (*resultColumn < cursor->parent->length - 1) {
                         *resultRow += 1;
