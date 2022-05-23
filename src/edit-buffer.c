@@ -649,6 +649,18 @@ void EditBuffer_Cursor_moveTo (
  * (if possible),
  */
 void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
+        // if we have something selected, escape the selection and move to the
+        // beginning or end depending on the direction of movement.
+        if (cursor->hasSelection) {
+                cursor->hasSelection = 0;
+                if (amount > 0) {
+                        cursor->column = cursor->endColumn;
+                        cursor->row    = cursor->endRow;
+                } else {
+                        amount ++;
+                }
+        }
+
         size_t lineLength;
         if (cursor->column == 0 && amount < 0) {
                 if (cursor->row > 0) {
@@ -701,6 +713,13 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
  * column and figures out the width of a rune and use that in various places.
  */
 void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
+        // if we have something selected, escape the selection.
+        // TODO: change column to beginning or end of selection first, depending
+        // on selection direction
+        if (cursor->hasSelection) {
+                cursor->hasSelection = 0;
+        }
+        
         size_t rowBefore = cursor->row;
         cursor->row = constrainChange (
                 cursor->row,
