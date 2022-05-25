@@ -769,15 +769,25 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
  */
 void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
         // if we have something selected, escape the selection.
-        // if (cursor->hasSelection) {
-                // if (cursor->selectionDirection == EditBuffer_Direction_right) {
-                        // cursor->column = cursor->endColumn + 1;
-                // }
-                // 
-                // if (amount > 0) {
-                        // cursor->row = cursor->endRow;
-                // }
-        // }
+        if (cursor->hasSelection) {
+                size_t startColumn;
+                size_t startRow;
+                size_t endColumn;
+                size_t endRow;
+
+                EditBuffer_Cursor_getSelectionBounds (
+                        cursor,
+                        &startColumn, &startRow,
+                        &endColumn,   &endRow);
+                
+                if (amount < 0) {
+                        cursor->column = startColumn;
+                        cursor->row    = startRow;
+                } else {
+                        cursor->column = endColumn;
+                        cursor->row    = endRow;
+                }
+        }
         
         EditBuffer_Cursor_predictMovement (
                 cursor,
