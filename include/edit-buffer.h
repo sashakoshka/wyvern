@@ -8,6 +8,7 @@
 typedef struct EditBuffer_Cursor EditBuffer_Cursor;
 typedef struct EditBuffer        EditBuffer;
 
+// TODO: remove this limit, and dynamically allocate cursors array
 #define EDITBUFFER_MAX_CURSORS 32
 
 typedef enum {
@@ -19,13 +20,12 @@ struct EditBuffer_Cursor {
         size_t row;
         size_t column;
         
-        size_t endRow;
-        size_t endColumn;
+        size_t selectionRow;
+        size_t selectionColumn;
 
         EditBuffer *parent;
         
         int hasSelection;
-        EditBuffer_Direction selectionDirection;
 };
 
 struct EditBuffer {
@@ -84,10 +84,8 @@ void EditBuffer_Cursor_moveH             (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveV             (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveWordH         (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_moveMoreV         (EditBuffer_Cursor *, int);
-void EditBuffer_Cursor_selectFromTo (
-        EditBuffer_Cursor *,
-        size_t, size_t,
-        size_t, size_t);
+void EditBuffer_Cursor_selectTo          (EditBuffer_Cursor *, size_t, size_t);
+void EditBuffer_Cursor_selectNone        (EditBuffer_Cursor *);
 void EditBuffer_Cursor_selectH           (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_selectV           (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_selectWordH       (EditBuffer_Cursor *, int);
