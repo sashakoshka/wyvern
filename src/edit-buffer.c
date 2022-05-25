@@ -917,11 +917,13 @@ void EditBuffer_Cursor_getSelectionBounds (
         int columnOutOfOrder = cursor->selectionColumn < cursor->column;
 
         if (rowOutOfOrder || (columnOutOfOrder && onSameRow)) {
+                // out of order (seelction is behind cursor)
                 *startRow    = cursor->selectionRow;
                 *startColumn = cursor->selectionColumn;
                 *endRow      = cursor->row;
-                *endColumn   = cursor->column;
+                *endColumn   = cursor->column - 1;
         } else {
+                // in order (selection is in front of cursor)
                 *startRow    = cursor->row;
                 *startColumn = cursor->column;
                 *endRow      = cursor->selectionRow;
