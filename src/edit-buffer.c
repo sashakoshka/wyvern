@@ -170,18 +170,15 @@ void EditBuffer_addNewCursor (
  * returns zero.
  */
 int EditBuffer_hasCursorAt (EditBuffer *editBuffer, size_t column, size_t row) {
-        for (
-                size_t cursor = 0;
-                cursor < editBuffer->amountOfCursors;
-                cursor ++
-        ) {
+        START_ALL_CURSORS
                 if (
-                        editBuffer->cursors[cursor].column == column &&
-                        editBuffer->cursors[cursor].row    == row
+                        !cursor->hasSelection    &&
+                        cursor->column == column &&
+                        cursor->row    == row
                 ) {
                         return 1;
                 }
-        }
+        END_ALL_CURSORS
 
         return 0;
 }
