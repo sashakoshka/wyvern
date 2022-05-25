@@ -199,15 +199,15 @@ int EditBuffer_hasSelectionAt (
                 if (!cursor->hasSelection) { continue; }
 
                 // sort selection start and end
-                size_t startRow;
                 size_t startColumn;
-                size_t endRow;
+                size_t startRow;
                 size_t endColumn;
+                size_t endRow;
 
                 EditBuffer_Cursor_getSelectionBounds (
                         cursor,
-                        &startRow, &startColumn,
-                        &endRow,   &endColumn);
+                        &startColumn, &startRow,
+                        &endColumn,   &endRow);
 
                 // go on to the next cursor if the input is out of bounds of
                 // this one
@@ -723,10 +723,23 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
         // if we have something selected, escape the selection and move to the
         // beginning or end depending on the direction of movement.
         if (cursor->hasSelection) {
-                cursor->column = cursor->selectionColumn;
-                cursor->row    = cursor->selectionRow;
+                size_t startColumn;
+                size_t startRow;
+                size_t endColumn;
+                size_t endRow;
+
+                EditBuffer_Cursor_getSelectionBounds (
+                        cursor,
+                        &startColumn, &startRow,
+                        &endColumn,   &endRow);
+                
                 if (amount < 0) {
+                        cursor->column = startColumn;
+                        cursor->row    = startRow;
                         amount ++;
+                } else {
+                        cursor->column = endColumn;
+                        cursor->row    = endRow;
                 }
         }
 
@@ -896,8 +909,8 @@ String *EditBuffer_Cursor_getCurrentLine (EditBuffer_Cursor *cursor) {
  */
 void EditBuffer_Cursor_getSelectionBounds (
         EditBuffer_Cursor *cursor,
-        size_t *startRow, size_t *startColumn,
-        size_t *endRow,   size_t *endColumn
+        size_t *startColumn, size_t *startRow,
+        size_t *endColumn,   size_t *endRow
 ) {
         int rowOutOfOrder    = cursor->selectionRow    < cursor->row;
         int onSameRow        = cursor->selectionRow   == cursor->row;
