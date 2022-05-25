@@ -199,27 +199,15 @@ int EditBuffer_hasSelectionAt (
                 if (!cursor->hasSelection) { continue; }
 
                 // sort selection start and end
-                // TODO: make this more algorithmically elegant.
                 size_t startRow;
                 size_t startColumn;
                 size_t endRow;
                 size_t endColumn;
 
-                int rowOutOfOrder    = cursor->selectionRow    < cursor->row;
-                int onSameRow        = cursor->selectionRow   == cursor->row;
-                int columnOutOfOrder = cursor->selectionColumn < cursor->column;
-
-                if (rowOutOfOrder || (columnOutOfOrder && onSameRow)) {
-                        startRow    = cursor->selectionRow;
-                        startColumn = cursor->selectionColumn;
-                        endRow      = cursor->row;
-                        endColumn   = cursor->column;
-                } else {
-                        startRow    = cursor->row;
-                        startColumn = cursor->column;
-                        endRow      = cursor->selectionRow;
-                        endColumn   = cursor->selectionColumn;
-                }
+                EditBuffer_Cursor_getSelectionBounds (
+                        cursor,
+                        &startRow, &startColumn,
+                        &endRow,   &endColumn);
 
                 // go on to the next cursor if the input is out of bounds of
                 // this one
@@ -735,11 +723,9 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
         // if we have something selected, escape the selection and move to the
         // beginning or end depending on the direction of movement.
         if (cursor->hasSelection) {
-                cursor->hasSelection = 0;
-                if (amount > 0) {
-                        cursor->column = cursor->endColumn;
-                        cursor->row    = cursor->endRow;
-                } else {
+                cursor->column = cursor->selectionColumn;
+                cursor->row    = cursor->selectionRow;
+                if (amount < 0) {
                         amount ++;
                 }
         }
@@ -773,15 +759,15 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
  */
 void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
         // if we have something selected, escape the selection.
-        if (cursor->hasSelection) {
-                if (cursor->selectionDirection == EditBuffer_Direction_right) {
-                        cursor->column = cursor->endColumn + 1;
-                }
-                
-                if (amount > 0) {
-                        cursor->row = cursor->endRow;
-                }
-        }
+        // if (cursor->hasSelection) {
+                // if (cursor->selectionDirection == EditBuffer_Direction_right) {
+                        // cursor->column = cursor->endColumn + 1;
+                // }
+                // 
+                // if (amount > 0) {
+                        // cursor->row = cursor->endRow;
+                // }
+        // }
         
         EditBuffer_Cursor_predictMovement (
                 cursor,
@@ -803,36 +789,36 @@ void EditBuffer_Cursor_moveMoreV (EditBuffer_Cursor *cursor, int);
  * cursor origin.
  */
 void EditBuffer_Cursor_selectH (EditBuffer_Cursor *cursor, int amount) {
-        if (!cursor->hasSelection) {
-                if (amount < 0) {
-                        cursor->selectionDirection = EditBuffer_Direction_left;
-                        EditBuffer_Cursor_moveH(cursor, -1);
-                        amount ++;
-                } else {
-                        cursor->selectionDirection = EditBuffer_Direction_right;
-                        amount --;
-                }
-        }
-        
-        size_t newColumn;
-        size_t newRow;
-
-        if (cursor->selectionDirection == EditBuffer_Direction_left) {
-                newColumn = cursor->column;
-                newRow    = cursor->row;
-                
-                EditBuffer_Cursor_predictMovement (
-                        cursor,
-                        &newColumn, &newRow,
-                        amount, 0);
-
-                // EditBuffer_Cursor_selectTo(cursor)
-        } else {
-                newColumn = cursor->endColumn;
-                newRow    = cursor->endRow;
-        }
-
-        printf("%zu\t%zu\n", newColumn, newRow);
+        // if (!cursor->hasSelection) {
+                // if (amount < 0) {
+                        // cursor->selectionDirection = EditBuffer_Direction_left;
+                        // EditBuffer_Cursor_moveH(cursor, -1);
+                        // amount ++;
+                // } else {
+                        // cursor->selectionDirection = EditBuffer_Direction_right;
+                        // amount --;
+                // }
+        // }
+        // 
+        // size_t newColumn;
+        // size_t newRow;
+// 
+        // if (cursor->selectionDirection == EditBuffer_Direction_left) {
+                // newColumn = cursor->column;
+                // newRow    = cursor->row;
+                // 
+                // EditBuffer_Cursor_predictMovement (
+                        // cursor,
+                        // &newColumn, &newRow,
+                        // amount, 0);
+// 
+                // // EditBuffer_Cursor_selectTo(cursor)
+        // } else {
+                // newColumn = cursor->endColumn;
+                // newRow    = cursor->endRow;
+        // }
+// 
+        // printf("%zu\t%zu\n", newColumn, newRow);
 }
 
 /* EditBuffer_Cursor_selectV
@@ -903,6 +889,31 @@ static void EditBuffer_Cursor_wrangle (EditBuffer_Cursor *cursor) {
  */
 String *EditBuffer_Cursor_getCurrentLine (EditBuffer_Cursor *cursor) {
         return EditBuffer_getLine(cursor->parent, cursor->row);
+}
+
+/* EditBuffer_Cursor_getSelectionBounds
+ * Gets the sorted selection boundary of the cursor.
+ */
+void EditBuffer_Cursor_getSelectionBounds (
+        EditBuffer_Cursor *cursor,
+        size_t *startRow, size_t *startColumn,
+        size_t *endRow,   size_t *endColumn
+) {
+        int rowOutOfOrder    = cursor->selectionRow    < cursor->row;
+        int onSameRow        = cursor->selectionRow   == cursor->row;
+        int columnOutOfOrder = cursor->selectionColumn < cursor->column;
+
+        if (rowOutOfOrder || (columnOutOfOrder && onSameRow)) {
+                *startRow    = cursor->selectionRow;
+                *startColumn = cursor->selectionColumn;
+                *endRow      = cursor->row;
+                *endColumn   = cursor->column;
+        } else {
+                *startRow    = cursor->row;
+                *startColumn = cursor->column;
+                *endRow      = cursor->selectionRow;
+                *endColumn   = cursor->selectionColumn;
+        }
 }
 
                             /* * * * * * * * * * *
