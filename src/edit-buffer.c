@@ -153,14 +153,15 @@ void EditBuffer_addNewCursor (
                         return;
                 }
         END_ALL_CURSORS
+
+        EditBuffer_Cursor *newCursor =
+                &editBuffer->cursors[editBuffer->amountOfCursors];
         
-        editBuffer->cursors[editBuffer->amountOfCursors].hasSelection = 0;
-        editBuffer->cursors[editBuffer->amountOfCursors].parent = editBuffer;
-        
-        editBuffer->cursors[editBuffer->amountOfCursors].column    = column;
-        editBuffer->cursors[editBuffer->amountOfCursors].row       = row;
-        editBuffer->cursors[editBuffer->amountOfCursors].endColumn = column;
-        editBuffer->cursors[editBuffer->amountOfCursors].endRow    = row;
+        newCursor->parent = editBuffer;
+        newCursor->column = column;
+        newCursor->row    = row;
+
+        EditBuffer_Cursor_selectNone(newCursor);
         
         editBuffer->amountOfCursors ++;
 }
@@ -838,53 +839,27 @@ void EditBuffer_Cursor_selectV (EditBuffer_Cursor *cursor, int amount) {
 void EditBuffer_Cursor_selectWordH (EditBuffer_Cursor *, int);
 void EditBuffer_Cursor_selectMoreV (EditBuffer_Cursor *, int);
 
-/* EditBuffer_Cursor_selectFromTo
- * Sets the selection origin and end to the specified coordinates. The selection
- * end must always come after the cursor origin - so this function will
- * automatically swap them if the given column and row are positioned
- * before the cursor origin.
+/* EditBuffer_Cursor_selectTo
+ * Extends the selection to the specified coordinates.
  */
-void EditBuffer_Cursor_selectFromTo (
+void EditBuffer_Cursor_selectTo (
         EditBuffer_Cursor *cursor,
-        size_t fromColumn, size_t fromRow,
-        size_t toColumn,   size_t toRow
+        size_t column, size_t row
 ) {
         cursor->hasSelection = 1;
 
-        if (
-                (toRow < fromRow) ||
-                (toRow == fromRow && toColumn < fromColumn)
-        ) {
-                // to is behind from
-                cursor->endRow = fromRow;
+        cursor->selectionColumn = column;
+        cursor->selectionRow    = row;
+}
 
-                // figure out where the ending column is
-                if (cursor->column == 0) {
-                        if (cursor->endRow == 0) {
-                                cursor->endColumn = 0;
-                        } else {
-                                cursor->endRow --;
-                                String *line = EditBuffer_getLine (
-                                        cursor->parent, cursor->endRow);
-                                cursor->endColumn = line->length;
-                        }
-                } else {
-                        cursor->endColumn = fromColumn - 1;
-                }
-                
-                cursor->row    = toRow;
-                cursor->column = toColumn;
+/* EditBuffer_Cursor_selectNone
+ * Clears the selection of the cursor. 
+ */
+void EditBuffer_Cursor_selectNone (EditBuffer_Cursor *cursor) {
+        cursor->hasSelection = 0;
 
-                cursor->selectionDirection = EditBuffer_Direction_left;
-        } else {
-                // to is in front of from
-                cursor->row       = fromRow;
-                cursor->column    = fromColumn;
-                cursor->endRow    = toRow;
-                cursor->endColumn = toColumn;
-                
-                cursor->selectionDirection = EditBuffer_Direction_right;
-        }
+        cursor->selectionColumn = cursor->column;
+        cursor->selectionRow    = cursor->row;
 }
 
 // TODO
