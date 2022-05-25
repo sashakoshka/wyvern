@@ -162,7 +162,6 @@ void EditBuffer_addNewCursor (
         newCursor->row    = row;
 
         EditBuffer_Cursor_selectNone(newCursor);
-        
         editBuffer->amountOfCursors ++;
 }
 
@@ -196,22 +195,23 @@ int EditBuffer_hasSelectionAt (
         size_t column,
         size_t row
 ) {
-        START_ALL_CURSORS
-                if (!cursor->hasSelection) { continue; }
-        
-                if (row < cursor->row)    { continue; }
-                if (row > cursor->endRow) { continue; }
-                
-                if (row == cursor->row && column < cursor->column ) {
-                        continue;
-                }
-                
-                if (row == cursor->endRow && column > cursor->endColumn ) {
-                        continue;
-                }
-                
-                return 1;
-        END_ALL_CURSORS
+        // START_ALL_CURSORS
+                // TODO: fix
+                // if (!cursor->hasSelection) { continue; }
+        // 
+                // if (row < cursor->row)    { continue; }
+                // if (row > cursor->endRow) { continue; }
+                // 
+                // if (row == cursor->row && column < cursor->column ) {
+                        // continue;
+                // }
+                // 
+                // if (row == cursor->endRow && column > cursor->endColumn ) {
+                        // continue;
+                // }
+                // 
+                // return 1;
+        // END_ALL_CURSORS
         return 0;
 }
 
@@ -637,8 +637,7 @@ void EditBuffer_Cursor_moveTo (
         cursor->hasSelection = 0;
         cursor->column = column;
         cursor->row    = row;
-        cursor->endColumn = column;
-        cursor->endRow    = row;
+        EditBuffer_Cursor_selectNone(cursor);
 
         EditBuffer_mergeCursors(cursor->parent);
 }
@@ -732,11 +731,8 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
                 cursor,
                 &cursor->column, &cursor->row,
                 amount, 0);
-        
-        cursor->hasSelection = 0;
-        cursor->endRow    = cursor->row;
-        cursor->endColumn = cursor->column;
 
+        EditBuffer_Cursor_selectNone(cursor);
         EditBuffer_mergeCursors(cursor->parent);
 }
 
@@ -775,10 +771,7 @@ void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
                 &cursor->column, &cursor->row,
                 0, amount);
 
-        cursor->hasSelection = 0;
-        cursor->endRow    = cursor->row;
-        cursor->endColumn = cursor->column;
-        
+        EditBuffer_Cursor_selectNone(cursor);
         EditBuffer_mergeCursors(cursor->parent);
 }
 
