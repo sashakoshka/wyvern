@@ -195,23 +195,40 @@ int EditBuffer_hasSelectionAt (
         size_t column,
         size_t row
 ) {
-        // START_ALL_CURSORS
-                // TODO: fix
-                // if (!cursor->hasSelection) { continue; }
-        // 
-                // if (row < cursor->row)    { continue; }
-                // if (row > cursor->endRow) { continue; }
-                // 
-                // if (row == cursor->row && column < cursor->column ) {
-                        // continue;
-                // }
-                // 
-                // if (row == cursor->endRow && column > cursor->endColumn ) {
-                        // continue;
-                // }
-                // 
-                // return 1;
-        // END_ALL_CURSORS
+        START_ALL_CURSORS
+                if (!cursor->hasSelection) { continue; }
+
+                // sort selection start and end
+                // TODO: make this more algorithmically elegant.
+                size_t startRow;
+                size_t startColumn;
+                size_t endRow;
+                size_t endColumn;
+
+                int rowOutOfOrder    = cursor->selectionRow    < cursor->row;
+                int onSameRow        = cursor->selectionRow   == cursor->row;
+                int columnOutOfOrder = cursor->selectionColumn < cursor->column;
+
+                if (rowOutOfOrder || (columnOutOfOrder && onSameRow)) {
+                        startRow    = cursor->selectionRow;
+                        startColumn = cursor->selectionColumn;
+                        endRow      = cursor->row;
+                        endColumn   = cursor->column;
+                } else {
+                        startRow    = cursor->row;
+                        startColumn = cursor->column;
+                        endRow      = cursor->selectionRow;
+                        endColumn   = cursor->selectionColumn;
+                }
+
+                // go on to the next cursor if the input is out of bounds of
+                // this one
+                if (row < startRow  || endRow < row)          { continue; }
+                if (row == startRow && column < startColumn ) { continue; }
+                if (row == endRow   && column > endColumn )   { continue; }
+                               
+                return 1;
+        END_ALL_CURSORS
         return 0;
 }
 
