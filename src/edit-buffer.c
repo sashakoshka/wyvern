@@ -809,36 +809,23 @@ void EditBuffer_Cursor_moveMoreV (EditBuffer_Cursor *cursor, int);
  * cursor origin.
  */
 void EditBuffer_Cursor_selectH (EditBuffer_Cursor *cursor, int amount) {
-        // if (!cursor->hasSelection) {
-                // if (amount < 0) {
-                        // cursor->selectionDirection = EditBuffer_Direction_left;
-                        // EditBuffer_Cursor_moveH(cursor, -1);
-                        // amount ++;
-                // } else {
-                        // cursor->selectionDirection = EditBuffer_Direction_right;
-                        // amount --;
-                // }
-        // }
-        // 
-        // size_t newColumn;
-        // size_t newRow;
-// 
-        // if (cursor->selectionDirection == EditBuffer_Direction_left) {
-                // newColumn = cursor->column;
-                // newRow    = cursor->row;
-                // 
-                // EditBuffer_Cursor_predictMovement (
-                        // cursor,
-                        // &newColumn, &newRow,
-                        // amount, 0);
-// 
-                // // EditBuffer_Cursor_selectTo(cursor)
-        // } else {
-                // newColumn = cursor->endColumn;
-                // newRow    = cursor->endRow;
-        // }
-// 
-        // printf("%zu\t%zu\n", newColumn, newRow);
+        // if selection is new, and direction is to the right, set selection to
+        // cursor position and exit.
+        if (amount > 0 && !cursor->hasSelection) {
+                cursor->hasSelection = 1;
+                EditBuffer_Cursor_selectTo(cursor, cursor->column, cursor->row);
+                return;
+        }
+
+        // otherwise, extend.
+        size_t newColumn = cursor->selectionColumn;
+        size_t newRow    = cursor->selectionRow;
+        
+        EditBuffer_Cursor_predictMovement (
+                cursor,
+                &newColumn, &newRow,
+                amount, 0);
+        EditBuffer_Cursor_selectTo(cursor, newColumn, newRow);
 }
 
 /* EditBuffer_Cursor_selectV
