@@ -736,6 +736,9 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
  */
 void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
         if (cursor->parent->length == 0) { return; }
+        if (cursor->hasSelection) {
+                EditBuffer_Cursor_deleteSelection(cursor);
+        }
         EditBuffer_insertRuneAt (
                 cursor->parent,
                 cursor->column, cursor->row,
