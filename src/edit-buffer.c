@@ -235,26 +235,69 @@ void EditBuffer_insertRuneAt (
                 String_splitInto(currentLine, newLine, column);
                 EditBuffer_placeLine(editBuffer, newLine, row + 1);
                 
+                // shift down cursors after the new line break
                 START_ALL_CURSORS
-                        // shift down cursors after the new line break
-                        if (cursor->row == row) {
-                                if (cursor->column > column) {
-                                        // this cursor was previously on the
-                                        // part of the line that got split and
-                                        // made into its own line. it needs to
-                                        // have its position set to the proper
-                                        // place on that new line.
-                                        cursor->row ++;
-                                        cursor->column -= currentLine->length;
-                                } else if (cursor->column == column) {
-                                        // this is the cursor that caused the
-                                        // insertion, so it should wrap around
-                                        // to the beginning of the next line
-                                        cursor->row ++;
-                                        cursor->column = 0;
-                                }
-                        } else if (cursor->row > row) {
+                        if (cursor->row < row) {
+                                // this cursor comes before the insertion
+                                continue;
+                        }
+
+                        if (cursor->row > row) {
+                                // this cursor is in a row after the insertion,
+                                // so it simply needs to be shifted down.
                                 cursor->row ++;
+                                continue;
+                        }
+
+                        // these are on the same column as the insertion
+
+                        if (cursor->column < column) {
+                                // this cursor comes before the insertion
+                                continue;
+                        }
+                
+                        if (cursor->column == column) {
+                                // this is the cursor that caused the
+                                // insertion, so it should wrap around
+                                // to the beginning of the next line
+                                cursor->column = 0;
+                                cursor->row ++;
+                                continue;
+                        }
+                
+                        if (cursor->column > column) {
+                                // this cursor was previously on the
+                                // part of the line that got split and
+                                // made into its own line. it needs to
+                                // have its position set to the proper
+                                // place on that new line.
+                                cursor->column -= currentLine->length;
+                                cursor->row ++;
+                                continue;
+                        }
+                END_ALL_CURSORS
+
+                // the same thing, but for the selection coordinates
+                START_ALL_CURSORS
+                        if (cursor->selectionRow < row) {  continue; }
+
+                        if (cursor->selectionRow > row) {
+                                cursor->selectionRow ++;
+                                continue;
+                        }
+
+                        if (cursor->selectionColumn < column) { continue; }
+                
+                        if (cursor->selectionColumn == column) {
+                                cursor->selectionColumn = 0;
+                                cursor->selectionRow ++;
+                                continue;
+                        }
+                
+                        if (cursor->selectionColumn > column) {
+                                cursor->selectionColumn -= currentLine->length;
+                                cursor->selectionRow ++;
+                                continue;
                         }
                 END_ALL_CURSORS
                 return;
@@ -323,6 +366,15 @@ void EditBuffer_deleteRuneAt (
                                 // right after it gets shifted up.
                                 cursor->column += previousLength;
                         }
+
+                }
+
+                // do the same thing with the selection end
+                if (cursor->selectionRow > row) {
+                        cursor->selectionRow --;
+                        if (cursor->selectionRow == row) {
+                                cursor->selectionColumn += previousLength;
+                        }
                 }
         END_ALL_CURSORS
 }
@@ -338,8 +390,21 @@ static void EditBuffer_shiftCursorsInLineAfter (
         int amount
 ) {
         START_ALL_CURSORS
-                if (cursor->row == row && cursor->column >= column) {
+                if (
+                        cursor->row == row &&
+                        cursor->column >= column
+                ) {
                         cursor->column = addToSizeT(cursor->column, amount);
+
+                }
+                
+                if (
+                        cursor->selectionRow == row &&
+                        cursor->selectionColumn >= column
+                ) {
+                        cursor->selectionColumn = addToSizeT (
+                                cursor->selectionColumn,
+                                amount);
                 }
         END_ALL_CURSORS
 }
