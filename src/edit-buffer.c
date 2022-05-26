@@ -379,6 +379,10 @@ void EditBuffer_deleteRuneAt (
                         }
                 }
         END_ALL_CURSORS
+
+        // since we deleted a line, there might be cursors that are now out of
+        // bounds, and we need to bring them back in.
+        EditBuffer_cursorsWrangle(editBuffer);
 }
 
 /* EditBuffer_deleteRange
@@ -409,6 +413,10 @@ void  EditBuffer_deleteRange (
                 END_ALL_CURSORS
 
                 endRow -= numberOfMiddleLines;
+
+                // since we deleted lines, there might be cursors that are now
+                // out of bounds, and we need to bring them back in.
+                EditBuffer_cursorsWrangle(editBuffer);
         }
         
         numberOfLines = endRow - startRow + 1;
@@ -588,10 +596,6 @@ static void EditBuffer_shiftUp (
         }
         
         EditBuffer_realloc(editBuffer, end);
-
-        // since we deleted lines, there might be cursors that are now out of
-        // bounds, and we need to bring them back in.
-        EditBuffer_cursorsWrangle(editBuffer);
 }
 
 /* EditBuffer_cursorsInsertRune
@@ -818,7 +822,6 @@ static void EditBuffer_Cursor_predictMovement (
         size_t *resultColumn, size_t *resultRow,
         int amountH, int amountV
 ) {
-        printf("%zu\n", *resultColumn);
         // predict row
         size_t rowBefore = *resultRow;
         *resultRow = constrainChange (
