@@ -818,6 +818,7 @@ static void EditBuffer_Cursor_predictMovement (
         size_t *resultColumn, size_t *resultRow,
         int amountH, int amountV
 ) {
+        printf("%zu\n", *resultColumn);
         // predict row
         size_t rowBefore = *resultRow;
         *resultRow = constrainChange (
@@ -863,7 +864,7 @@ static void EditBuffer_Cursor_predictMovement (
                 cursor->parent,
                 *resultRow)->length;
         if (*resultColumn >= lineLength && amountH > 0) {
-                if (*resultColumn < cursor->parent->length - 1) {
+                if (*resultRow < cursor->parent->length - 1) {
                         *resultRow += 1;
                         *resultColumn = 0;
                 }
