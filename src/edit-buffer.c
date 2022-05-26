@@ -381,6 +381,58 @@ void EditBuffer_deleteRuneAt (
         END_ALL_CURSORS
 }
 
+/* EditBuffer_deleteRange
+ * Deletes all runes in the specified range, inclusive.
+ */
+void  EditBuffer_deleteRange (
+        EditBuffer *editBuffer,
+        size_t startColumn, size_t startRow,
+        size_t endColumn,   size_t endRow
+) {
+        size_t numberOfLines = endRow - startRow + 1;
+        
+        if (numberOfLines >= 3) {
+                // there are lines in the middle we can quickly deal with
+                size_t numberOfMiddleLines = numberOfLines - 2;
+                EditBuffer_shiftUp (
+                        editBuffer,
+                        startRow + 1, numberOfMiddleLines, 0);
+
+                START_ALL_CURSORS
+                        if (cursor->row > startRow) {
+                                cursor->row -= numberOfMiddleLines;
+                        }
+                        
+                        if (cursor->selectionRow > startRow) {
+                                cursor->selectionRow -= numberOfMiddleLines;
+                        }
+                END_ALL_CURSORS
+
+                endRow -= numberOfMiddleLines;
+        }
+        
+        numberOfLines = endRow - startRow + 1;
+
+        if (numberOfLines >= 2) {
+                // we have a start and end line
+                String *line = EditBuffer_getLine(editBuffer, startRow);
+                size_t toDelete = line->length - startColumn + endColumn + 2;
+                
+                for (size_t index = 0; index < toDelete; index ++) {
+                        EditBuffer_deleteRuneAt (
+                                editBuffer,
+                                startColumn, startRow);
+                }
+        } else {
+                // we have a line
+                for (size_t index = startColumn; index <= endColumn; index ++) {
+                        EditBuffer_deleteRuneAt (
+                                editBuffer,
+                                startColumn, startRow);
+                }
+        }
+}
+
 /* EditBuffer_shiftCursorsInLineAfter
  * Shifts all cursors in row that are positioned at or equal to column by
  * amount. This function should ONLY be used in rune insertion and deletion, and
@@ -690,30 +742,22 @@ void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
  * Deletes all text in the selection of the cursor.
  */
 void EditBuffer_Cursor_deleteSelection (EditBuffer_Cursor *cursor) {
-        // size_t startColumn;
-        // size_t startRow;
-        // size_t endColumn;
-        // size_t endRow;
-// 
-        // EditBuffer_Cursor_getSelectionBounds (
-                // cursor,
-                // &startColumn, &startRow,
-                // &endColumn,   &endRow);
+        size_t startColumn;
+        size_t startRow;
+        size_t endColumn;
+        size_t endRow;
 
-        // TODO: remove lines in between
-        // if (endRow - startRow > 1) {
-                // EditBuffer_shiftUp (
-                        // cursor->parent,
-                        // startRow + 1, endRow - startRow - 1, 0);
+        EditBuffer_Cursor_getSelectionBounds (
+                cursor,
+                &startColumn, &startRow,
+                &endColumn,   &endRow);
 
-                // START_ALL_CURSORS
-                        // cursor->row --;
-                // END_ALL_CURSORS
-        // }
+        EditBuffer_deleteRange (
+                cursor->parent,
+                startColumn, startRow,
+                endColumn, endRow);
 
-        // TODO: remove line at start
-        // TODO: remove line at end
-        // TODO: clear this cursor's selection
+        EditBuffer_Cursor_selectNone(cursor);
 }
 
 /* EditBuffer_Cursor_deleteRune

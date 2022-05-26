@@ -55,6 +55,10 @@ int   EditBuffer_hasCursorAt       (EditBuffer *, size_t, size_t);
 int   EditBuffer_hasSelectionAt    (EditBuffer *, size_t, size_t);
 void  EditBuffer_insertRuneAt      (EditBuffer *, size_t, size_t, Rune);
 void  EditBuffer_deleteRuneAt      (EditBuffer *, size_t, size_t);
+void  EditBuffer_deleteRange (
+        EditBuffer *,
+        size_t, size_t,
+        size_t, size_t);
 
 void EditBuffer_scroll (EditBuffer *, int);
 
