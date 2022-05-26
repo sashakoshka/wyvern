@@ -30,7 +30,13 @@ static void EditBuffer_mergeCursors   (EditBuffer *);
 static void EditBuffer_cursorsWrangle (EditBuffer *);
 static void EditBuffer_Cursor_wrangle (EditBuffer_Cursor *);
 
+static void EditBuffer_Cursor_predictMovement (
+        EditBuffer_Cursor *,
+        size_t *, size_t *,
+        int, int);
+
 static size_t constrainChange (size_t, int, size_t);
+static size_t addToSizeT      (size_t, int);
 
                       /* * * * * * * * * * * * * * * *
                        * EditBuffer member functions *
@@ -147,10 +153,15 @@ void EditBuffer_addNewCursor (
                         return;
                 }
         END_ALL_CURSORS
+
+        EditBuffer_Cursor *newCursor =
+                &editBuffer->cursors[editBuffer->amountOfCursors];
         
-        editBuffer->cursors[editBuffer->amountOfCursors].parent = editBuffer;
-        editBuffer->cursors[editBuffer->amountOfCursors].column = column;
-        editBuffer->cursors[editBuffer->amountOfCursors].row    = row;
+        newCursor->parent = editBuffer;
+        newCursor->column = column;
+        newCursor->row    = row;
+
+        EditBuffer_Cursor_selectNone(newCursor);
         editBuffer->amountOfCursors ++;
 }
 
@@ -159,19 +170,50 @@ void EditBuffer_addNewCursor (
  * returns zero.
  */
 int EditBuffer_hasCursorAt (EditBuffer *editBuffer, size_t column, size_t row) {
-        for (
-                size_t cursor = 0;
-                cursor < editBuffer->amountOfCursors;
-                cursor ++
-        ) {
+        START_ALL_CURSORS
                 if (
-                        editBuffer->cursors[cursor].column == column &&
-                        editBuffer->cursors[cursor].row    == row
+                        !cursor->hasSelection    &&
+                        cursor->column == column &&
+                        cursor->row    == row
                 ) {
                         return 1;
                 }
-        }
+        END_ALL_CURSORS
 
+        return 0;
+}
+
+/* EditBuffer_hasSelectionAt
+ * Returns 1 if there is a selection at the specified coordinates, otherwise
+ * returns zero.
+ */
+int EditBuffer_hasSelectionAt (
+        EditBuffer *editBuffer,
+        size_t column,
+        size_t row
+) {
+        START_ALL_CURSORS
+                if (!cursor->hasSelection) { continue; }
+
+                // sort selection start and end
+                size_t startColumn;
+                size_t startRow;
+                size_t endColumn;
+                size_t endRow;
+
+                EditBuffer_Cursor_getSelectionBounds (
+                        cursor,
+                        &startColumn, &startRow,
+                        &endColumn,   &endRow);
+
+                // go on to the next cursor if the input is out of bounds of
+                // this one
+                if (row < startRow  || endRow < row)          { continue; }
+                if (row == startRow && column < startColumn ) { continue; }
+                if (row == endRow   && column > endColumn )   { continue; }
+                               
+                return 1;
+        END_ALL_CURSORS
         return 0;
 }
 
@@ -297,14 +339,7 @@ static void EditBuffer_shiftCursorsInLineAfter (
 ) {
         START_ALL_CURSORS
                 if (cursor->row == row && cursor->column >= column) {
-                        size_t amountAbs;
-                        if (amount > 0) {
-                                amountAbs = (size_t)(amount);
-                                cursor->column += amountAbs;
-                        } else {
-                                amountAbs = (size_t)(-1 * amount);
-                                cursor->column -= amountAbs;
-                        }
+                        cursor->column = addToSizeT(cursor->column, amount);
                 }
         END_ALL_CURSORS
 }
@@ -490,25 +525,29 @@ void EditBuffer_cursorsMoveV (EditBuffer *editBuffer, int amount) {
 
 // TODO
 void EditBuffer_cursorsMoveWordH (EditBuffer *editBuffer, int amount);
-void EditBuffer_cursorsMoveWordV (EditBuffer *editBuffer, int amount);
+void EditBuffer_cursorsMoveMoreV (EditBuffer *editBuffer, int amount);
 
-/* EditBuffer_cursorsMoveTo
- * Moves all cursors to one location.
- *
- * TODO: when multiple cursors are fully implemented, make another function to
- * check if cursors overlap eachother and delete duplicates. Run this function
- * whenever cursors change position.
+/* EditBuffer_cursorsSelectH
+ * Extends the selection of all cursors horizontally by amount
  */
-void EditBuffer_cursorsMoveTo ( 
-        EditBuffer *editBuffer,
-        size_t column,
-        size_t row
-) {
-        EditBuffer_Cursor_moveTo(&editBuffer->cursors[0], column, row);
-        EditBuffer_clearExtraCursors(editBuffer);
+void EditBuffer_cursorsSelectH (EditBuffer *editBuffer, int amount) {
+        START_ALL_CURSORS_BATCH_OPERATION
+                EditBuffer_Cursor_selectH(cursor, amount);
+        END_ALL_CURSORS_BATCH_OPERATION
+}
+
+/* EditBuffer_cursorsSelectV
+ * Extends the selection of all cursors vertically by amount
+ */
+void EditBuffer_cursorsSelectV (EditBuffer *editBuffer, int amount) {
+        START_ALL_CURSORS_BATCH_OPERATION
+                EditBuffer_Cursor_selectV(cursor, amount);
+        END_ALL_CURSORS_BATCH_OPERATION
 }
 
 // TODO
+void EditBuffer_cursorsSelectWordH (EditBuffer *, int);
+void EditBuffer_cursorsSelectMoreV (EditBuffer *, int);
 void EditBuffer_cursorsChangeIndent (EditBuffer *, int);
 void EditBuffer_cursorsInsertString (EditBuffer *, String *);
 
@@ -588,42 +627,125 @@ void EditBuffer_Cursor_backspaceRune (EditBuffer_Cursor *cursor) {
         EditBuffer_Cursor_deleteRune(cursor);
 }
 
+/* EditBuffer_Cursor_moveTo
+ * Moves the cursor of the edit buffer to the specified row and column. This
+ * resets the selection.
+ */
+void EditBuffer_Cursor_moveTo (
+        EditBuffer_Cursor *cursor,
+        size_t column,
+        size_t row
+) {
+        cursor->hasSelection = 0;
+        cursor->column = column;
+        cursor->row    = row;
+        EditBuffer_Cursor_selectNone(cursor);
+
+        EditBuffer_mergeCursors(cursor->parent);
+}
+
+/* EditBuffer_Cursor_predictMovement
+ * Returns the new position of the cursor, if it were to have moved from the
+ * specified coordinates by the specified amount. It does not actually move the
+ * cursor. This function is to be used as a common backend for other functions
+ * that do change the cursor position, as it defines standard behavior for how
+ * the cursor and selection should move in response to user input.
+ */
+static void EditBuffer_Cursor_predictMovement (
+        EditBuffer_Cursor *cursor,
+        size_t *resultColumn, size_t *resultRow,
+        int amountH, int amountV
+) {
+        // predict row
+        size_t rowBefore = *resultRow;
+        *resultRow = constrainChange (
+                *resultRow,
+                amountV,
+                cursor->parent->length);
+
+        size_t lineLength = EditBuffer_getLine (
+                cursor->parent,
+                *resultRow)->length;
+        if (*resultRow == rowBefore && amountV != 0) {
+                // we wanted to move someplace, and did not get there. this
+                // means we are at the end of the file, or the beginning of the
+                // file, and we should snap the cursor to the beginning or end
+                // of the line as expected
+                if (amountV > 0) {
+                        *resultColumn = lineLength;
+                } else {
+                        *resultColumn = 0;
+                }
+        }
+
+        // ensure that the previous line jump did not send us into an invalid
+        // spot
+        if (*resultColumn > lineLength) {
+                *resultColumn = lineLength;
+        }
+
+        // predict column
+        if (*resultColumn == 0 && amountH < 0) {
+                if (*resultRow > 0) {
+                        *resultRow -= 1;
+                        lineLength = EditBuffer_getLine (
+                                cursor->parent, *resultRow
+                        )->length;
+                        *resultColumn = lineLength;
+                }
+                return;
+        }
+
+        // if we have gone off the end of the line, wrap around to the next one.
+        lineLength = EditBuffer_getLine (
+                cursor->parent,
+                *resultRow)->length;
+        if (*resultColumn >= lineLength && amountH > 0) {
+                if (*resultColumn < cursor->parent->length - 1) {
+                        *resultRow += 1;
+                        *resultColumn = 0;
+                }
+                return;
+        }
+        
+        *resultColumn = addToSizeT(*resultColumn, amountH);
+}
+
 /* EditBuffer_Cursor_moveH
  * Horizontally moves the cursor by amount. This function does bounds checking.
  * If the cursor runs off the line, it is taken to the previous or next line
  * (if possible),
  */
 void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
-        size_t lineLength;
-        if (cursor->column == 0 && amount < 0) {
-                if (cursor->row > 0) {
-                        cursor->row --;
-                        lineLength = EditBuffer_Cursor_getCurrentLine (
-                                cursor
-                        )->length;
-                        cursor->column = lineLength;
+        // if we have something selected, escape the selection and move to the
+        // beginning or end depending on the direction of movement.
+        if (cursor->hasSelection) {
+                size_t startColumn;
+                size_t startRow;
+                size_t endColumn;
+                size_t endRow;
+
+                EditBuffer_Cursor_getSelectionBounds (
+                        cursor,
+                        &startColumn, &startRow,
+                        &endColumn,   &endRow);
+                
+                if (amount < 0) {
+                        cursor->column = startColumn;
+                        cursor->row    = startRow;
+                        amount ++;
+                } else {
+                        cursor->column = endColumn;
+                        cursor->row    = endRow;
                 }
-                return;
         }
 
-        lineLength = EditBuffer_Cursor_getCurrentLine(cursor)->length;
-        if (cursor->column >= lineLength && amount > 0) {
-                if (cursor->row < cursor->parent->length - 1) {
-                        cursor->row ++;
-                        cursor->column = 0;
-                }
-                return;
-        }
+        EditBuffer_Cursor_predictMovement (
+                cursor,
+                &cursor->column, &cursor->row,
+                amount, 0);
 
-        size_t amountAbs;
-        if (amount < 0) {
-                amountAbs = (size_t)(0 - amount);
-                cursor->column -= amountAbs;
-        } else {
-                amountAbs = (size_t)(amount);
-                cursor->column += amountAbs;
-        }
-
+        EditBuffer_Cursor_selectNone(cursor);
         EditBuffer_mergeCursors(cursor->parent);
 }
 
@@ -646,44 +768,118 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
  * column and figures out the width of a rune and use that in various places.
  */
 void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
-        size_t rowBefore = cursor->row;
-        cursor->row = constrainChange (
-                cursor->row,
-                amount,
-                cursor->parent->length);
+        // if we have something selected, escape the selection.
+        if (cursor->hasSelection) {
+                size_t startColumn;
+                size_t startRow;
+                size_t endColumn;
+                size_t endRow;
 
-        size_t lineLength = EditBuffer_Cursor_getCurrentLine(cursor)->length;
-        if (cursor->row == rowBefore) {
-                if (amount > 0) {
-                        cursor->column = lineLength;
+                EditBuffer_Cursor_getSelectionBounds (
+                        cursor,
+                        &startColumn, &startRow,
+                        &endColumn,   &endRow);
+                
+                if (amount < 0) {
+                        cursor->column = startColumn;
+                        cursor->row    = startRow;
                 } else {
-                        cursor->column = 0;
+                        cursor->column = endColumn + 1;
+                        cursor->row    = endRow;
                 }
         }
+        
+        EditBuffer_Cursor_predictMovement (
+                cursor,
+                &cursor->column, &cursor->row,
+                0, amount);
 
-        if (cursor->column > lineLength) {
-                cursor->column = lineLength;
-        }
-
+        EditBuffer_Cursor_selectNone(cursor);
         EditBuffer_mergeCursors(cursor->parent);
 }
 
 // TODO
+// TODO: remove amount inputs on these functions, and have them use the other
+// functions but have a function in the string that gets the position of the
+// next word.
 void EditBuffer_Cursor_moveWordH (EditBuffer_Cursor *cursor, int);
-void EditBuffer_Cursor_moveWordV (EditBuffer_Cursor *cursor, int);
+void EditBuffer_Cursor_moveMoreV (EditBuffer_Cursor *cursor, int);
 
-/* EditBuffer_Cursor_moveTo
- * Moves the cursor of the edit buffer to the specified row and column.
+/* EditBuffer_Cursor_selectH
+ * Extends the selection of the cursor horizontally by amount. The selection end
+ * must always come after the cursor origin - so this function will
+ * automatically swap them if the given column and row are positioned before the
+ * cursor origin.
  */
-void EditBuffer_Cursor_moveTo (
-        EditBuffer_Cursor *cursor,
-        size_t column,
-        size_t row
-) {
-        cursor->column = column;
-        cursor->row    = row;
+void EditBuffer_Cursor_selectH (EditBuffer_Cursor *cursor, int amount) {
+        // if selection is new, and direction is to the right, set selection to
+        // cursor position and exit.
+        if (amount > 0 && !cursor->hasSelection) {
+                cursor->hasSelection = 1;
+                EditBuffer_Cursor_selectTo(cursor, cursor->column, cursor->row);
+                return;
+        }
 
-        EditBuffer_mergeCursors(cursor->parent);
+        // otherwise, extend.
+        size_t newColumn = cursor->selectionColumn;
+        size_t newRow    = cursor->selectionRow;
+        
+        EditBuffer_Cursor_predictMovement (
+                cursor,
+                &newColumn, &newRow,
+                amount, 0);
+        EditBuffer_Cursor_selectTo(cursor, newColumn, newRow);
+}
+
+/* EditBuffer_Cursor_selectV
+ * Extends the selection of the cursor vertically by amount. The selection end
+ * must always come after the cursor origin - so this function will
+ * automatically swap them if the given column and row are positioned before the
+ * cursor origin.
+ */
+void EditBuffer_Cursor_selectV (EditBuffer_Cursor *cursor, int amount) {
+        int amountH = 0;
+
+        // when starting out, we need to move back one horizontally.
+        if (amount > 0 && !cursor->hasSelection) {
+                amountH = -1;
+        }
+
+        size_t newColumn = cursor->selectionColumn;
+        size_t newRow    = cursor->selectionRow;
+        
+        EditBuffer_Cursor_predictMovement (
+                cursor,
+                &newColumn, &newRow,
+                amountH, amount);
+        EditBuffer_Cursor_selectTo(cursor, newColumn, newRow);
+}
+
+// TODO
+void EditBuffer_Cursor_selectWordH (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_selectMoreV (EditBuffer_Cursor *, int);
+
+/* EditBuffer_Cursor_selectTo
+ * Extends the selection to the specified coordinates.
+ */
+void EditBuffer_Cursor_selectTo (
+        EditBuffer_Cursor *cursor,
+        size_t column, size_t row
+) {
+        cursor->hasSelection = 1;
+
+        cursor->selectionColumn = column;
+        cursor->selectionRow    = row;
+}
+
+/* EditBuffer_Cursor_selectNone
+ * Clears the selection of the cursor. 
+ */
+void EditBuffer_Cursor_selectNone (EditBuffer_Cursor *cursor) {
+        cursor->hasSelection = 0;
+
+        cursor->selectionColumn = cursor->column;
+        cursor->selectionRow    = cursor->row;
 }
 
 // TODO
@@ -719,6 +915,33 @@ String *EditBuffer_Cursor_getCurrentLine (EditBuffer_Cursor *cursor) {
         return EditBuffer_getLine(cursor->parent, cursor->row);
 }
 
+/* EditBuffer_Cursor_getSelectionBounds
+ * Gets the sorted selection boundary of the cursor.
+ */
+void EditBuffer_Cursor_getSelectionBounds (
+        EditBuffer_Cursor *cursor,
+        size_t *startColumn, size_t *startRow,
+        size_t *endColumn,   size_t *endRow
+) {
+        int rowOutOfOrder    = cursor->selectionRow    < cursor->row;
+        int onSameRow        = cursor->selectionRow   == cursor->row;
+        int columnOutOfOrder = cursor->selectionColumn < cursor->column;
+
+        if (rowOutOfOrder || (columnOutOfOrder && onSameRow)) {
+                // out of order (seelction is behind cursor)
+                *startRow    = cursor->selectionRow;
+                *startColumn = cursor->selectionColumn;
+                *endRow      = cursor->row;
+                *endColumn   = cursor->column - 1;
+        } else {
+                // in order (selection is in front of cursor)
+                *startRow    = cursor->row;
+                *startColumn = cursor->column;
+                *endRow      = cursor->selectionRow;
+                *endColumn   = cursor->selectionColumn;
+        }
+}
+
                             /* * * * * * * * * * *
                              * Utility functions *
                              * * * * * * * * * * */
@@ -747,4 +970,19 @@ static size_t constrainChange (size_t initial, int amount, size_t bound) {
         }
 
         return initial;
+}
+
+/* addToSizeT
+ * Behaves the same as constrainChange, but does not specify an upper bound.
+ */
+static size_t addToSizeT (size_t initial, int amount) {
+        size_t amountAbs;
+        
+        if (amount < 0) {
+                amountAbs = (size_t)(0 - amount);
+                return initial - amountAbs;
+        } else {
+                amountAbs = (size_t)(amount);
+                return initial + amountAbs;
+        }
 }

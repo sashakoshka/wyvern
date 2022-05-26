@@ -18,6 +18,7 @@
 #define RULER_TEXT_COLOR 0.298, 0.337, 0.416
 #define CURSOR_COLOR     0.298, 0.337, 0.416
 #define BAD_CHAR_COLOR   0.749, 0.380, 0.419
+#define SELECTION_COLOR  0.298, 0.337, 0.416
 // #define ACTIVE_TAB_COLOR 0.188, 0.212, 0.263
 
 #define HITBOX(xx, yy, element) \
@@ -32,6 +33,9 @@ static void  Interface_editView_redraw       (void);
 static void  Interface_editView_drawRuler    (void);
 static void  Interface_editView_drawChars    (int);
 static void  Interface_editView_drawCharsRow (size_t);
+
+static void findMouseHoverCell  (int, int, size_t *, size_t *);
+static void updateTextSelection (void);
 
 static void fontNormal     (void);
 // static void fontBold       (void);
@@ -60,8 +64,20 @@ Interface interface = { 0 };
 static EditBuffer  *editBuffer  = NULL;
 static TextDisplay *textDisplay = NULL;
 
-static int mouseX = 0;
-static int mouseY = 0;
+static struct {
+        int x;
+        int y;
+
+        Window_State left;
+        Window_State middle;
+        Window_State right;
+
+        int    dragOriginX;
+        int    dragOriginY;
+        int    dragOriginInCell;
+        size_t dragOriginRealX;
+        size_t dragOriginRealY;
+} mouse = { 0 };
 
 static struct {
         Window_State shift;
@@ -269,15 +285,23 @@ static void Interface_editView_drawCharsRow (size_t y) {
         for (size_t x = 0; x < textDisplay->width; x ++) {
                 size_t coordinate = y * textDisplay->width + x;
                 TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
+
+                // if the cell is undamaged, we don't want to render it.
+                // however, we'll make an exception for cursors because those
+                // need to blink.
+                if (
+                        !cell->damaged &&
+                        cell->cursorState != TextDisplay_CursorState_cursor
+                ) { continue; }
                 
-                if (!cell->damaged && !cell->hasCursor) { continue; }
                 textDisplay->cells[coordinate].damaged = 0;
                 
                 double realX = editView->textX;
                 double realY = editView->innerY;
                 realX += (double)(x) * glyphWidth;
                 realY += (double)(y) * lineHeight;
-                
+
+                // background to clear what was previously there
                 cairo_set_source_rgb(Window_context, BACKGROUND_COLOR);
                 cairo_rectangle (
                         Window_context,
@@ -285,9 +309,9 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         glyphWidth, lineHeight);
                 cairo_fill(Window_context);
 
+                // draw indentation markers every tab stop
                 int isSpace = isspace((char)(cell->rune));
-                if (!isSpace) { inIndent = 0; }
-                
+                if (!isSpace) { inIndent = 0; }                
                 if (x % (size_t)(Options_tabSize) == 0 && inIndent) {
                         cairo_set_source_rgb(Window_context, RULER_COLOR);
                         cairo_set_line_width(Window_context, 2);
@@ -298,8 +322,82 @@ static void Interface_editView_drawCharsRow (size_t y) {
                                 realY + glyphHeight);
                         cairo_stroke(Window_context);
                 }
+
+                // selection highlight
+                if (cell->cursorState == TextDisplay_CursorState_selection) {
+                        cairo_set_source_rgb(Window_context, SELECTION_COLOR);
+                        cairo_rectangle (
+                                Window_context,
+                                realX, realY,
+                                glyphWidth, glyphHeight);
+                        cairo_fill(Window_context);
+                }
+
+                // draw 80 column marker
+                // TODO: set the position of this in options
+                if (x == 80) {
+                        cairo_set_source_rgb(Window_context, RULER_COLOR);
+                        cairo_set_line_width(Window_context, 2);
+                        cairo_move_to(Window_context, realX + 1, realY);
+                        cairo_line_to (
+                                Window_context,
+                                realX + 1,
+                                realY + lineHeight);
+                        cairo_stroke(Window_context);
+                }
+
+                // don't attempt to render whitespace
+                if (cell->rune != TEXTDISPLAY_EMPTY_CELL && !isSpace) {
+                        unsigned int index = FT_Get_Char_Index (
+                                freetypeFaceNormal,
+                                cell->rune);
+
+                        // if we couldn't find the character, display a red
+                        // error symbol
+                        if (index == 0) {
+                                cairo_set_source_rgb (
+                                        Window_context,
+                                        BAD_CHAR_COLOR);
+                                double scale   = glyphWidth / 3;
+                                double centerX = realX + glyphWidth / 2;
+                                double centerY = realY + glyphHeight / 2;
+                                cairo_set_line_width(Window_context, 2);
+                                cairo_move_to (
+                                        Window_context,
+                                        centerX - scale,
+                                        centerY - scale);
+                                cairo_line_to (
+                                        Window_context,
+                                        centerX + scale,
+                                        centerY + scale);
+                                        cairo_stroke(Window_context);
+                                cairo_move_to (
+                                        Window_context,
+                                        centerX + scale,
+                                        centerY - scale);
+                                cairo_line_to (
+                                        Window_context,
+                                        centerX - scale,
+                                        centerY + scale);
+                                        cairo_stroke(Window_context);
+                                continue;
+                        }
+                        
+                        cairo_glyph_t glyph = {
+                                .index = index,
+                                .x     = realX,
+                                .y     = realY + glyphHeight * 0.8
+                        };
+                        fontNormal();
+                        cairo_set_source_rgb(Window_context, TEXT_COLOR);
+                        cairo_show_glyphs(Window_context, &glyph, 1);
+                }
                 
-                if (cell->hasCursor && editView->cursorBlink) {
+                // draw blinking cursor yayayayayayaya
+                if (
+                        cell->cursorState == TextDisplay_CursorState_cursor &&
+                        editView->cursorBlink
+                ) {
                         cairo_set_source_rgb(Window_context, CURSOR_COLOR);
                         cairo_set_line_width (
                                 Window_context,
@@ -314,64 +412,54 @@ static void Interface_editView_drawCharsRow (size_t y) {
                                 realY + glyphHeight);
                         cairo_stroke(Window_context);
                 }
-
-                if (x == 80) {
-                        cairo_set_source_rgb(Window_context, RULER_COLOR);
-                        cairo_set_line_width(Window_context, 2);
-                        cairo_move_to(Window_context, realX + 1, realY);
-                        cairo_line_to (
-                                Window_context,
-                                realX + 1,
-                                realY + lineHeight);
-                        cairo_stroke(Window_context);
-                }
-
-                // don't attempt to render whitespace
-                if (cell->rune == TEXTDISPLAY_EMPTY_CELL || isSpace) {
-                        continue;
-                }
-                
-                unsigned int index = FT_Get_Char_Index (
-                        freetypeFaceNormal,
-                        cell->rune);
-
-                // if we couldn't find the character, display a red error symbol
-                if (index == 0) {
-                        cairo_set_source_rgb(Window_context, BAD_CHAR_COLOR);
-                        double scale   = glyphWidth / 3;
-                        double centerX = realX + glyphWidth / 2;
-                        double centerY = realY + glyphHeight / 2;
-                        cairo_set_line_width(Window_context, 2);
-                        cairo_move_to (
-                                Window_context,
-                                centerX - scale,
-                                centerY - scale);
-                        cairo_line_to (
-                                Window_context,
-                                centerX + scale,
-                                centerY + scale);
-                                cairo_stroke(Window_context);
-                        cairo_move_to (
-                                Window_context,
-                                centerX + scale,
-                                centerY - scale);
-                        cairo_line_to (
-                                Window_context,
-                                centerX - scale,
-                                centerY + scale);
-                                cairo_stroke(Window_context);
-                        continue;
-                }
-                
-                cairo_glyph_t glyph = {
-                        .index = index,
-                        .x     = realX,
-                        .y     = realY + glyphHeight * 0.8
-                };
-                fontNormal();
-                cairo_set_source_rgb(Window_context, TEXT_COLOR);
-                cairo_show_glyphs(Window_context, &glyph, 1);
         }
+}
+
+static void findMouseHoverCell (
+        int mouseX,
+        int mouseY,
+        size_t *cellX,
+        size_t *cellY
+) {
+        int intCellX = (int) (
+                (mouseX - interface.editView.textX) /
+                glyphWidth);
+        int intCellY = (int) (
+                (mouseY - interface.editView.innerY) /
+                lineHeight);
+
+        *cellX = (size_t)(intCellX);
+        *cellY = (size_t)(intCellY);
+        
+        if (intCellX < 0) { *cellX = 0; }
+        if (intCellY < 0) { *cellY = 0; }
+        
+        if (*cellX >= textDisplay->width) {
+                *cellX = textDisplay->width - 1;
+        }
+        if (*cellY >= textDisplay->height) {
+                *cellY = textDisplay->height - 1;
+        }
+}
+
+static void updateTextSelection (void) {
+        size_t cellX = 0;
+        size_t cellY = 0;
+        findMouseHoverCell(mouse.x, mouse.y, &cellX, &cellY);
+        
+        size_t realX;
+        size_t realY;
+        TextDisplay_getRealCoords (
+                textDisplay,
+                cellX, cellY,
+                &realX, &realY);
+
+        EditBuffer_Cursor_moveTo (
+                editBuffer->cursors,
+                mouse.dragOriginRealX, mouse.dragOriginRealY);
+        EditBuffer_Cursor_selectTo (
+                editBuffer->cursors,
+                realX, realY);
 }
 
 static void fontNormal (void) {
@@ -404,34 +492,21 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
         // visible
         interface.editView.cursorBlink = 1;
 
-        int inCell = HITBOX(mouseX, mouseY, interface.editView);
-
+        int inCell = HITBOX(mouse.x, mouse.y, interface.editView);
+        
         size_t cellX = 0;
         size_t cellY = 0;
-        if (inCell) {
-                int intCellX = (int) (
-                        (mouseX - interface.editView.textX) /
-                        glyphWidth);
-                int intCellY = (int) (
-                        (mouseY - interface.editView.innerY) /
-                        lineHeight);
-
-                cellX = (size_t)(intCellX);
-                cellY = (size_t)(intCellY);
-                
-                if (intCellX < 0) { cellX = 0; }
-                if (intCellY < 0) { cellY = 0; }
-                
-                if (cellX >= textDisplay->width) {
-                        cellX = textDisplay->width - 1;
-                }
-                if (cellY >= textDisplay->height) {
-                        cellY = textDisplay->height - 1;
-                }
-        }
 
         switch (button) {
         case Window_MouseButton_left:
+                findMouseHoverCell(mouse.x, mouse.y, &cellX, &cellY);
+                
+                mouse.dragOriginX = mouse.x;
+                mouse.dragOriginY = mouse.y;
+                mouse.dragOriginInCell = inCell;
+        
+                mouse.left = state;
+        
                 // TODO: selection, etc.
                 if (state == Window_State_on && inCell) {
                         size_t realX = 0;
@@ -440,6 +515,9 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                                 textDisplay,
                                 cellX, cellY,
                                 &realX, &realY);
+
+                        mouse.dragOriginRealX = realX;
+                        mouse.dragOriginRealY = realY;
                         
                         if (modKeys.ctrl) {
                                 EditBuffer_addNewCursor (
@@ -448,38 +526,65 @@ static void onMouseButton (Window_MouseButton button, Window_State state) {
                                 Interface_editView_drawChars(1);
                                 break;
                         }
-                        
-                        EditBuffer_cursorsMoveTo(editBuffer, realX, realY);
+
+                        EditBuffer_clearExtraCursors(editBuffer);
+                        EditBuffer_Cursor_moveTo (
+                                editBuffer->cursors,
+                                realX, realY);
                         Interface_editView_drawChars(1);
                 }
                 break;
+        
         case Window_MouseButton_middle:
+                mouse.middle = state;
                 // TODO: copy/paste
                 break;
+        
         case Window_MouseButton_right:
+                mouse.right = state;
                 // TODO: context menu
                 break;
+        
         case Window_MouseButton_scrollUp:
                 if (state == Window_State_on && inCell) {
                         EditBuffer_scroll(editBuffer, Options_scrollSize * -1);
+                        TextDisplay_grab(textDisplay);
+
+                        if (mouse.left && mouse.dragOriginInCell) {
+                                updateTextSelection();
+                                TextDisplay_grab(textDisplay);
+                        }
+        
                         Interface_editView_drawRuler();
-                        Interface_editView_drawChars(1);
+                        Interface_editView_drawChars(0);
                 }
                 break;
                 
         case Window_MouseButton_scrollDown:
                 if (state == Window_State_on && inCell) {
                         EditBuffer_scroll(editBuffer, Options_scrollSize);
+                        TextDisplay_grab(textDisplay);
+
+                        if (mouse.left && mouse.dragOriginInCell) {
+                                updateTextSelection();
+                                TextDisplay_grab(textDisplay);
+                        }
+                        
                         Interface_editView_drawRuler();
-                        Interface_editView_drawChars(1);
+                        Interface_editView_drawChars(0);
                 }
                 break;
         }
 }
 
 static void onMouseMove (int x, int y) {
-        mouseX = x;
-        mouseY = y;
+        mouse.x = x;
+        mouse.y = y;
+
+        if (mouse.left && mouse.dragOriginInCell) {
+                updateTextSelection();
+                Interface_editView_drawChars(1);
+        }
 }
 
 static void onInterval (void) {
@@ -514,8 +619,6 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         case WINDOW_KEY_ENTER:
         case WINDOW_KEY_PAD_ENTER:
                 if (state == Window_State_on) {
-                        // TODO: move horizontally in here, not in
-                        // EditBuffer_insertRune
                         EditBuffer_cursorsInsertRune(editBuffer, '\n');
                         Interface_editView_drawChars(1);
                         Interface_editView_drawRuler();
@@ -558,11 +661,15 @@ static void onKey (Window_KeySym keySym, Rune rune, Window_State state) {
 
 static void onKeyUp (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (modKeys.shift && modKeys.alt) {
-                size_t column = editBuffer->cursors[0].column;
-                size_t row    = editBuffer->cursors[0].row;
-                EditBuffer_Cursor_moveV(editBuffer->cursors, -1);
-                EditBuffer_addNewCursor(editBuffer, column, row);
+        if (modKeys.shift == Window_State_on) {
+                if (modKeys.alt == Window_State_on) {
+                        size_t column = editBuffer->cursors[0].column;
+                        size_t row    = editBuffer->cursors[0].row;
+                        EditBuffer_Cursor_moveV(editBuffer->cursors, -1);
+                        EditBuffer_addNewCursor(editBuffer, column, row);
+                } else {
+                        EditBuffer_cursorsSelectV(editBuffer, -1);
+                }
         } else {
                 EditBuffer_cursorsMoveV(editBuffer, -1);
         }
@@ -571,11 +678,15 @@ static void onKeyUp (Window_State state) {
 
 static void onKeyDown (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (modKeys.shift && modKeys.alt) {
-                size_t column = editBuffer->cursors[0].column;
-                size_t row    = editBuffer->cursors[0].row;
-                EditBuffer_Cursor_moveV(editBuffer->cursors, 1);
-                EditBuffer_addNewCursor(editBuffer, column, row);
+        if (modKeys.shift == Window_State_on) {
+                if (modKeys.alt == Window_State_on) {
+                        size_t column = editBuffer->cursors[0].column;
+                        size_t row    = editBuffer->cursors[0].row;
+                        EditBuffer_Cursor_moveV(editBuffer->cursors, 1);
+                        EditBuffer_addNewCursor(editBuffer, column, row);
+                } else {
+                        EditBuffer_cursorsSelectV(editBuffer, 1);
+                }
         } else {
                 EditBuffer_cursorsMoveV(editBuffer, 1);
         }
@@ -584,12 +695,20 @@ static void onKeyDown (Window_State state) {
 
 static void onKeyLeft (Window_State state) {
         if (state != Window_State_on) { return; }
-        EditBuffer_cursorsMoveH(editBuffer, -1);
+        if (modKeys.shift == Window_State_on) {
+                EditBuffer_cursorsSelectH(editBuffer, -1);
+        } else {
+                EditBuffer_cursorsMoveH(editBuffer, -1);
+        }
         Interface_editView_drawChars(1);
 }
 
 static void onKeyRight (Window_State state) {
         if (state != Window_State_on) { return; }
-        EditBuffer_cursorsMoveH(editBuffer, 1);
+        if (modKeys.shift == Window_State_on) {
+                EditBuffer_cursorsSelectH(editBuffer, 1);
+        } else {
+                EditBuffer_cursorsMoveH(editBuffer, 1);
+        }
         Interface_editView_drawChars(1);
 }

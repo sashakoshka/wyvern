@@ -8,13 +8,24 @@
 typedef struct EditBuffer_Cursor EditBuffer_Cursor;
 typedef struct EditBuffer        EditBuffer;
 
+// TODO: remove this limit, and dynamically allocate cursors array
 #define EDITBUFFER_MAX_CURSORS 32
+
+typedef enum {
+        EditBuffer_Direction_left,
+        EditBuffer_Direction_right
+} EditBuffer_Direction;
 
 struct EditBuffer_Cursor {
         size_t row;
         size_t column;
+        
+        size_t selectionRow;
+        size_t selectionColumn;
 
         EditBuffer *parent;
+        
+        int hasSelection;
 };
 
 struct EditBuffer {
@@ -41,6 +52,7 @@ void  EditBuffer_reset             (EditBuffer *);
 void  EditBuffer_clearExtraCursors (EditBuffer *);
 void  EditBuffer_addNewCursor      (EditBuffer *, size_t, size_t);
 int   EditBuffer_hasCursorAt       (EditBuffer *, size_t, size_t);
+int   EditBuffer_hasSelectionAt    (EditBuffer *, size_t, size_t);
 void  EditBuffer_insertRuneAt      (EditBuffer *, size_t, size_t, Rune);
 void  EditBuffer_deleteRuneAt      (EditBuffer *, size_t, size_t);
 
@@ -54,21 +66,34 @@ void EditBuffer_cursorsBackspaceRune (EditBuffer *);
 void EditBuffer_cursorsMoveH         (EditBuffer *, int);
 void EditBuffer_cursorsMoveV         (EditBuffer *, int);
 void EditBuffer_cursorsMoveWordH     (EditBuffer *, int);
-void EditBuffer_cursorsMoveWordV     (EditBuffer *, int);
-void EditBuffer_cursorsMoveTo        (EditBuffer *, size_t, size_t);
+void EditBuffer_cursorsMoveMoreV     (EditBuffer *, int);
+void EditBuffer_cursorsSelectH       (EditBuffer *, int);
+void EditBuffer_cursorsSelectV       (EditBuffer *, int);
+void EditBuffer_cursorsSelectWordH   (EditBuffer *, int);
+void EditBuffer_cursorsSelectMoreV   (EditBuffer *, int);
 void EditBuffer_cursorsChangeIndent  (EditBuffer *, int);
 void EditBuffer_cursorsInsertString  (EditBuffer *, String *);
 
 // TODO: create methods for backspacing, overwriting, and inserting + moving 1
 // forward
-void EditBuffer_Cursor_insertRune        (EditBuffer_Cursor *, Rune);
-void EditBuffer_Cursor_deleteRune        (EditBuffer_Cursor *);
-void EditBuffer_Cursor_backspaceRune     (EditBuffer_Cursor *);
-void EditBuffer_Cursor_moveH             (EditBuffer_Cursor *, int);
-void EditBuffer_Cursor_moveV             (EditBuffer_Cursor *, int);
-void EditBuffer_Cursor_moveWordH         (EditBuffer_Cursor *, int);
-void EditBuffer_Cursor_moveWordV         (EditBuffer_Cursor *, int);
-void EditBuffer_Cursor_moveTo            (EditBuffer_Cursor *, size_t, size_t);
-void EditBuffer_Cursor_changeIndent      (EditBuffer_Cursor *, int);
-void EditBuffer_Cursor_insertString      (EditBuffer_Cursor *, String *);
-String *EditBuffer_Cursor_getCurrentLine (EditBuffer_Cursor *);
+void EditBuffer_Cursor_insertRune         (EditBuffer_Cursor *, Rune);
+void EditBuffer_Cursor_deleteRune         (EditBuffer_Cursor *);
+void EditBuffer_Cursor_backspaceRune      (EditBuffer_Cursor *);
+void EditBuffer_Cursor_moveTo             (EditBuffer_Cursor *, size_t, size_t);
+void EditBuffer_Cursor_moveH              (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_moveV              (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_moveWordH          (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_moveMoreV          (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_selectTo           (EditBuffer_Cursor *, size_t, size_t);
+void EditBuffer_Cursor_selectNone         (EditBuffer_Cursor *);
+void EditBuffer_Cursor_selectH            (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_selectV            (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_selectWordH        (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_selectMoreV        (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_changeIndent       (EditBuffer_Cursor *, int);
+void EditBuffer_Cursor_insertString       (EditBuffer_Cursor *, String *);
+String *EditBuffer_Cursor_getCurrentLine  (EditBuffer_Cursor *);
+void EditBuffer_Cursor_getSelectionBounds (
+        EditBuffer_Cursor *,
+        size_t *, size_t *,
+        size_t *, size_t *);
