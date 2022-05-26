@@ -323,19 +323,8 @@ static void Interface_editView_drawCharsRow (size_t y) {
                         cairo_stroke(Window_context);
                 }
 
-                // selection highlight
-                if (cell->cursorState == TextDisplay_CursorState_selection) {
-                        cairo_set_source_rgb(Window_context, SELECTION_COLOR);
-                        cairo_rectangle (
-                                Window_context,
-                                realX, realY,
-                                glyphWidth, glyphHeight);
-                        cairo_fill(Window_context);
-                }
-
                 // draw 80 column marker
-                // TODO: set the position of this in options
-                if (x == 80) {
+                if (x == Options_columnGuide) {
                         cairo_set_source_rgb(Window_context, RULER_COLOR);
                         cairo_set_line_width(Window_context, 2);
                         cairo_move_to(Window_context, realX + 1, realY);
@@ -344,6 +333,16 @@ static void Interface_editView_drawCharsRow (size_t y) {
                                 realX + 1,
                                 realY + lineHeight);
                         cairo_stroke(Window_context);
+                }
+
+                // selection highlight
+                if (cell->cursorState == TextDisplay_CursorState_selection) {
+                        cairo_set_source_rgb(Window_context, SELECTION_COLOR);
+                        cairo_rectangle (
+                                Window_context,
+                                realX, realY,
+                                glyphWidth, glyphHeight);
+                        cairo_fill(Window_context);
                 }
 
                 // don't attempt to render whitespace
