@@ -784,7 +784,7 @@ void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
                         cursor->column = startColumn;
                         cursor->row    = startRow;
                 } else {
-                        cursor->column = endColumn;
+                        cursor->column = endColumn + 1;
                         cursor->row    = endRow;
                 }
         }
@@ -799,6 +799,9 @@ void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
 }
 
 // TODO
+// TODO: remove amount inputs on these functions, and have them use the other
+// functions but have a function in the string that gets the position of the
+// next word.
 void EditBuffer_Cursor_moveWordH (EditBuffer_Cursor *cursor, int);
 void EditBuffer_Cursor_moveMoreV (EditBuffer_Cursor *cursor, int);
 
