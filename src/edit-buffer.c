@@ -234,27 +234,72 @@ void EditBuffer_insertRuneAt (
                 String *newLine = String_new("");
                 String_splitInto(currentLine, newLine, column);
                 EditBuffer_placeLine(editBuffer, newLine, row + 1);
+
+                // TODO: possibly combine these two into one loop
                 
+                // shift down cursors after the new line break
                 START_ALL_CURSORS
-                        // shift down cursors after the new line break
-                        if (cursor->row == row) {
-                                if (cursor->column > column) {
-                                        // this cursor was previously on the
-                                        // part of the line that got split and
-                                        // made into its own line. it needs to
-                                        // have its position set to the proper
-                                        // place on that new line.
-                                        cursor->row ++;
-                                        cursor->column -= currentLine->length;
-                                } else if (cursor->column == column) {
-                                        // this is the cursor that caused the
-                                        // insertion, so it should wrap around
-                                        // to the beginning of the next line
-                                        cursor->row ++;
-                                        cursor->column = 0;
-                                }
-                        } else if (cursor->row > row) {
+                        if (cursor->row < row) {
+                                // this cursor comes before the insertion
+                                continue;
+                        }
+
+                        if (cursor->row > row) {
+                                // this cursor is in a row after the insertion,
+                                // so it simply needs to be shifted down.
                                 cursor->row ++;
+                                continue;
+                        }
+
+                        // these are on the same column as the insertion
+
+                        if (cursor->column < column) {
+                                // this cursor comes before the insertion
+                                continue;
+                        }
+                
+                        if (cursor->column == column) {
+                                // this is the cursor that caused the
+                                // insertion, so it should wrap around
+                                // to the beginning of the next line
+                                cursor->column = 0;
+                                cursor->row ++;
+                                continue;
+                        }
+                
+                        if (cursor->column > column) {
+                                // this cursor was previously on the
+                                // part of the line that got split and
+                                // made into its own line. it needs to
+                                // have its position set to the proper
+                                // place on that new line.
+                                cursor->column -= currentLine->length;
+                                cursor->row ++;
+                                continue;
+                        }
+                END_ALL_CURSORS
+
+                // the same thing, but for the selection coordinates
+                START_ALL_CURSORS
+                        if (cursor->selectionRow < row) {  continue; }
+
+                        if (cursor->selectionRow > row) {
+                                cursor->selectionRow ++;
+                                continue;
+                        }
+
+                        if (cursor->selectionColumn < column) { continue; }
+                
+                        if (cursor->selectionColumn == column) {
+                                cursor->selectionColumn = 0;
+                                cursor->selectionRow ++;
+                                continue;
+                        }
+                
+                        if (cursor->selectionColumn > column) {
+                                cursor->selectionColumn -= currentLine->length;
+                                cursor->selectionRow ++;
+                                continue;
                         }
                 END_ALL_CURSORS
                 return;
@@ -323,8 +368,77 @@ void EditBuffer_deleteRuneAt (
                                 // right after it gets shifted up.
                                 cursor->column += previousLength;
                         }
+
+                }
+
+                // do the same thing with the selection end
+                if (cursor->selectionRow > row) {
+                        cursor->selectionRow --;
+                        if (cursor->selectionRow == row) {
+                                cursor->selectionColumn += previousLength;
+                        }
                 }
         END_ALL_CURSORS
+
+        // since we deleted a line, there might be cursors that are now out of
+        // bounds, and we need to bring them back in.
+        EditBuffer_cursorsWrangle(editBuffer);
+}
+
+/* EditBuffer_deleteRange
+ * Deletes all runes in the specified range, inclusive.
+ */
+void  EditBuffer_deleteRange (
+        EditBuffer *editBuffer,
+        size_t startColumn, size_t startRow,
+        size_t endColumn,   size_t endRow
+) {
+        size_t numberOfLines = endRow - startRow + 1;
+        
+        if (numberOfLines >= 3) {
+                // there are lines in the middle we can quickly deal with
+                size_t numberOfMiddleLines = numberOfLines - 2;
+                EditBuffer_shiftUp (
+                        editBuffer,
+                        startRow + 1, numberOfMiddleLines, 0);
+
+                START_ALL_CURSORS
+                        if (cursor->row > startRow) {
+                                cursor->row -= numberOfMiddleLines;
+                        }
+                        
+                        if (cursor->selectionRow > startRow) {
+                                cursor->selectionRow -= numberOfMiddleLines;
+                        }
+                END_ALL_CURSORS
+
+                endRow -= numberOfMiddleLines;
+
+                // since we deleted lines, there might be cursors that are now
+                // out of bounds, and we need to bring them back in.
+                EditBuffer_cursorsWrangle(editBuffer);
+        }
+        
+        numberOfLines = endRow - startRow + 1;
+
+        if (numberOfLines >= 2) {
+                // we have a start and end line
+                String *line = EditBuffer_getLine(editBuffer, startRow);
+                size_t toDelete = line->length - startColumn + endColumn + 2;
+                
+                for (size_t index = 0; index < toDelete; index ++) {
+                        EditBuffer_deleteRuneAt (
+                                editBuffer,
+                                startColumn, startRow);
+                }
+        } else {
+                // we have a line
+                for (size_t index = startColumn; index <= endColumn; index ++) {
+                        EditBuffer_deleteRuneAt (
+                                editBuffer,
+                                startColumn, startRow);
+                }
+        }
 }
 
 /* EditBuffer_shiftCursorsInLineAfter
@@ -338,8 +452,23 @@ static void EditBuffer_shiftCursorsInLineAfter (
         int amount
 ) {
         START_ALL_CURSORS
-                if (cursor->row == row && cursor->column >= column) {
+                // shift cursor coordinates
+                if (
+                        cursor->row == row &&
+                        cursor->column >= column
+                ) {
                         cursor->column = addToSizeT(cursor->column, amount);
+
+                }
+
+                // shift selection coordinates
+                if (
+                        cursor->selectionRow == row &&
+                        cursor->selectionColumn >= column
+                ) {
+                        cursor->selectionColumn = addToSizeT (
+                                cursor->selectionColumn,
+                                amount);
                 }
         END_ALL_CURSORS
 }
@@ -467,10 +596,6 @@ static void EditBuffer_shiftUp (
         }
         
         EditBuffer_realloc(editBuffer, end);
-
-        // since we deleted lines, there might be cursors that are now out of
-        // bounds, and we need to bring them back in.
-        EditBuffer_cursorsWrangle(editBuffer);
 }
 
 /* EditBuffer_cursorsInsertRune
@@ -479,6 +604,15 @@ static void EditBuffer_shiftUp (
 void EditBuffer_cursorsInsertRune (EditBuffer *editBuffer, Rune rune) {
         START_ALL_CURSORS_BATCH_OPERATION
                 EditBuffer_Cursor_insertRune(cursor, rune);
+        END_ALL_CURSORS_BATCH_OPERATION
+}
+
+/* EditBuffer_cursorsDeleteSelection
+ * Deletes all text in the selection of all cursors.
+ */
+void EditBuffer_cursorsDeleteSelection (EditBuffer *editBuffer) {
+        START_ALL_CURSORS_BATCH_OPERATION
+                EditBuffer_Cursor_deleteSelection(cursor);
         END_ALL_CURSORS_BATCH_OPERATION
 }
 
@@ -602,10 +736,35 @@ static void EditBuffer_realloc (EditBuffer *editBuffer, size_t newLength) {
  */
 void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
         if (cursor->parent->length == 0) { return; }
+        if (cursor->hasSelection) {
+                EditBuffer_Cursor_deleteSelection(cursor);
+        }
         EditBuffer_insertRuneAt (
                 cursor->parent,
                 cursor->column, cursor->row,
                 rune);
+}
+
+/* EditBuffer_Cursor_deleteSelection
+ * Deletes all text in the selection of the cursor.
+ */
+void EditBuffer_Cursor_deleteSelection (EditBuffer_Cursor *cursor) {
+        size_t startColumn;
+        size_t startRow;
+        size_t endColumn;
+        size_t endRow;
+
+        EditBuffer_Cursor_getSelectionBounds (
+                cursor,
+                &startColumn, &startRow,
+                &endColumn,   &endRow);
+
+        EditBuffer_deleteRange (
+                cursor->parent,
+                startColumn, startRow,
+                endColumn, endRow);
+
+        EditBuffer_Cursor_selectNone(cursor);
 }
 
 /* EditBuffer_Cursor_deleteRune
@@ -614,7 +773,13 @@ void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
  */
 void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
         if (cursor->parent->length == 0) { return; }
-        EditBuffer_deleteRuneAt(cursor->parent, cursor->column, cursor->row);
+        if (cursor->hasSelection) {
+                EditBuffer_Cursor_deleteSelection(cursor);
+        } else {
+                EditBuffer_deleteRuneAt (
+                        cursor->parent,
+                        cursor->column, cursor->row);
+        }
 }
 
 /* EditBuffer_Cursor_backspaceRune
@@ -623,8 +788,12 @@ void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
  */
 void EditBuffer_Cursor_backspaceRune (EditBuffer_Cursor *cursor) {
         if (cursor->column == 0 && cursor->row == 0) { return; }
-        EditBuffer_Cursor_moveH(cursor, -1);
-        EditBuffer_Cursor_deleteRune(cursor);
+        if (cursor->hasSelection) {
+                EditBuffer_Cursor_deleteSelection(cursor);
+        } else {
+                EditBuffer_Cursor_moveH(cursor, -1);
+                EditBuffer_Cursor_deleteRune(cursor);
+        }
 }
 
 /* EditBuffer_Cursor_moveTo
@@ -701,7 +870,7 @@ static void EditBuffer_Cursor_predictMovement (
                 cursor->parent,
                 *resultRow)->length;
         if (*resultColumn >= lineLength && amountH > 0) {
-                if (*resultColumn < cursor->parent->length - 1) {
+                if (*resultRow < cursor->parent->length - 1) {
                         *resultRow += 1;
                         *resultColumn = 0;
                 }
