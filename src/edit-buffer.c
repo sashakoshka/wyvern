@@ -234,6 +234,8 @@ void EditBuffer_insertRuneAt (
                 String *newLine = String_new("");
                 String_splitInto(currentLine, newLine, column);
                 EditBuffer_placeLine(editBuffer, newLine, row + 1);
+
+                // TODO: possibly combine these two into one loop
                 
                 // shift down cursors after the new line break
                 START_ALL_CURSORS
@@ -390,6 +392,7 @@ static void EditBuffer_shiftCursorsInLineAfter (
         int amount
 ) {
         START_ALL_CURSORS
+                // shift cursor coordinates
                 if (
                         cursor->row == row &&
                         cursor->column >= column
@@ -397,7 +400,8 @@ static void EditBuffer_shiftCursorsInLineAfter (
                         cursor->column = addToSizeT(cursor->column, amount);
 
                 }
-                
+
+                // shift selection coordinates
                 if (
                         cursor->selectionRow == row &&
                         cursor->selectionColumn >= column
@@ -547,6 +551,15 @@ void EditBuffer_cursorsInsertRune (EditBuffer *editBuffer, Rune rune) {
         END_ALL_CURSORS_BATCH_OPERATION
 }
 
+/* EditBuffer_cursorsDeleteSelection
+ * Deletes all text in the selection of all cursors.
+ */
+void EditBuffer_cursorsDeleteSelection (EditBuffer *editBuffer) {
+        START_ALL_CURSORS_BATCH_OPERATION
+                EditBuffer_Cursor_deleteSelection(cursor);
+        END_ALL_CURSORS_BATCH_OPERATION
+}
+
 /* EditBuffer_cursorsInsertRune
  * Deletes a rune at all cursors.
  */
@@ -673,13 +686,49 @@ void EditBuffer_Cursor_insertRune (EditBuffer_Cursor *cursor, Rune rune) {
                 rune);
 }
 
+/* EditBuffer_Cursor_deleteSelection
+ * Deletes all text in the selection of the cursor.
+ */
+void EditBuffer_Cursor_deleteSelection (EditBuffer_Cursor *cursor) {
+        // size_t startColumn;
+        // size_t startRow;
+        // size_t endColumn;
+        // size_t endRow;
+// 
+        // EditBuffer_Cursor_getSelectionBounds (
+                // cursor,
+                // &startColumn, &startRow,
+                // &endColumn,   &endRow);
+
+        // TODO: remove lines in between
+        // if (endRow - startRow > 1) {
+                // EditBuffer_shiftUp (
+                        // cursor->parent,
+                        // startRow + 1, endRow - startRow - 1, 0);
+
+                // START_ALL_CURSORS
+                        // cursor->row --;
+                // END_ALL_CURSORS
+        // }
+
+        // TODO: remove line at start
+        // TODO: remove line at end
+        // TODO: clear this cursor's selection
+}
+
 /* EditBuffer_Cursor_deleteRune
  * Deletes the rune at the cursor. If there are no lines in the edit buffer,
  * this function does nothing.
  */
 void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
         if (cursor->parent->length == 0) { return; }
-        EditBuffer_deleteRuneAt(cursor->parent, cursor->column, cursor->row);
+        if (cursor->hasSelection) {
+                EditBuffer_Cursor_deleteSelection(cursor);
+        } else {
+                EditBuffer_deleteRuneAt (
+                        cursor->parent,
+                        cursor->column, cursor->row);
+        }
 }
 
 /* EditBuffer_Cursor_backspaceRune
@@ -688,8 +737,12 @@ void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
  */
 void EditBuffer_Cursor_backspaceRune (EditBuffer_Cursor *cursor) {
         if (cursor->column == 0 && cursor->row == 0) { return; }
-        EditBuffer_Cursor_moveH(cursor, -1);
-        EditBuffer_Cursor_deleteRune(cursor);
+        if (cursor->hasSelection) {
+                EditBuffer_Cursor_deleteSelection(cursor);
+        } else {
+                EditBuffer_Cursor_moveH(cursor, -1);
+                EditBuffer_Cursor_deleteRune(cursor);
+        }
 }
 
 /* EditBuffer_Cursor_moveTo
