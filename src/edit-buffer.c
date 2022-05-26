@@ -835,7 +835,21 @@ void EditBuffer_Cursor_selectH (EditBuffer_Cursor *cursor, int amount) {
  * cursor origin.
  */
 void EditBuffer_Cursor_selectV (EditBuffer_Cursor *cursor, int amount) {
+        int amountH = 0;
+
+        // when starting out, we need to move back one horizontally.
+        if (amount > 0 && !cursor->hasSelection) {
+                amountH = -1;
+        }
+
+        size_t newColumn = cursor->selectionColumn;
+        size_t newRow    = cursor->selectionRow;
         
+        EditBuffer_Cursor_predictMovement (
+                cursor,
+                &newColumn, &newRow,
+                amountH, amount);
+        EditBuffer_Cursor_selectTo(cursor, newColumn, newRow);
 }
 
 // TODO
