@@ -1,130 +1,139 @@
 #!/bin/sh
 # please keep this posix compliant!
 
-CC="clang"
-OBJ_PATH="o"
-OUT_PATH="bin"
-SRC_PATH="src"
-INC_PATH="include"
+# add a library
 
-RELEASE_PATH="$OUT_PATH/wyvern"
-DEBUG_PATH="$OUT_PATH/wyvern-debug"
+library () {
+        FLAGS_CFLAGS="$FLAGS_CFLAGS $(pkg-config --cflags $1)"        
+        FLAGS_LIBS="$FLAGS_LIBS $(pkg-config --libs $1)"
+}
 
-FLAGS_RELEASE="-03 -Drelease"
-FLAGS_WARN="-Wall -Wextra"
-FLAGS_DEBUG="-g -Ddebug"
+# include build parameters
 
-FLAGS_CFLAGS="$FLAGS_CFLAGS $(pkg-config --cflags cairo)"
-FLAGS_CFLAGS="$FLAGS_CFLAGS $(pkg-config --cflags x11)"
-FLAGS_CFLAGS="$FLAGS_CFLAGS $(pkg-config --cflags freetype2)"
-FLAGS_CFLAGS="$FLAGS_CFLAGS $(pkg-config --cflags xkbcommon)"
+. "./build-parameters.sh"
+
 FLAGS_CFLAGS="$FLAGS_CFLAGS -I$INC_PATH"
-
-FLAGS_LIBS="$FLAGS_LIBS $(pkg-config --libs cairo)"
-FLAGS_LIBS="$FLAGS_LIBS $(pkg-config --libs x11)"
-FLAGS_LIBS="$FLAGS_LIBS $(pkg-config --libs freetype2)"
-FLAGS_LIBS="$FLAGS_LIBS $(pkg-config --libs xkbcommon)"
-
-INSTALL_LOCATION="/usr/local"
+RELEASE_PATH="$OUT_PATH/$EXE_NAME"
+DEBUG_PATH="$OUT_PATH/$EXE_NAME-debug"
 
 # build a single module from src
 
 buildModule () {
-  mkdir -p "$OBJ_PATH"
-  mkdir -p "$OBJ_PATH/release"
-  mkdir -p "$OBJ_PATH/debug"
+        mkdir -p "$OBJ_PATH"
+        mkdir -p "$OBJ_PATH/release"
+        mkdir -p "$OBJ_PATH/debug"
 
-  modIn="$SRC_PATH/$1.c"
-  modHead="$INC_PATH/$1.h"
+        modIn="$SRC_PATH/$1"
+        modHead="$INC_PATH/$1.h"
 
-  flags="-c $FLAGS_WARN $FLAGS_CFLAGS"
-  if [ "$2" = "release" ]
-  then flags="$flags $FLAGS_RELEASE"
-       modOut="$OBJ_PATH/release/$1.o"
-  else flags="$flags $FLAGS_DEBUG"
-       modOut="$OBJ_PATH/debug/$1.o"
-  fi
-  
-  if [ ! -f "$modIn" ]; then
-    echo "!!! module $1 does not exist, skipping" >&2; return
-  fi
-  
-  if [ "$modOut" -nt "$modIn" ] && [ "$modOut" -nt "$modHead" ]; then
-    echo "(i) skipping module $1, already built"; return
-  fi
-  
-  echo "... building module $1: $1.c ---> $1.o"
-  
-  $CC "$modIn" -o "$modOut" $flags && echo ".// built module $1" \
-  || echo "ERR could not build module $1" >&2
+        flags="-c $FLAGS_WARN $FLAGS_CFLAGS"
+        if [ "$2" = "release" ]; then
+                flags="$flags $FLAGS_RELEASE"
+                modOut="$OBJ_PATH/release/$1.o"
+        else
+                flags="$flags $FLAGS_DEBUG"
+                modOut="$OBJ_PATH/debug/$1.o"
+        fi
+
+        # check if the module even exists
+        if [ ! -d "$modIn" ]; then
+                echo "!!! module $1 does not exist, skipping" >&2; return
+        fi
+
+        buildModule=""
+
+        for sourceFile in $modIn/*; do
+                if [ "$sourceFile" -nt "$modOut" ]; then
+                        buildModule=true
+                        break
+                fi
+        done
+
+        [ ! -f "$modOut" ]           && buildModule=true
+        [ "$modHead" -nt "$modOut" ] && buildModule=true
+
+        if [ -z $buildModule ]; then
+                # return if the module hasn't been built
+                echo "(i) skipping module $1, already built"; return
+        fi
+
+        # build the module
+        echo "... building module $1: $1/*.c ---> $1.o"
+        $CC $modIn/*.c -o "$modOut" $flags && echo ".// built module $1" \
+        || echo "ERR could not build module $1" >&2
 }
 
 # build all modules in src, then link them together into final executable
 
 buildAll () {
-  mkdir -p "$OUT_PATH"
-  
-  echo "... building all modules"
+        mkdir -p "$OUT_PATH"
 
-  for module in $SRC_PATH/*.c; do
-    buildModule $(basename "${module%.*}") "$1"
-  done
+        echo "... building all modules"
 
-  echo "... building entire executable"
-  
-  flags="$FLAGS_WARN $FLAGS_LIBS"
-  if [ "$1" = "release" ]
-  then flags="$flags $FLAGS_RELEASE -s"
-       allIn="$OBJ_PATH/release/*.o"
-       allOut="$RELEASE_PATH"
-  else flags="$flags $FLAGS_DEBUG"
-       allIn="$OBJ_PATH/debug/*.o"
-       allOut="$DEBUG_PATH"
-  fi
+        for module in $SRC_PATH/*; do
+                buildModule "$(basename $module)" "$1"
+        done
 
-  if $CC $allIn -o "$allOut" $flags
-  then echo ".// built entire executable"
-  else echo "ERR could not build executable" >&2
-       return
-  fi
+        echo "... building entire executable"
+
+        flags="$FLAGS_WARN $FLAGS_LIBS"
+        if [ "$1" = "release" ]; then
+                flags="$flags $FLAGS_RELEASE -s"
+                allIn="$OBJ_PATH/release/*.o"
+                allOut="$RELEASE_PATH"
+        else
+                flags="$flags $FLAGS_DEBUG"
+                allIn="$OBJ_PATH/debug/*.o"
+                allOut="$DEBUG_PATH"
+        fi
+
+        if $CC $allIn -o "$allOut" $flags; then
+                echo ".// built entire executable"
+        else
+                echo "ERR could not build executable" >&2
+                return
+        fi
 }
 
 # clean everything
 
 clean () {
-  rm -f $OBJ_PATH/debug/* $OBJ_PATH/release/* $OUT_PATH/* && echo "(i) cleaned"
+        rm -f $OBJ_PATH/debug/* $OBJ_PATH/release/* $OUT_PATH/* \
+        && echo "(i) cleaned"
 }
 
 # control script
 
 case $1 in
-  all)     buildAll $2      ;;
-  release) buildAll release ;;
-  "")      buildAll         ;;
+all)     buildAll $2      ;;
+release) buildAll release ;;
+"")      buildAll         ;;
 
-  redo)
-    clean
-    buildAll $2
-    ;;
-  
-  clean)
-    clean
-    ;;
-    
-  run)
-    buildAll && "./$DEBUG_PATH"
-    ;;
+redo)
+        clean
+        buildAll $2
+        ;;
 
-  lint)
-    clang-tidy \
-      -checks=portability-*,bugprone-*,-bugprone-macro-parentheses \
-      --warnings-as-errors=* "$SRC_PATH"/* -- $FLAGS_CFLAGS
-    ;;
+clean)
+        clean
+        ;;
 
-  val)
-    buildAll
-    valgrind --tool=memcheck --leak-check=yes $DEBUG_PATH
-    ;;
-    
-  *) buildModule $1 $2 ;;
+run)
+        buildAll && "./$DEBUG_PATH"
+        ;;
+
+lint)
+        clang-tidy \
+        -checks=portability-*,bugprone-*,-bugprone-macro-parentheses \
+        --warnings-as-errors=* "$SRC_PATH"/* -- $FLAGS_CFLAGS
+        ;;
+
+val)
+        buildAll
+        valgrind --tool=memcheck --leak-check=yes $DEBUG_PATH
+        ;;
+
+*)
+        buildModule $1 $2
+        ;;
 esac
