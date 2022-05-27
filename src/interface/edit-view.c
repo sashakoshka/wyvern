@@ -1,5 +1,8 @@
 #include "module.h"
 
+/* Interface_editView_recalculate
+ * Recalculates the position, size, and various layout bounds of the edit view.
+ */
 void Interface_editView_recalculate (void) {
         Interface_EditView *editView = &interface.editView;
         
@@ -33,6 +36,9 @@ void Interface_editView_recalculate (void) {
                 (size_t)(textDisplayHeight));
 }
 
+/* Interface_editView_redraw
+ * Completely redraws the edit view.
+ */
 void Interface_editView_redraw (void) {
         Interface_EditView *editView = &interface.editView;
         
@@ -59,6 +65,9 @@ void Interface_editView_redraw (void) {
         Interface_editView_drawChars(1);
 }
 
+/* Interface_editView_drawRuler
+ * Redraws the line number ruler.
+ */
 void Interface_editView_drawRuler (void) {
         Interface_EditView *editView = &interface.editView;
         
@@ -91,6 +100,10 @@ void Interface_editView_drawRuler (void) {
         }
 }
 
+/* Interface_editView_drawChars
+ * Updates the internal TextDisplay if grabModel is 1, and re-draws damaged
+ * runes.
+ */
 void Interface_editView_drawChars (int grabModel) {
         if (grabModel) { TextDisplay_grab(textDisplay); }
 
@@ -99,6 +112,9 @@ void Interface_editView_drawChars (int grabModel) {
         }
 }
 
+/* Interface_editView_drawCharsRow
+ * Re-draws damaged characters at row y.
+ */
 void Interface_editView_drawCharsRow (size_t y) {
         Interface_EditView *editView = &interface.editView;
         int inIndent = 1;
@@ -235,6 +251,11 @@ void Interface_editView_drawCharsRow (size_t y) {
         }
 }
 
+/* Interface_findMouseHoverCell
+ * Takes in mouse coordinates and finds out the coordinates of the cell they are
+ * hovering over. If the given coordinates exceed the bounds of the text view,
+ * they are constrained to it.
+ */
 void Interface_findMouseHoverCell (
         int mouseX,
         int mouseY,
@@ -262,6 +283,10 @@ void Interface_findMouseHoverCell (
         }
 }
 
+/* Interface_updateTextSelection
+ * Updates the text selection according to the mouse position. This should only
+ * be called when the user is actively selecting text with the mouse.
+ */
 void Interface_updateTextSelection (void) {
         size_t cellX = 0;
         size_t cellY = 0;

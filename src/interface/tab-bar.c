@@ -1,5 +1,8 @@
 #include "module.h"
 
+/* Interface_tabBar_recalculate
+ * Recalculates the position and size of the tab bar.
+ */
 void Interface_tabBar_recalculate (void) {
         interface.tabBar.x      = 0;
         interface.tabBar.y      = 0;
@@ -7,6 +10,9 @@ void Interface_tabBar_recalculate (void) {
         interface.tabBar.width  = interface.width;
 }
 
+/* Interface_tabBar_redraw
+ * Re-draws the tab bar.
+ */
 void Interface_tabBar_redraw (void) {
         cairo_set_source_rgb(Window_context, TAB_BAR_COLOR);
         cairo_rectangle (

@@ -3,11 +3,17 @@
 Interface_MouseState  mouseState  = { 0 };
 Interface_ModKeyState modKeyState = { 0 };
 
+/* Interface_onRedraw
+ * Fires when the screen needs to be redrawn.
+ */
 void Interface_onRedraw (int width, int height) {
         Interface_recalculate(width, height);
         Interface_redraw();
 }
 
+/* Interface_onMouseButton
+ * Fires when a mouse button is pressed or released.
+ */
 void Interface_onMouseButton (Window_MouseButton button, Window_State state) {
         // something is going to move or change - we need the cursor to be
         // visible
@@ -100,6 +106,9 @@ void Interface_onMouseButton (Window_MouseButton button, Window_State state) {
         }
 }
 
+/* Interface_onMouseMove
+ * Fires when the mouse is moved.
+ */
 void Interface_onMouseMove (int x, int y) {
         mouseState.x = x;
         mouseState.y = y;
@@ -110,11 +119,17 @@ void Interface_onMouseMove (int x, int y) {
         }
 }
 
+/* Interface_onInterval
+ * Fires every 500 milliseconds.
+ */
 void Interface_onInterval (void) {
         Interface_editView_drawChars(0);
         interface.editView.cursorBlink = !interface.editView.cursorBlink;
 }
 
+/* Interface_onKey
+ * Fires when a key is pressed or released.
+ */
 void Interface_onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         // if (state == Window_State_on) {
                 // printf("%lx\n", keySym);
@@ -182,6 +197,9 @@ void Interface_onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         }
 }
 
+/* Interface_onKeyUp
+ * Fires when the up arrow is pressed or released.
+ */
 void Interface_onKeyUp (Window_State state) {
         if (state != Window_State_on) { return; }
         if (modKeyState.shift == Window_State_on) {
@@ -199,6 +217,9 @@ void Interface_onKeyUp (Window_State state) {
         Interface_editView_drawChars(1);
 }
 
+/* Interface_onKeyDown
+ * Fires when the down arrow is pressed or released.
+ */
 void Interface_onKeyDown (Window_State state) {
         if (state != Window_State_on) { return; }
         if (modKeyState.shift == Window_State_on) {
@@ -216,6 +237,9 @@ void Interface_onKeyDown (Window_State state) {
         Interface_editView_drawChars(1);
 }
 
+/* Interface_onKeyLeft
+ * Fires when the left arrow is pressed or released.
+ */
 void Interface_onKeyLeft (Window_State state) {
         if (state != Window_State_on) { return; }
         if (modKeyState.shift == Window_State_on) {
@@ -226,6 +250,9 @@ void Interface_onKeyLeft (Window_State state) {
         Interface_editView_drawChars(1);
 }
 
+/* Interface_onKeyRight
+ * Fires when the right arrow is pressed or released.
+ */
 void Interface_onKeyRight (Window_State state) {
         if (state != Window_State_on) { return; }
         if (modKeyState.shift == Window_State_on) {

@@ -8,6 +8,10 @@ double glyphHeight = 0;
 double lineHeight  = 0;
 double glyphWidth  = 0;
 
+/* Interface_loadFonts
+ * Initializes FreeType, loads all fonts, and gathers information about font
+ * dimensions.
+ */
 Error Interface_loadFonts (void) {
         int err = FT_Init_FreeType(&freetypeHandle);
         if (err) { return Error_cantInitFreetype; }
@@ -29,6 +33,9 @@ Error Interface_loadFonts (void) {
         return Error_none;
 }
 
+/* Interface_fontNormal
+ * Sets the font to the standard normal font.
+ */
 void Interface_fontNormal (void) {
         cairo_set_font_size(Window_context, Options_fontSize);
         cairo_set_font_face(Window_context, fontFaceNormal);

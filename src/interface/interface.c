@@ -6,6 +6,10 @@ TextDisplay *textDisplay = { 0 };
 
 static Error Interface_setup (void);
 
+/* Interface_run
+ * Initializes and runs the interface module. This function is blocking, and
+ * will return when the window is closed.
+ */
 Error Interface_run (void) {
         Window_start();
         Error err = Interface_setup();
@@ -18,10 +22,17 @@ Error Interface_run (void) {
         return err;
 }
 
+/* Interface_setEditBuffer
+ * Sets the active EditBuffer of the interface.
+ */
 void Interface_setEditBuffer (EditBuffer *newEditBuffer) {
         editBuffer = newEditBuffer;
 }
 
+/* Interface_setup
+ * Initializes the interface, loading needed files and setting event handlers on
+ * the windows.
+ */
 static Error Interface_setup (void) {
         Error err = Interface_loadFonts();
         if (err) { return err; }
@@ -44,6 +55,9 @@ static Error Interface_setup (void) {
         return Error_none;
 }
 
+/* Interface_recalculate
+ * Recalculates the size and position of all interface elements.
+ */
 void Interface_recalculate (int width, int height) {
         interface.width      = width;
         interface.height     = height;
@@ -53,6 +67,10 @@ void Interface_recalculate (int width, int height) {
         Interface_editView_recalculate();
 }
 
+/* Interface_redraw
+ * Re-draws all interface elements. This should completely re-draw everything,
+ * touching every part of the screen.
+ */
 void Interface_redraw (void) {
         Interface_tabBar_redraw();
         Interface_editView_redraw();
