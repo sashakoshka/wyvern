@@ -19,7 +19,7 @@ run)
 lint)
         clang-tidy \
         -checks=portability-*,bugprone-*,-bugprone-macro-parentheses \
-        --warnings-as-errors=* "$SRC_PATH"/* -- $FLAGS_CFLAGS
+        --warnings-as-errors=* "$SRC_PATH"/*/*.c -- $FLAGS_CFLAGS
         ;;
 
 val)
