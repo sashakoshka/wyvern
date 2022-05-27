@@ -16,9 +16,41 @@ FLAGS_CFLAGS="$FLAGS_CFLAGS -I$INC_PATH"
 RELEASE_PATH="$OUT_PATH/$EXE_NAME"
 DEBUG_PATH="$OUT_PATH/$EXE_NAME-debug"
 
+# build a single submodule from src
+
+buildSubmodule () {
+        modIn="$SRC_PATH/$1/$2.c"
+
+        flags="-c $FLAGS_WARN $FLAGS_CFLAGS"
+        if [ "$3" = "release" ]; then
+                flags="$flags $FLAGS_RELEASE"
+                modOut="$OBJ_PATH/release/$1.$2.o"
+        else
+                flags="$flags $FLAGS_DEBUG"
+                modOut="$OBJ_PATH/debug/$1.$2.o"
+        fi
+        
+        buildModule=""
+        [ ! -f "$modOut" ]         && buildModule=true
+        [ "$modIn" -nt "$modOut" ] && buildModule=true
+
+        if [ -z $buildModule ]; then
+                # return if the module hasn't been built
+                echo "    (i) skipping submodule $1.$2, already built"; return
+        fi
+        
+        # build the module
+        echo "    ... building submodule $1.$2: $1/$2.c ---> $1.$2.o"
+        $CC "$modIn" -o "$modOut" $flags \
+        && echo "    .// built module submodule $1.$2" \
+        || echo "    ERR could not build submodule $1.$2" >&2
+}
+
 # build a single module from src
 
 buildModule () {
+        echo "... building module $1"
+        
         mkdir -p "$OBJ_PATH"
         mkdir -p "$OBJ_PATH/release"
         mkdir -p "$OBJ_PATH/debug"
@@ -41,14 +73,6 @@ buildModule () {
         fi
 
         buildModule=""
-
-        for sourceFile in $modIn/*; do
-                if [ "$sourceFile" -nt "$modOut" ]; then
-                        buildModule=true
-                        break
-                fi
-        done
-
         [ ! -f "$modOut" ]           && buildModule=true
         [ "$modHead" -nt "$modOut" ] && buildModule=true
 
@@ -57,10 +81,12 @@ buildModule () {
                 echo "(i) skipping module $1, already built"; return
         fi
 
-        # build the module
-        echo "... building module $1: $1/*.c ---> $1.o"
-        $CC $modIn/*.c -o "$modOut" $flags && echo ".// built module $1" \
-        || echo "ERR could not build module $1" >&2
+        for submodule in $modIn/*; do
+                fileExtension="${submodule##*.}"
+                if [ $fileExtension = "c" ]; then
+                        buildSubmodule "$1" "$(basename "${submodule%.*}")" "$1"
+                fi
+        done
 }
 
 # build all modules in src, then link them together into final executable
