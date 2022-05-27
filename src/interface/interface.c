@@ -11,9 +11,14 @@ static Error Interface_setup (void);
  * will return when the window is closed.
  */
 Error Interface_run (void) {
-        Window_start();
-        Error err = Interface_setup();
+        Error err;
+        
+        err = Window_start();
         if (err) { return err; }
+        
+        err = Interface_setup();
+        if (err) { return err; }
+        
         Window_show();
         
         err = Window_listen();

@@ -10,16 +10,17 @@
 #include "stdio.h"
 #include "text-display.h"
 
-#define OUTLINE_COLOR    0.122, 0.137, 0.169
-#define TEXT_COLOR       0.925, 0.937, 0.957
-#define BACKGROUND_COLOR 0.141, 0.161, 0.200
-#define TAB_BAR_COLOR    0.141, 0.161, 0.200
-#define RULER_COLOR      0.180, 0.204, 0.251
-#define RULER_TEXT_COLOR 0.298, 0.337, 0.416
-#define CURSOR_COLOR     0.298, 0.337, 0.416
-#define BAD_CHAR_COLOR   0.749, 0.380, 0.419
-#define SELECTION_COLOR  0.298, 0.337, 0.416
-// #define ACTIVE_TAB_COLOR 0.188, 0.212, 0.263
+#define OUTLINE_COLOR      0.122, 0.137, 0.169
+#define TEXT_COLOR         0.925, 0.937, 0.957
+#define BACKGROUND_COLOR   0.141, 0.161, 0.200
+#define TAB_BAR_COLOR      0.141, 0.161, 0.200
+#define RULER_COLOR        0.180, 0.204, 0.251
+#define RULER_TEXT_COLOR   0.298, 0.337, 0.416
+#define CURSOR_COLOR       0.298, 0.337, 0.416
+#define BAD_CHAR_COLOR     0.749, 0.380, 0.419
+#define SELECTION_COLOR    0.298, 0.337, 0.416
+#define INACTIVE_TAB_COLOR 0.180, 0.204, 0.251
+#define ACTIVE_TAB_COLOR   0.188, 0.212, 0.263
 
 #define HITBOX(xx, yy, element) \
         xx > (element.x) && xx < (element.x) + (element.width) && \
@@ -33,7 +34,7 @@ typedef struct Interface_Tab {
 
         String text;
 
-        struct Interface_Tab *prev;
+        struct Interface_Tab *previous;
         struct Interface_Tab *next;
 } Interface_Tab;
 
@@ -114,12 +115,16 @@ extern double glyphHeight;
 extern double lineHeight;
 extern double glyphWidth;
 
-void Interface_recalculate           (int, int);
-void Interface_tabBar_recalculate    (void);
-void Interface_editView_recalculate  (void);
+Interface_Tab *Interface_TabBar_add    (void);
+void           Interface_TabBar_delete (Interface_Tab *);
+
+void Interface_recalculate          (int, int);
+void Interface_tabBar_recalculate   (void);
+void Interface_editView_recalculate (void);
 
 void Interface_redraw                (void);
 void Interface_tabBar_redraw         (void);
+void Interface_Tab_redraw            (Interface_Tab *tab);
 void Interface_editView_redraw       (void);
 void Interface_editView_drawRuler    (void);
 void Interface_editView_drawChars    (int);

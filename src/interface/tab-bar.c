@@ -1,5 +1,8 @@
 #include "module.h"
 
+static Interface_Tab *Interface_Tab_new  (void);
+static void           Interface_Tab_free (Interface_Tab *);
+
 /* Interface_tabBar_recalculate
  * Recalculates the position and size of the tab bar.
  */
@@ -34,4 +37,59 @@ void Interface_tabBar_redraw (void) {
                 interface.tabBar.x + interface.tabBar.width,
                 interface.tabBar.y + interface.tabBar.height - 0.5);
         cairo_stroke(Window_context);
+}
+
+/* Interface_TabBar_add
+ * Appends a new tab to the linked list in the tab bar.
+ */
+Interface_Tab *Interface_TabBar_add (void) {
+        Interface_Tab *tab = Interface_Tab_new();
+
+        if (interface.tabBar.tabs == NULL) {
+                interface.tabBar.tabs = tab;
+                return tab;
+        }
+
+        Interface_Tab *current = interface.tabBar.tabs;
+        while (current->next != NULL) {
+                current = current->next;
+        }
+
+        current->next = tab;
+        tab->previous = current;
+        
+        return tab;
+}
+
+/* Interface_TabBar_delete
+ * Removes an existing tab from the linked list in the tab bar.
+ */
+void Interface_TabBar_delete (Interface_Tab *tab) {
+        if (tab->previous == NULL) {
+                interface.tabBar.tabs = tab->next;
+                Interface_Tab_free(tab);
+                return;
+        }
+
+        tab->previous->next = tab->next;
+        if (tab->next != NULL) {
+                tab->next->previous = tab->previous;
+        }
+        
+        Interface_Tab_free(tab);
+}
+
+/* Interface_Tab_new
+ * Allocates and returns new tab.
+ */
+static Interface_Tab *Interface_Tab_new (void) {
+        Interface_Tab *tab = calloc(1, sizeof(*tab));
+        return tab;
+}
+
+/* Interface_Tab_free
+ * Frees a tab.
+ */
+static void Interface_Tab_free (Interface_Tab *tab) {
+        free(tab);
 }
