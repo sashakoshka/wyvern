@@ -1,10 +1,10 @@
 #include "utility.h"
 
-/* constrainChange
+/* Utility_constrainChange
  * Constrains a change in initial of amount, to a lower bound of 0 and an upper
  * bound of bound (bound is not inclusive).
  */
-size_t constrainChange (size_t initial, int amount, size_t bound) {
+size_t Utility_constrainChange (size_t initial, int amount, size_t bound) {
         size_t amountAbs;
         
         if (amount < 0) {
@@ -26,10 +26,10 @@ size_t constrainChange (size_t initial, int amount, size_t bound) {
         return initial;
 }
 
-/* addToSizeT
+/* Utility_addToSizeT
  * Behaves the same as constrainChange, but does not specify an upper bound.
  */
-size_t addToSizeT (size_t initial, int amount) {
+size_t Utility_addToSizeT (size_t initial, int amount) {
         size_t amountAbs;
         
         if (amount < 0) {

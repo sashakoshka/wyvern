@@ -416,7 +416,9 @@ void EditBuffer_shiftCursorsInLineAfter (
                         cursor->row == row &&
                         cursor->column >= column
                 ) {
-                        cursor->column = addToSizeT(cursor->column, amount);
+                        cursor->column = Utility_addToSizeT (
+                                cursor->column,
+                                amount);
 
                 }
 
@@ -425,7 +427,7 @@ void EditBuffer_shiftCursorsInLineAfter (
                         cursor->selectionRow == row &&
                         cursor->selectionColumn >= column
                 ) {
-                        cursor->selectionColumn = addToSizeT (
+                        cursor->selectionColumn = Utility_addToSizeT (
                                 cursor->selectionColumn,
                                 amount);
                 }
@@ -485,7 +487,7 @@ void EditBuffer_mergeCursors (EditBuffer *editBuffer) {
  * Scrolls the edit buffer by amount. This function does bounds checking.
  */
 void EditBuffer_scroll (EditBuffer *editBuffer, int amount) {
-        editBuffer->scroll = constrainChange (
+        editBuffer->scroll = Utility_constrainChange (
                 editBuffer->scroll,
                 amount,
                 editBuffer->length);

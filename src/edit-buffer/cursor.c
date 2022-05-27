@@ -97,7 +97,7 @@ void EditBuffer_Cursor_predictMovement (
 ) {
         // predict row
         size_t rowBefore = *resultRow;
-        *resultRow = constrainChange (
+        *resultRow = Utility_constrainChange (
                 *resultRow,
                 amountV,
                 cursor->parent->length);
@@ -147,7 +147,7 @@ void EditBuffer_Cursor_predictMovement (
                 return;
         }
         
-        *resultColumn = addToSizeT(*resultColumn, amountH);
+        *resultColumn = Utility_addToSizeT(*resultColumn, amountH);
 }
 
 /* EditBuffer_Cursor_moveH
