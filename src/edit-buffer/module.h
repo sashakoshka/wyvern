@@ -3,6 +3,7 @@
 
 #include "edit-buffer.h"
 #include "options.h"
+#include "utility.h"
 
 #define START_ALL_CURSORS                         \
         for (                                      \
@@ -34,6 +35,3 @@ void EditBuffer_Cursor_predictMovement (
         EditBuffer_Cursor *,
         size_t *, size_t *,
         int, int);
-
-size_t constrainChange (size_t, int, size_t);
-size_t addToSizeT      (size_t, int);

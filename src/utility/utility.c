@@ -1,4 +1,4 @@
-#include "module.h"
+#include "utility.h"
 
 /* constrainChange
  * Constrains a change in initial of amount, to a lower bound of 0 and an upper
