@@ -84,7 +84,7 @@ buildModule () {
         for submodule in $modIn/*; do
                 fileExtension="${submodule##*.}"
                 if [ $fileExtension = "c" ]; then
-                        buildSubmodule "$1" "$(basename "${submodule%.*}")" "$1"
+                        buildSubmodule "$1" "$(basename "${submodule%.*}")" "$2"
                 fi
         done
 }
