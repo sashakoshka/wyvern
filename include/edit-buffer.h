@@ -40,7 +40,7 @@ struct EditBuffer {
 
         int dontMerge;
 
-        char filePath[PATH_MAX];
+        char filePath[PATH_MAX + 1];
 };
 
 EditBuffer *EditBuffer_new  (void);
