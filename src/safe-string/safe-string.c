@@ -1,6 +1,8 @@
 #include <string.h>
 #include <stdio.h>
+
 #include "safe-string.h"
+#include "utility.h"
 
 static void String_realloc (String *, size_t);
 
@@ -41,7 +43,7 @@ void String_addBuffer (String *string, const char *buffer) {
         for (int index = 0; buffer[index];) {
                 size_t amountGot = 0;
                 Rune rune = Unicode_utf8ToRune(buffer + index, &amountGot);
-                index    += amountGot;
+                index    += (int)(amountGot);
                 
                 String_addRune(string, rune);
         }

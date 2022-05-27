@@ -23,7 +23,7 @@ void EditBuffer_free (EditBuffer *editBuffer) {
  */
 Error EditBuffer_open (EditBuffer *editBuffer, const char *filePath) {
         EditBuffer_reset(editBuffer);
-        strncpy(editBuffer->filePath, filePath, PATH_MAX);
+        Utility_copyCString(editBuffer->filePath, filePath, PATH_MAX);
 
         FILE *file = fopen(filePath, "r");
         if (file == NULL) { return Error_cantOpenFile; }

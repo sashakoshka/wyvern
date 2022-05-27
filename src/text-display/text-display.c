@@ -191,12 +191,12 @@ void TextDisplay_getRealCoords (
 }
 
 /* TextDisplay_clear
- * Clears a text display, setting all values in the buffer to zero. This does
- * not mofidy the damage buffer.
+ * Clears a text display, setting all values in the buffer to zero.
  */
 static void TextDisplay_clear (TextDisplay *textDisplay) {
-        memset (
-                textDisplay->cells, 0,
-                textDisplay->width *
-                textDisplay->height * sizeof(TextDisplay_Cell));
+        size_t bufferLength = textDisplay->width * textDisplay->height;
+        
+        for (size_t index = 0; index < bufferLength; index ++) {
+                textDisplay->cells[index] = (TextDisplay_Cell) { 0 };
+        }
 }

@@ -40,3 +40,22 @@ size_t Utility_addToSizeT (size_t initial, int amount) {
                 return initial + amountAbs;
         }
 }
+
+/* Utility_copyCString
+ * Secure alternative to strncpy. Returns a pointer to destination.
+ */
+char *Utility_copyCString (
+        char       *destination,
+        const char *source,
+        size_t      maximumChars
+) {
+        size_t index;
+        for (index = 0; index < maximumChars; index ++) {
+                if (source[index] == '\0') { break; }
+                destination[index] = source[index];
+        }
+
+        destination[index] = '\0';
+        
+        return destination;
+}
