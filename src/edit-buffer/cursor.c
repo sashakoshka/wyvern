@@ -209,23 +209,38 @@ void EditBuffer_Cursor_moveH (EditBuffer_Cursor *cursor, int amount) {
 void EditBuffer_Cursor_moveV (EditBuffer_Cursor *cursor, int amount) {
         // if we have something selected, escape the selection.
         if (cursor->hasSelection) {
-                size_t startColumn;
-                size_t startRow;
-                size_t endColumn;
-                size_t endRow;
+                if (cursor->row == cursor->selectionRow) {
+                        // if the selection is only on one row, then escape
+                        // the selection directionally
+                        int escapingToRight =
+                                cursor->selectionColumn > cursor->column;
+                        
+                        cursor->column = cursor->selectionColumn;
+                        cursor->row    = cursor->selectionRow;
 
-                EditBuffer_Cursor_getSelectionBounds (
-                        cursor,
-                        &startColumn, &startRow,
-                        &endColumn,   &endRow);
-                
-                if (amount < 0) {
-                        cursor->column = startColumn;
-                        cursor->row    = startRow;
+                        if (escapingToRight) {
+                                cursor->column ++;
+                        }
                 } else {
-                        cursor->column = endColumn + 1;
-                        cursor->row    = endRow;
+                        size_t startColumn;
+                        size_t startRow;
+                        size_t endColumn;
+                        size_t endRow;
+
+                        EditBuffer_Cursor_getSelectionBounds (
+                                cursor,
+                                &startColumn, &startRow,
+                                &endColumn,   &endRow);
+                        
+                        if (amount < 0) {
+                                cursor->column = startColumn;
+                                cursor->row    = startRow;
+                        } else {
+                                cursor->column = endColumn + 1;
+                                cursor->row    = endRow;
+                        }
                 }
+                
         }
         
         EditBuffer_Cursor_predictMovement (
