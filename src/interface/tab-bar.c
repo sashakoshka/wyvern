@@ -39,6 +39,20 @@ void Interface_tabBar_redraw (void) {
         cairo_stroke(Window_context);
 }
 
+/* Interface_Tab_redraw
+ * Redraws a single tab.
+ */
+void Interface_Tab_redraw (Interface_Tab *tab) {
+        cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
+        cairo_rectangle (
+                Window_context,
+                tab->x,
+                tab->y,
+                tab->width,
+                tab->height);
+        cairo_fill(Window_context);
+}
+
 /* Interface_TabBar_add
  * Appends a new tab to the linked list in the tab bar.
  */
