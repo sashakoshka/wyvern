@@ -57,10 +57,10 @@ void EditBuffer_Cursor_deleteRune (EditBuffer_Cursor *cursor) {
  * cursor cannot be moved back, this function does nothing.
  */
 void EditBuffer_Cursor_backspaceRune (EditBuffer_Cursor *cursor) {
-        if (cursor->column == 0 && cursor->row == 0) { return; }
         if (cursor->hasSelection) {
                 EditBuffer_Cursor_deleteSelection(cursor);
         } else {
+                if (cursor->column == 0 && cursor->row == 0) { return; }
                 EditBuffer_Cursor_moveH(cursor, -1);
                 EditBuffer_Cursor_deleteRune(cursor);
         }
