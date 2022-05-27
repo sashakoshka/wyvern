@@ -45,50 +45,12 @@ static Error Interface_setup (void) {
 }
 
 void Interface_recalculate (int width, int height) {
-        interface.width  = width;
-        interface.height = height;
-
-        int horizontal = interface.width > interface.height;
-
-        interface.tabBar.x      = 0;
-        interface.tabBar.y      = 0;
-        interface.tabBar.height = 35;
-        interface.tabBar.width  = interface.width;
-
-        Interface_EditView *editView = &interface.editView;
+        interface.width      = width;
+        interface.height     = height;
+        interface.horizontal = interface.width > interface.height;
         
-        editView->x      = 0;
-        editView->y      = interface.tabBar.height;
-        editView->height = interface.height - interface.tabBar.height;
-        editView->width  = interface.width;
-        
-        editView->padding    = (int)glyphWidth * 2;
-        editView->rulerWidth = (int)(glyphWidth * 5);
-
-        editView->innerX      = editView->x      + editView->padding;
-        editView->innerY      = editView->y      + editView->padding;
-        editView->innerWidth  = editView->width  - editView->padding;
-        editView->innerHeight = editView->height - editView->padding;
-
-        double textLeftOffset = editView->rulerWidth + editView->padding;
-        editView->textX = editView->innerX + textLeftOffset;
-        editView->textY = editView->innerY + glyphHeight * 0.8;
-        editView->textWidth  = editView->width  - textLeftOffset;
-        editView->textHeight = editView->height - editView->padding +
-                lineHeight;
-
-        double textDisplayWidth  = editView->textWidth  / glyphWidth;
-        double textDisplayHeight = editView->textHeight / lineHeight;
-        if (textDisplayWidth  < 0) { textDisplayWidth  = 0; }
-        if (textDisplayHeight < 0) { textDisplayHeight = 0; }
-        TextDisplay_resize (
-                textDisplay,
-                (size_t)(textDisplayWidth),
-                (size_t)(textDisplayHeight));
-        
-        if (horizontal) {
-                
-        }
+        Interface_tabBar_recalculate();
+        Interface_editView_recalculate();
 }
 
 void Interface_redraw (void) {

@@ -72,6 +72,7 @@ typedef struct {
 typedef struct {
         int width;
         int height;
+        int horizontal;
 
         Interface_TabBar   tabBar;
         Interface_EditView editView;
@@ -114,6 +115,9 @@ extern double lineHeight;
 extern double glyphWidth;
 
 void Interface_recalculate           (int, int);
+void Interface_tabBar_recalculate    (void);
+void Interface_editView_recalculate  (void);
+
 void Interface_redraw                (void);
 void Interface_tabBar_redraw         (void);
 void Interface_editView_redraw       (void);

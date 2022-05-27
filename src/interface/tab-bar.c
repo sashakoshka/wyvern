@@ -1,5 +1,12 @@
 #include "module.h"
 
+void Interface_tabBar_recalculate (void) {
+        interface.tabBar.x      = 0;
+        interface.tabBar.y      = 0;
+        interface.tabBar.height = 35;
+        interface.tabBar.width  = interface.width;
+}
+
 void Interface_tabBar_redraw (void) {
         cairo_set_source_rgb(Window_context, TAB_BAR_COLOR);
         cairo_rectangle (

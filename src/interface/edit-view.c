@@ -1,5 +1,38 @@
 #include "module.h"
 
+void Interface_editView_recalculate (void) {
+        Interface_EditView *editView = &interface.editView;
+        
+        editView->x      = 0;
+        editView->y      = interface.tabBar.height;
+        editView->height = interface.height - interface.tabBar.height;
+        editView->width  = interface.width;
+        
+        editView->padding    = (int)(glyphWidth * 2);
+        editView->rulerWidth = (int)(glyphWidth * 5);
+
+        editView->innerX      = editView->x      + editView->padding;
+        editView->innerY      = editView->y      + editView->padding;
+        editView->innerWidth  = editView->width  - editView->padding;
+        editView->innerHeight = editView->height - editView->padding;
+
+        double textLeftOffset = editView->rulerWidth + editView->padding;
+        editView->textX = editView->innerX + textLeftOffset;
+        editView->textY = editView->innerY + glyphHeight * 0.8;
+        editView->textWidth  = editView->width  - textLeftOffset;
+        editView->textHeight = editView->height - editView->padding +
+                lineHeight;
+
+        double textDisplayWidth  = editView->textWidth  / glyphWidth;
+        double textDisplayHeight = editView->textHeight / lineHeight;
+        if (textDisplayWidth  < 0) { textDisplayWidth  = 0; }
+        if (textDisplayHeight < 0) { textDisplayHeight = 0; }
+        TextDisplay_resize (
+                textDisplay,
+                (size_t)(textDisplayWidth),
+                (size_t)(textDisplayHeight));
+}
+
 void Interface_editView_redraw (void) {
         Interface_EditView *editView = &interface.editView;
         
