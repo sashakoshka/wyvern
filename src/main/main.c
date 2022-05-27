@@ -7,7 +7,7 @@
 int main () {
         Options_start();
         EditBuffer *editBuffer = EditBuffer_new();
-        EditBuffer_open(editBuffer, "src/edit-buffer.c");
+        EditBuffer_open(editBuffer, "src/edit-buffer/edit-buffer.c");
         Interface_setEditBuffer(editBuffer);
         Interface_run();
 }
