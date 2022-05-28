@@ -107,6 +107,15 @@ Error Window_show (void) {
 Error Window_listen (void) {
         listening = 1;
         while (listening) {
+                cairo_push_group(Window_context);
+
+                // TODO: use XNextEventsQueued to get the number of queued
+                // events. if there are more queued events after this, tell
+                // whatever handles the events to *not draw anything yet*, and
+                // don't push, pop, paint, or flush. this will keep events from
+                // stacking up while the program struggles to paint each one
+                // on lower end hardware (or in valgrind!).
+        
                 XEvent event;
                 int timedOut = nextXEventOrTimeout(&event, Window_interval);
                 if (!timedOut) {
@@ -124,6 +133,11 @@ Error Window_listen (void) {
                                 callbacks.onInterval();
                         }
                 }
+
+                // TODO: only paint and flush when drawing has taken place.
+                cairo_pop_group_to_source(Window_context);
+                cairo_paint(Window_context);        
+                cairo_surface_flush(Window_surface);
         }
 
         return Error_none;
@@ -180,12 +194,8 @@ static Error respondToEvent (XEvent event) {
         case Expose:
                 if (callbacks.onRedraw == NULL) { break; }
 
-                cairo_push_group(Window_context);
                 cairo_paint(Window_context);
                 callbacks.onRedraw(width, height);
-                cairo_pop_group_to_source(Window_context);
-                cairo_paint(Window_context);        
-                cairo_surface_flush(Window_surface);
                 break;
 
         case ConfigureNotify: ;
@@ -205,6 +215,7 @@ static Error respondToEvent (XEvent event) {
                 Window_stop();
                 break;
         }
+
         return Error_none;
 }
 
