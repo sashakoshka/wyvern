@@ -11,5 +11,6 @@ void  Interface_setEditBuffer (EditBuffer *newEditBuffer);
 
 Interface_Tab *Interface_TabBar_add    (void);
 void           Interface_TabBar_delete (Interface_Tab *);
+void           Interface_Tab_setText   (Interface_Tab *, const char *);
 
 // make event handlers for creating a new tab, clicking on a tab, etc

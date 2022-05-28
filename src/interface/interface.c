@@ -59,7 +59,7 @@ static Error Interface_setup (void) {
         Window_setTitle("Text Editor");
         
         Interface_Tab *tab = Interface_TabBar_add();
-        Utility_copyCString(tab->text, "test", NAME_MAX);
+        Interface_Tab_setText(tab, "test");
 
         return Error_none;
 }

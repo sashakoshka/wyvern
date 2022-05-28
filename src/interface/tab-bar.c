@@ -1,4 +1,5 @@
 #include "module.h"
+#include "utility.h"
 
 static Interface_Tab *Interface_Tab_new  (void);
 static void           Interface_Tab_free (Interface_Tab *);
@@ -119,6 +120,14 @@ void Interface_TabBar_delete (Interface_Tab *tab) {
         
         Interface_Tab_free(tab);
 }
+
+/* Interface_Tab_setText
+ * Sets the text that will be displayed as the tab title.
+ */
+void Interface_Tab_setText (Interface_Tab *tab, const char *text) {
+        Utility_copyCString(tab->text, text, NAME_MAX);
+}
+
 
 /* Interface_Tab_new
  * Allocates and returns new tab.
