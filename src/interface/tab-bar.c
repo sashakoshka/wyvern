@@ -15,22 +15,45 @@ void Interface_tabBar_recalculate (void) {
 
         Interface_Tab *tab = interface.tabBar.tabs;
         while (tab != NULL) {
-                cairo_text_extents_t textExtents;
-                cairo_text_extents(Window_context, tab->text, &textExtents);
-                double padding = (interface.tabBar.height - capitalHeight) / 2;
-        
-                tab->x      = 0 + interface.tabBar.x;
-                tab->y      = 0 + interface.tabBar.y;
-                tab->width  = textExtents.width + padding * 2;
-                tab->height = interface.tabBar.height - 1;
-
-                tab->textX = tab->x + padding;
-                tab->textY = tab->y + tab->height - padding;
+                // tab position
+                tab->x = 0 + interface.tabBar.x;
+                tab->y = 0 + interface.tabBar.y;
 
                 if (tab->previous) {
                         tab->x += tab->previous->x;
                 }
-                
+
+                // tab height
+                tab->height = interface.tabBar.height - 1;
+
+                // text
+                cairo_text_extents_t textExtents;
+                cairo_text_extents(Window_context, tab->text, &textExtents);
+                double padding = (tab->height - capitalHeight) / 2;
+                tab->textX = tab->x + padding;
+                tab->textY = tab->y + tab->height - padding;
+
+                // close button dimensions
+                tab->closeWidth    = 8;
+                tab->closeHeight   = tab->closeWidth;
+                double closeMargin = (tab->height - tab->closeHeight) / 2;
+
+                // tab width
+                tab->width =
+                        padding +
+                        textExtents.width +
+                        closeMargin +
+                        tab->closeWidth +
+                        closeMargin;
+
+                // close button position
+                tab->closeX =
+                        tab->x + tab->width -
+                        closeMargin -
+                        tab->closeWidth;
+                tab->closeY = tab->y + closeMargin;
+
+                // onto next tab
                 tab = tab->next;
         }
 }
@@ -71,6 +94,7 @@ void Interface_tabBar_redraw (void) {
  * Redraws a single tab.
  */
 void Interface_Tab_redraw (Interface_Tab *tab) {
+        // tab background
         cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
         cairo_rectangle (
                 Window_context,
@@ -79,13 +103,49 @@ void Interface_Tab_redraw (Interface_Tab *tab) {
                 tab->width,
                 tab->height);
         cairo_fill(Window_context);
-        
+
+        // text
         cairo_set_source_rgb(Window_context, TEXT_COLOR);
         Interface_fontNormal();
         cairo_move_to (
                 Window_context,
                 tab->textX, tab->textY);
-        cairo_show_text(Window_context, tab->text);        
+        cairo_show_text(Window_context, tab->text);
+
+        // close button
+        cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
+        cairo_rectangle (
+                Window_context,
+                tab->closeX,
+                tab->closeY,
+                tab->closeWidth,
+                tab->closeHeight);
+        cairo_fill(Window_context);
+        
+        cairo_set_source_rgb(Window_context, CLOSE_BUTTON_COLOR);
+        double nearX = tab->closeX + 1;
+        double nearY = tab->closeY + 1;
+        double farX  = tab->closeX + tab->closeWidth  - 1;
+        double farY  = tab->closeY + tab->closeHeight - 1;
+        cairo_set_line_width(Window_context, 2);
+        cairo_move_to (
+                Window_context,
+                nearX,
+                nearY);
+        cairo_line_to (
+                Window_context,
+                farX,
+                farY);
+                cairo_stroke(Window_context);
+        cairo_move_to (
+                Window_context,
+                farX,
+                nearY);
+        cairo_line_to (
+                Window_context,
+                nearX,
+                farY);
+                cairo_stroke(Window_context);
 }
 
 /* Interface_TabBar_add

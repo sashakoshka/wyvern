@@ -19,6 +19,7 @@
 #define SELECTION_COLOR    0.298, 0.337, 0.416
 #define INACTIVE_TAB_COLOR 0.180, 0.204, 0.251
 #define ACTIVE_TAB_COLOR   0.188, 0.212, 0.263
+#define CLOSE_BUTTON_COLOR 0.749, 0.380, 0.419
 
 #define HITBOX(xx, yy, element) \
         xx > (element.x) && xx < (element.x) + (element.width) && \
@@ -34,6 +35,11 @@ struct Interface_Tab {
         double textY;
 
         char text[NAME_MAX + 1];
+
+        double closeX;
+        double closeY;
+        double closeWidth;
+        double closeHeight;
 
         struct Interface_Tab *previous;
         struct Interface_Tab *next;
