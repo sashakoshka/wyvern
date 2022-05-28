@@ -1,4 +1,5 @@
 #include "module.h"
+#include "options.h"
 
 /* Interface_editView_recalculate
  * Recalculates the position, size, and various layout bounds of the edit view.

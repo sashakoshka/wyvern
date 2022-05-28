@@ -42,7 +42,7 @@ buildSubmodule () {
         # build the module
         echo "    ... building submodule $1.$2: $1/$2.c ---> $1.$2.o"
         $CC "$modIn" -o "$modOut" $flags \
-        && echo "    .// built module submodule $1.$2" \
+        && echo "    .// built submodule $1.$2" \
         || echo "    ERR could not build submodule $1.$2" >&2
 }
 

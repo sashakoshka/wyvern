@@ -5,9 +5,7 @@
 #include FT_FREETYPE_H
 
 #include "interface.h"
-#include "options.h"
 #include "window.h"
-#include "stdio.h"
 #include "text-display.h"
 
 #define OUTLINE_COLOR      0.122, 0.137, 0.169
@@ -27,10 +25,13 @@
         yy > (element.y) && yy < (element.y) + (element.height)
 
 struct Interface_Tab {
-        int x;
-        int y;
-        int width;
-        int height;
+        double x;
+        double y;
+        double width;
+        double height;
+
+        double textX;
+        double textY;
 
         char text[NAME_MAX + 1];
 
@@ -39,10 +40,10 @@ struct Interface_Tab {
 };
 
 typedef struct {
-        int x;
-        int y;
-        int width;
-        int height;
+        double x;
+        double y;
+        double width;
+        double height;
 
         Interface_Tab *tabs;
         

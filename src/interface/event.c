@@ -1,4 +1,5 @@
 #include "module.h"
+#include "options.h"
 
 Interface_MouseState  mouseState  = { 0 };
 Interface_ModKeyState modKeyState = { 0 };

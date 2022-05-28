@@ -1,4 +1,5 @@
 #include "module.h"
+#include "options.h"
 
 FT_Library         freetypeHandle     = { 0 };
 FT_Face            freetypeFaceNormal = { 0 };

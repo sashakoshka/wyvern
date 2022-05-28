@@ -20,6 +20,10 @@ void Interface_tabBar_recalculate (void) {
                 tab->width  = 96;
                 tab->height = interface.tabBar.height - 1;
 
+                double padding = (interface.tabBar.height - glyphHeight) / 2;
+                tab->textX = tab->x + padding;
+                tab->textY = tab->y + tab->height - padding;
+
                 if (tab->previous) {
                         tab->x += tab->previous->x;
                 }
@@ -77,7 +81,7 @@ void Interface_Tab_redraw (Interface_Tab *tab) {
         Interface_fontNormal();
         cairo_move_to (
                 Window_context,
-                tab->x, tab->y + 20);
+                tab->textX, tab->textY);
         cairo_show_text(Window_context, tab->text);        
 }
 
