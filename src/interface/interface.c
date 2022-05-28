@@ -1,4 +1,5 @@
 #include "module.h"
+#include "utility.h"
 
 Interface    interface   = { 0 };
 EditBuffer  *editBuffer  = { 0 };
@@ -56,6 +57,9 @@ static Error Interface_setup (void) {
         
         Window_interval = 500;
         Window_setTitle("Text Editor");
+        
+        Interface_Tab *tab = Interface_TabBar_add();
+        Utility_copyCString(tab->text, "test", NAME_MAX);
 
         return Error_none;
 }

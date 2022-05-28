@@ -32,7 +32,7 @@ typedef struct Interface_Tab {
         int width;
         int height;
 
-        String text;
+        char text[NAME_MAX + 1];
 
         struct Interface_Tab *previous;
         struct Interface_Tab *next;
