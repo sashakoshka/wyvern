@@ -20,7 +20,7 @@ void Interface_tabBar_recalculate (void) {
                 tab->width  = 96;
                 tab->height = interface.tabBar.height - 1;
 
-                double padding = (interface.tabBar.height - glyphHeight) / 2;
+                double padding = (interface.tabBar.height - capitalHeight) / 2;
                 tab->textX = tab->x + padding;
                 tab->textY = tab->y + tab->height - padding;
 

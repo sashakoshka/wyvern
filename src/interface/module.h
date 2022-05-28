@@ -115,6 +115,7 @@ extern cairo_font_face_t *fontFaceNormal;
 extern double glyphHeight;
 extern double lineHeight;
 extern double glyphWidth;
+extern double capitalHeight;
 
 void Interface_recalculate          (int, int);
 void Interface_tabBar_recalculate   (void);

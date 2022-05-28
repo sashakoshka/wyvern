@@ -5,9 +5,10 @@ FT_Library         freetypeHandle     = { 0 };
 FT_Face            freetypeFaceNormal = { 0 };
 cairo_font_face_t *fontFaceNormal     = { 0 };
 
-double glyphHeight = 0;
-double lineHeight  = 0;
-double glyphWidth  = 0;
+double glyphHeight   = 0;
+double lineHeight    = 0;
+double glyphWidth    = 0;
+double capitalHeight = 0;
 
 /* Interface_loadFonts
  * Initializes FreeType, loads all fonts, and gathers information about font
@@ -25,6 +26,11 @@ Error Interface_loadFonts (void) {
                 freetypeFaceNormal, 0);
 
         Interface_fontNormal();
+
+        cairo_text_extents_t textExtents;
+        cairo_text_extents(Window_context, "M", &textExtents);
+        capitalHeight = textExtents.height;
+        
         cairo_font_extents_t fontExtents;
         cairo_font_extents(Window_context, &fontExtents);
         lineHeight  = fontExtents.height;

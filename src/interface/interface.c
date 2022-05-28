@@ -59,7 +59,7 @@ static Error Interface_setup (void) {
         Window_setTitle("Text Editor");
         
         Interface_Tab *tab = Interface_TabBar_add();
-        Interface_Tab_setText(tab, "TEST TEXT");
+        Interface_Tab_setText(tab, "rather long title");
 
         return Error_none;
 }
