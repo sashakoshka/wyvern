@@ -60,6 +60,10 @@ static Error Interface_setup (void) {
         
         Interface_Tab *tab = Interface_TabBar_add();
         Interface_Tab_setText(tab, "rather long title");
+        
+        tab = Interface_TabBar_add();
+        Interface_Tab_setText(tab, "another tab");
+        interface.tabBar.activeTab = tab;
 
         return Error_none;
 }

@@ -19,8 +19,8 @@ void Interface_tabBar_recalculate (void) {
                 tab->x = 0 + interface.tabBar.x;
                 tab->y = 0 + interface.tabBar.y;
 
-                if (tab->previous) {
-                        tab->x += tab->previous->x;
+                if (tab->previous != NULL) {
+                        tab->x += tab->previous->x + tab->previous->width;
                 }
 
                 // tab height
@@ -70,7 +70,7 @@ void Interface_tabBar_redraw (void) {
                 interface.tabBar.width,
                 interface.tabBar.height);
         cairo_fill(Window_context);
-                
+        
         cairo_set_source_rgb(Window_context, OUTLINE_COLOR);
         cairo_set_line_width(Window_context, 1);
         cairo_move_to (
@@ -95,7 +95,11 @@ void Interface_tabBar_redraw (void) {
  */
 void Interface_Tab_redraw (Interface_Tab *tab) {
         // tab background
-        cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
+        if (tab == interface.tabBar.activeTab) {
+                cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
+        } else {
+                cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
+        }
         cairo_rectangle (
                 Window_context,
                 tab->x,
@@ -104,8 +108,39 @@ void Interface_Tab_redraw (Interface_Tab *tab) {
                 tab->height);
         cairo_fill(Window_context);
 
+        // right border
+        cairo_set_source_rgb(Window_context, OUTLINE_COLOR);
+        cairo_set_line_width(Window_context, 1);
+        cairo_move_to (
+                Window_context,
+                tab->x + tab->width - 0.5,
+                tab->y + 0.5);
+        cairo_line_to (
+                Window_context,
+                tab->x + tab->width  - 0.5,
+                tab->y + tab->height + 0.5);
+        cairo_stroke(Window_context);
+
+        if (tab == interface.tabBar.activeTab) {
+                cairo_set_source_rgb(Window_context, ACCENT_COLOR);
+                cairo_set_line_width(Window_context, 2);
+                cairo_move_to (
+                        Window_context,
+                        tab->x,
+                        tab->y + tab->height - 1);
+                cairo_line_to (
+                        Window_context,
+                        tab->x + tab->width - 1,
+                        tab->y + tab->height - 1);
+                cairo_stroke(Window_context);
+        }
+
         // text
-        cairo_set_source_rgb(Window_context, TEXT_COLOR);
+        if (tab == interface.tabBar.activeTab) {
+                cairo_set_source_rgb(Window_context, ACTIVE_TAB_TEXT_COLOR);
+        } else {
+                cairo_set_source_rgb(Window_context, INACTIVE_TAB_TEXT_COLOR);
+        }
         Interface_fontNormal();
         cairo_move_to (
                 Window_context,
@@ -113,7 +148,18 @@ void Interface_Tab_redraw (Interface_Tab *tab) {
         cairo_show_text(Window_context, tab->text);
 
         // close button
-        cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
+        Interface_Tab_closeButtonRedraw(tab);
+}
+
+/* Interface_Tab_closeButtonRedraw
+ * Redraws the tab's close button.
+ */
+void Interface_Tab_closeButtonRedraw (Interface_Tab *tab) {
+        if (tab == interface.tabBar.activeTab) {
+                cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
+        } else {
+                cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
+        }
         cairo_rectangle (
                 Window_context,
                 tab->closeX,

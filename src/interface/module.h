@@ -8,18 +8,26 @@
 #include "window.h"
 #include "text-display.h"
 
-#define OUTLINE_COLOR      0.122, 0.137, 0.169
-#define TEXT_COLOR         0.925, 0.937, 0.957
-#define BACKGROUND_COLOR   0.141, 0.161, 0.200
-#define TAB_BAR_COLOR      0.141, 0.161, 0.200
-#define RULER_COLOR        0.180, 0.204, 0.251
-#define RULER_TEXT_COLOR   0.298, 0.337, 0.416
-#define CURSOR_COLOR       0.298, 0.337, 0.416
-#define BAD_CHAR_COLOR     0.749, 0.380, 0.419
-#define SELECTION_COLOR    0.298, 0.337, 0.416
-#define INACTIVE_TAB_COLOR 0.180, 0.204, 0.251
-#define ACTIVE_TAB_COLOR   0.188, 0.212, 0.263
-#define CLOSE_BUTTON_COLOR 0.749, 0.380, 0.419
+// TODO: make this an enum, and make a function to set color based on input from
+// a value in that enum.
+#define BACKGROUND_COLOR 0.141, 0.161, 0.200
+#define OUTLINE_COLOR    0.122, 0.137, 0.169
+#define TEXT_COLOR       0.925, 0.937, 0.957
+#define ACCENT_COLOR     0.506, 0.631, 0.757
+
+#define RULER_COLOR      0.180, 0.204, 0.251
+#define RULER_TEXT_COLOR 0.298, 0.337, 0.416
+#define CURSOR_COLOR     0.298, 0.337, 0.416
+#define BAD_CHAR_COLOR   0.749, 0.380, 0.419
+#define SELECTION_COLOR  0.298, 0.337, 0.416
+
+#define TAB_BAR_COLOR           0.141, 0.161, 0.200
+#define INACTIVE_TAB_COLOR      0.141, 0.161, 0.200
+#define ACTIVE_TAB_COLOR        0.188, 0.212, 0.263
+#define INACTIVE_TAB_TEXT_COLOR 0.682, 0.718, 0.776
+#define ACTIVE_TAB_TEXT_COLOR   0.925, 0.937, 0.957
+#define CLOSE_BUTTON_COLOR      0.749, 0.380, 0.419
+
 
 #define HITBOX(xx, yy, element) \
         xx > (element.x) && xx < (element.x) + (element.width) && \
@@ -52,6 +60,7 @@ typedef struct {
         double height;
 
         Interface_Tab *tabs;
+        Interface_Tab *activeTab;
         
 } Interface_TabBar;
 
@@ -129,7 +138,8 @@ void Interface_editView_recalculate (void);
 
 void Interface_redraw                (void);
 void Interface_tabBar_redraw         (void);
-void Interface_Tab_redraw            (Interface_Tab *tab);
+void Interface_Tab_redraw            (Interface_Tab *);
+void Interface_Tab_closeButtonRedraw (Interface_Tab *);
 void Interface_editView_redraw       (void);
 void Interface_editView_drawRuler    (void);
 void Interface_editView_drawChars    (int);
