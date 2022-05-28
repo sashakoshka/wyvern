@@ -26,7 +26,7 @@
         xx > (element.x) && xx < (element.x) + (element.width) && \
         yy > (element.y) && yy < (element.y) + (element.height)
 
-typedef struct Interface_Tab {
+struct Interface_Tab {
         int x;
         int y;
         int width;
@@ -36,7 +36,7 @@ typedef struct Interface_Tab {
 
         struct Interface_Tab *previous;
         struct Interface_Tab *next;
-} Interface_Tab;
+};
 
 typedef struct {
         int x;
@@ -114,9 +114,6 @@ extern cairo_font_face_t *fontFaceNormal;
 extern double glyphHeight;
 extern double lineHeight;
 extern double glyphWidth;
-
-Interface_Tab *Interface_TabBar_add    (void);
-void           Interface_TabBar_delete (Interface_Tab *);
 
 void Interface_recalculate          (int, int);
 void Interface_tabBar_recalculate   (void);
