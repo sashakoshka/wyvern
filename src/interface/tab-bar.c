@@ -15,12 +15,15 @@ void Interface_tabBar_recalculate (void) {
 
         Interface_Tab *tab = interface.tabBar.tabs;
         while (tab != NULL) {
+                cairo_text_extents_t textExtents;
+                cairo_text_extents(Window_context, tab->text, &textExtents);
+                double padding = (interface.tabBar.height - capitalHeight) / 2;
+        
                 tab->x      = 0 + interface.tabBar.x;
                 tab->y      = 0 + interface.tabBar.y;
-                tab->width  = 96;
+                tab->width  = textExtents.width + padding * 2;
                 tab->height = interface.tabBar.height - 1;
 
-                double padding = (interface.tabBar.height - capitalHeight) / 2;
                 tab->textX = tab->x + padding;
                 tab->textY = tab->y + tab->height - padding;
 
