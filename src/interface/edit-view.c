@@ -32,7 +32,7 @@ void Interface_editView_recalculate (void) {
         if (textDisplayWidth  < 0) { textDisplayWidth  = 0; }
         if (textDisplayHeight < 0) { textDisplayHeight = 0; }
         TextDisplay_resize (
-                textDisplay,
+                editView->textDisplay,
                 (size_t)(textDisplayWidth),
                 (size_t)(textDisplayHeight));
 }
@@ -83,8 +83,8 @@ void Interface_editView_drawRuler (void) {
         
         double y = editView->textY;
         for (
-                size_t index = editBuffer->scroll;
-                index < editBuffer->length &&
+                size_t index = editView->editBuffer->scroll;
+                index < editView->editBuffer->length &&
                 y < editView->textY + editView->textHeight;
                 index ++
         ) {     
@@ -106,9 +106,10 @@ void Interface_editView_drawRuler (void) {
  * runes.
  */
 void Interface_editView_drawChars (int grabModel) {
-        if (grabModel) { TextDisplay_grab(textDisplay); }
+        Interface_EditView *editView = &interface.editView;
+        if (grabModel) { TextDisplay_grab(editView->textDisplay); }
 
-        for (size_t y = 0; y < textDisplay->height; y ++) {
+        for (size_t y = 0; y < editView->textDisplay->height; y ++) {
                 Interface_editView_drawCharsRow(y);
         }
 }
@@ -120,9 +121,10 @@ void Interface_editView_drawCharsRow (size_t y) {
         Interface_EditView *editView = &interface.editView;
         int inIndent = 1;
         
-        for (size_t x = 0; x < textDisplay->width; x ++) {
-                size_t coordinate = y * textDisplay->width + x;
-                TextDisplay_Cell *cell = &textDisplay->cells[coordinate];
+        for (size_t x = 0; x < editView->textDisplay->width; x ++) {
+                size_t coordinate = y * editView->textDisplay->width + x;
+                TextDisplay_Cell *cell =
+                        &editView->textDisplay->cells[coordinate];
 
                 // if the cell is undamaged, we don't want to render it.
                 // however, we'll make an exception for cursors because those
@@ -132,7 +134,7 @@ void Interface_editView_drawCharsRow (size_t y) {
                         cell->cursorState != TextDisplay_CursorState_cursor
                 ) { continue; }
                 
-                textDisplay->cells[coordinate].damaged = 0;
+                editView->textDisplay->cells[coordinate].damaged = 0;
                 
                 double realX = editView->textX;
                 double realY = editView->innerY;
@@ -263,6 +265,8 @@ void Interface_findMouseHoverCell (
         size_t *cellX,
         size_t *cellY
 ) {
+        Interface_EditView *editView = &interface.editView;
+        
         int intCellX = (int) (
                 (mouseX - interface.editView.textX) /
                 glyphWidth);
@@ -276,11 +280,11 @@ void Interface_findMouseHoverCell (
         if (intCellX < 0) { *cellX = 0; }
         if (intCellY < 0) { *cellY = 0; }
         
-        if (*cellX >= textDisplay->width) {
-                *cellX = textDisplay->width - 1;
+        if (*cellX >= editView->textDisplay->width) {
+                *cellX = editView->textDisplay->width - 1;
         }
-        if (*cellY >= textDisplay->height) {
-                *cellY = textDisplay->height - 1;
+        if (*cellY >= editView->textDisplay->height) {
+                *cellY = editView->textDisplay->height - 1;
         }
 }
 
@@ -289,23 +293,26 @@ void Interface_findMouseHoverCell (
  * be called when the user is actively selecting text with the mouse.
  */
 void Interface_updateTextSelection (void) {
+        Interface_EditView *editView = &interface.editView;
+        
         size_t cellX = 0;
         size_t cellY = 0;
         Interface_findMouseHoverCell (
-                mouseState.x, mouseState.y,
+                interface.mouseState.x, interface.mouseState.y,
                 &cellX, &cellY);
         
         size_t realX;
         size_t realY;
         TextDisplay_getRealCoords (
-                textDisplay,
+                editView->textDisplay,
                 cellX, cellY,
                 &realX, &realY);
 
         EditBuffer_Cursor_moveTo (
-                editBuffer->cursors,
-                mouseState.dragOriginRealX, mouseState.dragOriginRealY);
+                editView->editBuffer->cursors,
+                interface.mouseState.dragOriginRealX,
+                interface.mouseState.dragOriginRealY);
         EditBuffer_Cursor_selectTo (
-                editBuffer->cursors,
+                editView->editBuffer->cursors,
                 realX, realY);
 }

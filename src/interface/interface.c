@@ -2,8 +2,6 @@
 #include "utility.h"
 
 Interface    interface   = { 0 };
-EditBuffer  *editBuffer  = { 0 };
-TextDisplay *textDisplay = { 0 };
 
 static Error Interface_setup (void);
 
@@ -20,7 +18,7 @@ Error Interface_run (void) {
         err = Interface_setup();
         if (err) { return err; }
 
-        Interface_callbacks.onStart();
+        interface.callbacks.onStart();
         
         Window_show();
         
@@ -34,8 +32,10 @@ Error Interface_run (void) {
  * Sets the active EditBuffer of the interface.
  */
 void Interface_setEditBuffer (EditBuffer *newEditBuffer) {
-        editBuffer = newEditBuffer;
-        TextDisplay_setModel(textDisplay, editBuffer);
+        interface.editView.editBuffer = newEditBuffer;
+        TextDisplay_setModel (
+                interface.editView.textDisplay,
+                interface.editView.editBuffer);
 }
 
 /* Interface_setup
@@ -46,9 +46,11 @@ static Error Interface_setup (void) {
         Error err = Interface_loadFonts();
         if (err) { return err; }
         
-        if (textDisplay != NULL) { free(textDisplay); }
-        textDisplay = TextDisplay_new (
-                editBuffer,
+        if (interface.editView.textDisplay != NULL) {
+                free(interface.editView.textDisplay);
+        }
+        interface.editView.textDisplay = TextDisplay_new (
+                interface.editView.editBuffer,
                 (size_t)interface.width,
                 (size_t)interface.height);
         
