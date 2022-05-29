@@ -69,9 +69,7 @@ static Error Interface_setup (void) {
 /* Interface_recalculate
  * Recalculates the size and position of all interface elements.
  */
-void Interface_recalculate (int width, int height) {
-        interface.width      = width;
-        interface.height     = height;
+void Interface_recalculate () {
         interface.horizontal = interface.width > interface.height;
         
         Interface_tabBar_recalculate();
@@ -85,4 +83,41 @@ void Interface_recalculate (int width, int height) {
 void Interface_redraw (void) {
         Interface_tabBar_redraw();
         Interface_editView_redraw();
+}
+
+/* Interface_refresh
+ * Recalculates elements that need to be recalculated, and redraws elements that
+ * need to be redrawn.
+ */
+void Interface_refresh () {
+        if (interface.needsRecalculate == 1) {
+                Interface_recalculate();
+                interface.needsRecalculate = 0;
+        }
+
+        if (interface.needsRedraw == 1) {
+                Interface_redraw();
+                interface.needsRedraw = 0;
+        }
+
+        Interface_tabBar_refresh();
+        Interface_editView_refresh();
+}
+
+/* Interface_invalidateLayout
+ * Recursively invalidates the layout of the entire interface.
+ */
+void Interface_invalidateLayout (void) {
+        interface.needsRecalculate = 1;
+        Interface_tabBar_invalidateLayout();
+        Interface_editView_invalidateLayout();
+}
+
+/* Interface_invalidateDrawing
+ * Recursively invalidates the drawing of the entire interface.
+ */
+void Interface_invalidateDrawing (void) {
+        interface.needsRedraw = 1;
+        Interface_tabBar_invalidateDrawing();
+        Interface_editView_invalidateDrawing();
 }

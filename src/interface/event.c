@@ -33,8 +33,14 @@ void Interface_onSwitchTab (void (*callback) (Interface_Tab *)) {
  * Fires when the screen needs to be redrawn.
  */
 void Interface_handleRedraw (int width, int height) {
-        Interface_recalculate(width, height);
-        Interface_redraw();
+        // TODO: make generic setter method for this
+        interface.width  = width;
+        interface.height = height;
+        
+        Interface_invalidateLayout();
+        Interface_invalidateDrawing();
+
+        Interface_refresh();
 }
 
 /* Interface_handleMouseButton
@@ -150,6 +156,8 @@ void Interface_handleMouseButton (
                 }
                 break;
         }
+        
+        Interface_refresh();
 }
 
 /* Interface_handleMouseMove
@@ -166,6 +174,8 @@ void Interface_handleMouseMove (int x, int y) {
                 Interface_updateTextSelection();
                 Interface_editView_drawChars(1);
         }
+        
+        Interface_refresh();
 }
 
 /* Interface_handleInterval
@@ -174,6 +184,8 @@ void Interface_handleMouseMove (int x, int y) {
 void Interface_handleInterval (void) {
         Interface_editView_drawChars(0);
         interface.editView.cursorBlink = !interface.editView.cursorBlink;
+        
+        Interface_refresh();
 }
 
 /* Interface_handleKey
@@ -250,6 +262,8 @@ void Interface_handleKey (Window_KeySym keySym, Rune rune, Window_State state) {
                         interface.editView.editBuffer, rune);
                 Interface_editView_drawChars(1);
         }
+        
+        Interface_refresh();
 }
 
 /* Interface_handleKeyUp
@@ -279,6 +293,8 @@ void Interface_handleKeyUp (Window_State state) {
                 EditBuffer_cursorsMoveV(interface.editView.editBuffer, -1);
         }
         Interface_editView_drawChars(1);
+        
+        Interface_refresh();
 }
 
 /* Interface_handleKeyDown
@@ -321,6 +337,8 @@ void Interface_handleKeyLeft (Window_State state) {
                 EditBuffer_cursorsMoveH(interface.editView.editBuffer, -1);
         }
         Interface_editView_drawChars(1);
+        
+        Interface_refresh();
 }
 
 /* Interface_handleKeyRight
@@ -334,4 +352,6 @@ void Interface_handleKeyRight (Window_State state) {
                 EditBuffer_cursorsMoveH(interface.editView.editBuffer, 1);
         }
         Interface_editView_drawChars(1);
+        
+        Interface_refresh();
 }

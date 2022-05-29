@@ -4,6 +4,8 @@
 static Interface_Tab *Interface_Tab_new  (void);
 static void           Interface_Tab_free (Interface_Tab *);
 
+// TABBAR MEMBER FUNCTIONS
+
 /* Interface_tabBar_recalculate
  * Recalculates the position and size of the tab bar.
  */
@@ -12,55 +14,10 @@ void Interface_tabBar_recalculate (void) {
         interface.tabBar.y      = 0;
         interface.tabBar.height = 35;
         interface.tabBar.width  = interface.width;
-
-        Interface_Tab *tab = interface.tabBar.tabs;
-        while (tab != NULL) {
-                // tab position
-                tab->x = 0 + interface.tabBar.x;
-                tab->y = 0 + interface.tabBar.y;
-
-                if (tab->previous != NULL) {
-                        tab->x += tab->previous->x + tab->previous->width;
-                }
-
-                // tab height
-                tab->height = interface.tabBar.height - 1;
-
-                // text
-                cairo_text_extents_t textExtents;
-                cairo_text_extents(Window_context, tab->text, &textExtents);
-                double padding =
-                        (tab->height - interface.fonts.capitalHeight) / 2;
-                tab->textX = tab->x + padding;
-                tab->textY = tab->y + tab->height - padding;
-
-                // close button dimensions
-                tab->closeWidth    = 8;
-                tab->closeHeight   = tab->closeWidth;
-                double closeMargin = (tab->height - tab->closeHeight) / 2;
-
-                // tab width
-                tab->width =
-                        padding +
-                        textExtents.width +
-                        closeMargin +
-                        tab->closeWidth +
-                        closeMargin;
-
-                // close button position
-                tab->closeX =
-                        tab->x + tab->width -
-                        closeMargin -
-                        tab->closeWidth;
-                tab->closeY = tab->y + closeMargin;
-
-                // onto next tab
-                tab = tab->next;
-        }
 }
 
 /* Interface_tabBar_redraw
- * Re-draws the tab bar.
+ * Redraws the tab bar.
  */
 void Interface_tabBar_redraw (void) {
         cairo_set_source_rgb(Window_context, TAB_BAR_COLOR);
@@ -83,12 +40,148 @@ void Interface_tabBar_redraw (void) {
                 interface.tabBar.x + interface.tabBar.width,
                 interface.tabBar.y + interface.tabBar.height - 0.5);
         cairo_stroke(Window_context);
+}
+
+/* Interface_TabBar_add
+ * Appends a new tab to the linked list in the tab bar.
+ */
+Interface_Tab *Interface_TabBar_add (void) {
+        Interface_Tab *tab = Interface_Tab_new();
+
+        if (interface.tabBar.tabs == NULL) {
+                interface.tabBar.tabs = tab;
+                return tab;
+        }
+
+        Interface_Tab *current = interface.tabBar.tabs;
+        while (current->next != NULL) {
+                current = current->next;
+        }
+
+        current->next = tab;
+        tab->previous = current;
+        
+        return tab;
+}
+
+/* Interface_TabBar_delete
+ * Removes an existing tab from the linked list in the tab bar.
+ */
+void Interface_TabBar_delete (Interface_Tab *tab) {
+        if (tab->previous == NULL) {
+                interface.tabBar.tabs = tab->next;
+                Interface_Tab_free(tab);
+                return;
+        }
+
+        tab->previous->next = tab->next;
+        if (tab->next != NULL) {
+                tab->next->previous = tab->previous;
+        }
+        
+        Interface_Tab_free(tab);
+}
+
+/* Interface_TabBar_setActive
+ * Sets the currently active tab. This function does not trigger any events, and
+ * should be called from an event handler callback.
+ */
+void Interface_TabBar_setActive (Interface_Tab *tab) {
+        interface.tabBar.activeTab = tab;
+}
+
+/* Interface_tabBar_invalidateLayout
+ * Invalidates the layout of the tab bar.
+ */
+void Interface_tabBar_invalidateLayout (void) {
+        if (interface.tabBar.needsRecalculate == 1) { return; }
+        interface.tabBar.needsRecalculate = 1;
 
         Interface_Tab *tab = interface.tabBar.tabs;
         while (tab != NULL) {
-                Interface_Tab_redraw(tab);
+                Interface_Tab_invalidateLayout(tab);
                 tab = tab->next;
         }
+}
+
+/* Interface_tabBar_invalidateLayout
+ * Invalidates the drawing of the tab bar.
+ */
+void Interface_tabBar_invalidateDrawing (void) {
+        if (interface.tabBar.needsRedraw == 1) { return; }
+        interface.tabBar.needsRedraw = 1;
+
+        Interface_Tab *tab = interface.tabBar.tabs;
+        while (tab != NULL) {
+                Interface_Tab_invalidateDrawing(tab);
+                tab = tab->next;
+        }
+}
+
+/* Interface_tabBar_refresh
+ * Recalculates the tab bar if it needs to be recalculated, and redraws if it
+ * needs to redrawn.
+ */
+void Interface_tabBar_refresh (void) {
+        if (interface.tabBar.needsRecalculate == 1) {
+                Interface_tabBar_recalculate();
+                interface.tabBar.needsRecalculate = 0;
+        }
+        
+        if (interface.tabBar.needsRedraw == 1) {
+                Interface_tabBar_redraw();
+                interface.tabBar.needsRedraw = 0;
+        }
+
+        Interface_Tab *tab = interface.tabBar.tabs;
+        while (tab != NULL) {
+                Interface_Tab_refresh(tab);
+                tab = tab->next;
+        }
+}
+
+/* Interface_Tab_redraw
+ * Recalculates a single tab.
+ */
+void Interface_Tab_recalculate (Interface_Tab *tab) {
+        // tab position
+        tab->x = 0 + interface.tabBar.x;
+        tab->y = 0 + interface.tabBar.y;
+
+        if (tab->previous != NULL) {
+                tab->x += tab->previous->x + tab->previous->width;
+        }
+
+        // tab height
+        tab->height = interface.tabBar.height - 1;
+
+        // text
+        cairo_text_extents_t textExtents;
+        cairo_text_extents(Window_context, tab->text, &textExtents);
+        double padding =
+                (tab->height - interface.fonts.capitalHeight) / 2;
+        tab->textX = tab->x + padding;
+        tab->textY = tab->y + tab->height - padding;
+
+        // close button dimensions
+        tab->closeWidth    = 8;
+        tab->closeHeight   = tab->closeWidth;
+        double closeMargin = (tab->height - tab->closeHeight) / 2;
+
+        // tab width
+        tab->width =
+                padding +
+                textExtents.width +
+                closeMargin +
+                tab->closeWidth +
+                closeMargin;
+
+        // close button position
+        tab->closeX =
+                tab->x + tab->width -
+                closeMargin -
+                tab->closeWidth;
+        tab->closeY = tab->y + closeMargin;
 }
 
 /* Interface_Tab_redraw
@@ -195,54 +288,6 @@ void Interface_Tab_closeButtonRedraw (Interface_Tab *tab) {
                 cairo_stroke(Window_context);
 }
 
-/* Interface_TabBar_add
- * Appends a new tab to the linked list in the tab bar.
- */
-Interface_Tab *Interface_TabBar_add (void) {
-        Interface_Tab *tab = Interface_Tab_new();
-
-        if (interface.tabBar.tabs == NULL) {
-                interface.tabBar.tabs = tab;
-                return tab;
-        }
-
-        Interface_Tab *current = interface.tabBar.tabs;
-        while (current->next != NULL) {
-                current = current->next;
-        }
-
-        current->next = tab;
-        tab->previous = current;
-        
-        return tab;
-}
-
-/* Interface_TabBar_delete
- * Removes an existing tab from the linked list in the tab bar.
- */
-void Interface_TabBar_delete (Interface_Tab *tab) {
-        if (tab->previous == NULL) {
-                interface.tabBar.tabs = tab->next;
-                Interface_Tab_free(tab);
-                return;
-        }
-
-        tab->previous->next = tab->next;
-        if (tab->next != NULL) {
-                tab->next->previous = tab->previous;
-        }
-        
-        Interface_Tab_free(tab);
-}
-
-/* Interface_TabBar_setActive
- * Sets the currently active tab. This function does not trigger any events, and
- * should be called from an event handler callback.
- */
-void Interface_TabBar_setActive (Interface_Tab *tab) {
-        interface.tabBar.activeTab = tab;
-}
-
 /* Interface_Tab_setText
  * Sets the text that will be displayed as the tab title.
  */
@@ -264,4 +309,34 @@ static Interface_Tab *Interface_Tab_new (void) {
  */
 static void Interface_Tab_free (Interface_Tab *tab) {
         free(tab);
+}
+
+/* Interface_Tab_invalidateLayout
+ * Invalidates the layout of a single tab.
+ */
+void Interface_Tab_invalidateLayout (Interface_Tab *tab) {
+        tab->needsRecalculate = 1;
+}
+
+/* Interface_Tab_invalidateDrawing
+ * Invalidates the drawing of a single tab.
+ */
+void Interface_Tab_invalidateDrawing (Interface_Tab *tab) {
+        tab->needsRedraw = 1;
+}
+
+/* Interface_tabBar_refresh
+ * Recalculates the tab bar if it needs to be recalculated, and redraws if it
+ * needs to redrawn.
+ */
+void Interface_Tab_refresh (Interface_Tab *tab) {
+        if (interface.tabBar.needsRecalculate == 1) {
+                Interface_Tab_recalculate(tab);
+                interface.tabBar.needsRecalculate = 0;
+        }
+        
+        if (interface.tabBar.needsRedraw == 1) {
+                Interface_Tab_redraw(tab);
+                interface.tabBar.needsRedraw = 0;
+        }
 }
