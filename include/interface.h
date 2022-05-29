@@ -4,7 +4,11 @@
 #include "edit-buffer.h"
 #include "error.h"
 
-typedef struct Interface_Tab Interface_Tab;
+typedef struct Interface_Tab      Interface_Tab;
+typedef struct Interface_Object   Interface_Object;
+typedef struct Interface_TabBar   Interface_TabBar;
+typedef struct Interface_EditView Interface_EditView;
+typedef struct Interface          Interface;
 
 Error Interface_run           (void);
 void  Interface_setEditBuffer (EditBuffer *newEditBuffer);

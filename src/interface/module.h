@@ -77,11 +77,20 @@ typedef struct {
         Window_State alt;
 } Interface_ModKeyState;
 
+#define INTERFACE_OBJECT \
+        double x;        \
+        double y;        \
+        double width;    \
+        double height;   \
+        int    needsRecalculate; \
+        int    needsRedraw;
+
+struct Interface_Object {
+        INTERFACE_OBJECT
+};
+
 struct Interface_Tab {
-        double x;
-        double y;
-        double width;
-        double height;
+        INTERFACE_OBJECT
 
         double textX;
         double textY;
@@ -97,21 +106,15 @@ struct Interface_Tab {
         struct Interface_Tab *next;
 };
 
-typedef struct {
-        double x;
-        double y;
-        double width;
-        double height;
+struct Interface_TabBar {
+        INTERFACE_OBJECT
 
         Interface_Tab *tabs;
         Interface_Tab *activeTab;
-} Interface_TabBar;
+};
 
-typedef struct {
-        double x;
-        double y;
-        double width;
-        double height;
+struct Interface_EditView {
+        INTERFACE_OBJECT
         
         double padding;
         double rulerWidth;
@@ -130,11 +133,11 @@ typedef struct {
         
         EditBuffer  *editBuffer;
         TextDisplay *textDisplay;
-} Interface_EditView;
+};
 
-typedef struct {
-        int width;
-        int height;
+struct Interface {
+        INTERFACE_OBJECT
+        
         int horizontal;
 
         Interface_TabBar   tabBar;
@@ -144,7 +147,7 @@ typedef struct {
         Interface_MouseState  mouseState;
         Interface_ModKeyState modKeyState;
         Interface_Callbacks   callbacks;
-} Interface;
+};
 
 extern Interface interface;
 
