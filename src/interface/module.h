@@ -159,15 +159,15 @@ void Interface_editView_drawRuler    (void);
 void Interface_editView_drawChars    (int);
 void Interface_editView_drawCharsRow (size_t);
 
-void Interface_onKeyRight    (Window_State);
-void Interface_onKeyLeft     (Window_State);
-void Interface_onKeyDown     (Window_State);
-void Interface_onKeyUp       (Window_State);
-void Interface_onKey         (Window_KeySym, Rune, Window_State);
-void Interface_onInterval    (void);
-void Interface_onMouseMove   (int, int);
-void Interface_onMouseButton (Window_MouseButton, Window_State);
-void Interface_onRedraw      (int, int);
+void Interface_handleKeyRight    (Window_State);
+void Interface_handleKeyLeft     (Window_State);
+void Interface_handleKeyDown     (Window_State);
+void Interface_handleKeyUp       (Window_State);
+void Interface_handleKey         (Window_KeySym, Rune, Window_State);
+void Interface_handleInterval    (void);
+void Interface_handleMouseMove   (int, int);
+void Interface_handleMouseButton (Window_MouseButton, Window_State);
+void Interface_handleRedraw      (int, int);
 
 Error Interface_loadFonts      (void);
 void  Interface_fontNormal     (void);

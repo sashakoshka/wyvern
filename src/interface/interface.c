@@ -52,11 +52,11 @@ static Error Interface_setup (void) {
                 (size_t)interface.width,
                 (size_t)interface.height);
         
-        Window_onRedraw      (Interface_onRedraw);
-        Window_onMouseButton (Interface_onMouseButton);
-        Window_onMouseMove   (Interface_onMouseMove);
-        Window_onInterval    (Interface_onInterval);
-        Window_onKey         (Interface_onKey);
+        Window_onRedraw      (Interface_handleRedraw);
+        Window_onMouseButton (Interface_handleMouseButton);
+        Window_onMouseMove   (Interface_handleMouseMove);
+        Window_onInterval    (Interface_handleInterval);
+        Window_onKey         (Interface_handleKey);
         
         Window_interval = 500;
         Window_setTitle("Text Editor");

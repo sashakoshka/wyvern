@@ -33,21 +33,18 @@ void Interface_onSwitchTab (void (*callback) (Interface_Tab *)) {
         Interface_callbacks.onSwitchTab = callback;
 }
 
-// TODO: rename the functions below to a different convention. they conflict
-// stylistically.
-
-/* Interface_onRedraw
+/* Interface_handleRedraw
  * Fires when the screen needs to be redrawn.
  */
-void Interface_onRedraw (int width, int height) {
+void Interface_handleRedraw (int width, int height) {
         Interface_recalculate(width, height);
         Interface_redraw();
 }
 
-/* Interface_onMouseButton
+/* Interface_handleMouseButton
  * Fires when a mouse button is pressed or released.
  */
-void Interface_onMouseButton (Window_MouseButton button, Window_State state) {
+void Interface_handleMouseButton (Window_MouseButton button, Window_State state) {
         // something is going to move or change - we need the cursor to be
         // visible
         interface.editView.cursorBlink = 1;
@@ -139,10 +136,10 @@ void Interface_onMouseButton (Window_MouseButton button, Window_State state) {
         }
 }
 
-/* Interface_onMouseMove
+/* Interface_handleMouseMove
  * Fires when the mouse is moved.
  */
-void Interface_onMouseMove (int x, int y) {
+void Interface_handleMouseMove (int x, int y) {
         mouseState.x = x;
         mouseState.y = y;
 
@@ -152,18 +149,18 @@ void Interface_onMouseMove (int x, int y) {
         }
 }
 
-/* Interface_onInterval
+/* Interface_handleInterval
  * Fires every 500 milliseconds.
  */
-void Interface_onInterval (void) {
+void Interface_handleInterval (void) {
         Interface_editView_drawChars(0);
         interface.editView.cursorBlink = !interface.editView.cursorBlink;
 }
 
-/* Interface_onKey
+/* Interface_handleKey
  * Fires when a key is pressed or released.
  */
-void Interface_onKey (Window_KeySym keySym, Rune rune, Window_State state) {
+void Interface_handleKey (Window_KeySym keySym, Rune rune, Window_State state) {
         // if (state == Window_State_on) {
                 // printf("%lx\n", keySym);
         // }
@@ -177,10 +174,10 @@ void Interface_onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         case WINDOW_KEY_CTRL:  modKeyState.ctrl  = state; return;
         case WINDOW_KEY_ALT:   modKeyState.alt   = state; return;
 
-        case WINDOW_KEY_UP:    Interface_onKeyUp(state);    return;
-        case WINDOW_KEY_DOWN:  Interface_onKeyDown(state);  return;
-        case WINDOW_KEY_LEFT:  Interface_onKeyLeft(state);  return;
-        case WINDOW_KEY_RIGHT: Interface_onKeyRight(state); return;
+        case WINDOW_KEY_UP:    Interface_handleKeyUp(state);    return;
+        case WINDOW_KEY_DOWN:  Interface_handleKeyDown(state);  return;
+        case WINDOW_KEY_LEFT:  Interface_handleKeyLeft(state);  return;
+        case WINDOW_KEY_RIGHT: Interface_handleKeyRight(state); return;
 
         case WINDOW_KEY_ESCAPE:
                 EditBuffer_clearExtraCursors(editBuffer);
@@ -230,10 +227,10 @@ void Interface_onKey (Window_KeySym keySym, Rune rune, Window_State state) {
         }
 }
 
-/* Interface_onKeyUp
+/* Interface_handleKeyUp
  * Fires when the up arrow is pressed or released.
  */
-void Interface_onKeyUp (Window_State state) {
+void Interface_handleKeyUp (Window_State state) {
         if (state != Window_State_on) { return; }
         if (modKeyState.shift == Window_State_on) {
                 if (modKeyState.alt == Window_State_on) {
@@ -250,10 +247,10 @@ void Interface_onKeyUp (Window_State state) {
         Interface_editView_drawChars(1);
 }
 
-/* Interface_onKeyDown
+/* Interface_handleKeyDown
  * Fires when the down arrow is pressed or released.
  */
-void Interface_onKeyDown (Window_State state) {
+void Interface_handleKeyDown (Window_State state) {
         if (state != Window_State_on) { return; }
         if (modKeyState.shift == Window_State_on) {
                 if (modKeyState.alt == Window_State_on) {
@@ -270,10 +267,10 @@ void Interface_onKeyDown (Window_State state) {
         Interface_editView_drawChars(1);
 }
 
-/* Interface_onKeyLeft
+/* Interface_handleKeyLeft
  * Fires when the left arrow is pressed or released.
  */
-void Interface_onKeyLeft (Window_State state) {
+void Interface_handleKeyLeft (Window_State state) {
         if (state != Window_State_on) { return; }
         if (modKeyState.shift == Window_State_on) {
                 EditBuffer_cursorsSelectH(editBuffer, -1);
@@ -283,10 +280,10 @@ void Interface_onKeyLeft (Window_State state) {
         Interface_editView_drawChars(1);
 }
 
-/* Interface_onKeyRight
+/* Interface_handleKeyRight
  * Fires when the right arrow is pressed or released.
  */
-void Interface_onKeyRight (Window_State state) {
+void Interface_handleKeyRight (Window_State state) {
         if (state != Window_State_on) { return; }
         if (modKeyState.shift == Window_State_on) {
                 EditBuffer_cursorsSelectH(editBuffer, 1);
