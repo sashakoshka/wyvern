@@ -19,6 +19,8 @@ Error Interface_run (void) {
         
         err = Interface_setup();
         if (err) { return err; }
+
+        Interface_callbacks.onStart();
         
         Window_show();
         
@@ -33,6 +35,7 @@ Error Interface_run (void) {
  */
 void Interface_setEditBuffer (EditBuffer *newEditBuffer) {
         editBuffer = newEditBuffer;
+        TextDisplay_setModel(textDisplay, editBuffer);
 }
 
 /* Interface_setup
@@ -57,13 +60,6 @@ static Error Interface_setup (void) {
         
         Window_interval = 500;
         Window_setTitle("Text Editor");
-        
-        Interface_Tab *tab = Interface_TabBar_add();
-        Interface_Tab_setText(tab, "rather long title");
-        
-        tab = Interface_TabBar_add();
-        Interface_Tab_setText(tab, "another tab");
-        interface.tabBar.activeTab = tab;
 
         return Error_none;
 }

@@ -4,10 +4,24 @@
 #include "interface.h"
 #include "edit-buffer.h"
 
+static void handleStart (void);
+
 int main () {
         Options_start();
+        Interface_onStart(handleStart);
+        Interface_run();
+}
+
+static void handleStart (void) {
         EditBuffer *editBuffer = EditBuffer_new();
+        
         EditBuffer_open(editBuffer, "src/edit-buffer/edit-buffer.c");
         Interface_setEditBuffer(editBuffer);
-        Interface_run();
+        
+        Interface_Tab *tab = Interface_TabBar_add();
+        Interface_Tab_setText(tab, "rather long title");
+        
+        tab = Interface_TabBar_add();
+        Interface_Tab_setText(tab, "another tab");
+        // interface.tabBar.activeTab = tab;
 }

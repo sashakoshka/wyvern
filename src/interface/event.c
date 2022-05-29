@@ -5,31 +5,31 @@ Interface_MouseState  mouseState          = { 0 };
 Interface_ModKeyState modKeyState         = { 0 };
 Interface_Callbacks   Interface_callbacks = { 0 };
 
-/* onStart
+/* Interface_onStart
  * Sets the function to be called when Interface finishes starting up.
  */
-void onStart (void (*callback) (void)) {
+void Interface_onStart (void (*callback) (void)) {
         Interface_callbacks.onStart = callback;
 }
 
-/* onNewTab
+/* Interface_onNewTab
  * Sets the function to be called when the new tab button is pressed.
  */
-void onNewTab (void (*callback) (void)) {
+void Interface_onNewTab (void (*callback) (void)) {
         Interface_callbacks.onNewTab = callback;
 }
 
-/* onCloseTab
+/* Interface_onCloseTab
  * Sets the function to be called when the close button is pressed on a tab.
  */
-void onCloseTab (void (*callback) (Interface_Tab *)) {
+void Interface_onCloseTab (void (*callback) (Interface_Tab *)) {
         Interface_callbacks.onCloseTab = callback;
 }
 
-/* onSwitchTab
+/* Interface_onSwitchTab
  * Sets the function to be called when the user selects a tab.
  */
-void onSwitchTab (void (*callback) (Interface_Tab *)) {
+void Interface_onSwitchTab (void (*callback) (Interface_Tab *)) {
         Interface_callbacks.onSwitchTab = callback;
 }
 
