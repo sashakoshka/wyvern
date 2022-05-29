@@ -112,7 +112,7 @@ Error Window_listen (void) {
                 // TODO: use XNextEventsQueued to get the number of queued
                 // events. if there are more queued events after this, tell
                 // whatever handles the events to *not draw anything yet*, and
-                // don't push, pop, paint, or flush. this will keep events from
+                // don't paint, or flush. this will keep events from
                 // stacking up while the program struggles to paint each one
                 // on lower end hardware (or in valgrind!).
         

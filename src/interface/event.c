@@ -1,8 +1,40 @@
 #include "module.h"
 #include "options.h"
 
-Interface_MouseState  mouseState  = { 0 };
-Interface_ModKeyState modKeyState = { 0 };
+Interface_MouseState  mouseState          = { 0 };
+Interface_ModKeyState modKeyState         = { 0 };
+Interface_Callbacks   Interface_callbacks = { 0 };
+
+/* onStart
+ * Sets the function to be called when Interface finishes starting up.
+ */
+void onStart (void (*callback) (void)) {
+        Interface_callbacks.onStart = callback;
+}
+
+/* onNewTab
+ * Sets the function to be called when the new tab button is pressed.
+ */
+void onNewTab (void (*callback) (void)) {
+        Interface_callbacks.onNewTab = callback;
+}
+
+/* onCloseTab
+ * Sets the function to be called when the close button is pressed on a tab.
+ */
+void onCloseTab (void (*callback) (Interface_Tab *)) {
+        Interface_callbacks.onCloseTab = callback;
+}
+
+/* onSwitchTab
+ * Sets the function to be called when the user selects a tab.
+ */
+void onSwitchTab (void (*callback) (Interface_Tab *)) {
+        Interface_callbacks.onSwitchTab = callback;
+}
+
+// TODO: rename the functions below to a different convention. they conflict
+// stylistically.
 
 /* Interface_onRedraw
  * Fires when the screen needs to be redrawn.

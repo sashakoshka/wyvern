@@ -13,4 +13,9 @@ Interface_Tab *Interface_TabBar_add    (void);
 void           Interface_TabBar_delete (Interface_Tab *);
 void           Interface_Tab_setText   (Interface_Tab *, const char *);
 
+void onStart     (void (*) (void));
+void onNewTab    (void (*) (void));
+void onCloseTab  (void (*) (Interface_Tab *));
+void onSwitchTab (void (*) (Interface_Tab *));
+
 // make event handlers for creating a new tab, clicking on a tab, etc

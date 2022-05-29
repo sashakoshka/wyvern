@@ -28,7 +28,6 @@
 #define ACTIVE_TAB_TEXT_COLOR   0.925, 0.937, 0.957
 #define CLOSE_BUTTON_COLOR      0.749, 0.380, 0.419
 
-
 #define HITBOX(xx, yy, element) \
         xx > (element.x) && xx < (element.x) + (element.width) && \
         yy > (element.y) && yy < (element.y) + (element.height)
@@ -116,12 +115,27 @@ typedef struct {
         Window_State alt;
 } Interface_ModKeyState;
 
+// these callbacks should generally fire when button/key combinations are
+// pressed. it should not be possible to activate callbacks within from another
+// callback. callbacks relating to management of visual structures that map to
+// virtual structures (e.g. tabs) must update the virtual structure, and then
+// instruct the Interface to update the visual structure (e.g. creating or
+// deleting a tab and swapping the active edit buffer).
+typedef struct {
+        void (*onStart)     (void);
+        void (*onNewTab)    (void);
+        void (*onCloseTab)  (Interface_Tab *);
+        void (*onSwitchTab) (Interface_Tab *);
+} Interface_Callbacks;
+
 extern Interface    interface;
 extern EditBuffer  *editBuffer;
 extern TextDisplay *textDisplay;
 
+// TODO: namespace all of these
 extern Interface_MouseState  mouseState;
 extern Interface_ModKeyState modKeyState;
+extern Interface_Callbacks   Interface_callbacks;
 
 extern FT_Library         freetypeHandle;
 extern FT_Face            freetypeFaceNormal;
