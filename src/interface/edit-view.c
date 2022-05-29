@@ -125,6 +125,8 @@ void Interface_editView_drawCharsRow (size_t y) {
         int inIndent = 1;
         
         for (size_t x = 0; x < editView->textDisplay->width; x ++) {
+                // TODO: make a function to draw a single cell. this will also
+                // be faster to just call that to blink the cursors.
                 size_t coordinate = y * editView->textDisplay->width + x;
                 TextDisplay_Cell *cell =
                         &editView->textDisplay->cells[coordinate];

@@ -235,6 +235,14 @@ void Interface_TabBar_delete (Interface_Tab *tab) {
         Interface_Tab_free(tab);
 }
 
+/* Interface_TabBar_setActive
+ * Sets the currently active tab. This function does not trigger any events, and
+ * should be called from an event handler callback.
+ */
+void Interface_TabBar_setActive (Interface_Tab *tab) {
+        interface.tabBar.activeTab = tab;
+}
+
 /* Interface_Tab_setText
  * Sets the text that will be displayed as the tab title.
  */

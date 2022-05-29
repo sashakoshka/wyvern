@@ -23,5 +23,5 @@ static void handleStart (void) {
         
         tab = Interface_TabBar_add();
         Interface_Tab_setText(tab, "another tab");
-        // interface.tabBar.activeTab = tab;
+        Interface_TabBar_setActive(tab);
 }

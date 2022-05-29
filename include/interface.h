@@ -9,9 +9,10 @@ typedef struct Interface_Tab Interface_Tab;
 Error Interface_run           (void);
 void  Interface_setEditBuffer (EditBuffer *newEditBuffer);
 
-Interface_Tab *Interface_TabBar_add    (void);
-void           Interface_TabBar_delete (Interface_Tab *);
-void           Interface_Tab_setText   (Interface_Tab *, const char *);
+Interface_Tab *Interface_TabBar_add       (void);
+void           Interface_TabBar_delete    (Interface_Tab *);
+void           Interface_TabBar_setActive (Interface_Tab *);
+void           Interface_Tab_setText      (Interface_Tab *, const char *);
 
 void Interface_onStart     (void (*) (void));
 void Interface_onNewTab    (void (*) (void));

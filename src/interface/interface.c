@@ -1,7 +1,7 @@
 #include "module.h"
 #include "utility.h"
 
-Interface    interface   = { 0 };
+Interface interface = { 0 };
 
 static Error Interface_setup (void);
 
