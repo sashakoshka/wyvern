@@ -46,6 +46,17 @@ typedef struct {
 } Interface_Callbacks;
 
 typedef struct {
+        FT_Library         freetypeHandle;
+        FT_Face            freetypeFaceNormal;
+        cairo_font_face_t *fontFaceNormal;
+        
+        double glyphHeight;
+        double lineHeight;
+        double glyphWidth;
+        double capitalHeight;
+} Interface_Fonts;
+
+typedef struct {
         int x;
         int y;
 
@@ -129,21 +140,13 @@ typedef struct {
         Interface_TabBar   tabBar;
         Interface_EditView editView;
         
+        Interface_Fonts       fonts;
         Interface_MouseState  mouseState;
         Interface_ModKeyState modKeyState;
         Interface_Callbacks   callbacks;
 } Interface;
 
 extern Interface interface;
-
-extern FT_Library         freetypeHandle;
-extern FT_Face            freetypeFaceNormal;
-extern cairo_font_face_t *fontFaceNormal;
-
-extern double glyphHeight;
-extern double lineHeight;
-extern double glyphWidth;
-extern double capitalHeight;
 
 void Interface_recalculate          (int, int);
 void Interface_tabBar_recalculate   (void);

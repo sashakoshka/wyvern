@@ -29,7 +29,8 @@ void Interface_tabBar_recalculate (void) {
                 // text
                 cairo_text_extents_t textExtents;
                 cairo_text_extents(Window_context, tab->text, &textExtents);
-                double padding = (tab->height - capitalHeight) / 2;
+                double padding =
+                        (tab->height - interface.fonts.capitalHeight) / 2;
                 tab->textX = tab->x + padding;
                 tab->textY = tab->y + tab->height - padding;
 

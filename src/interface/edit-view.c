@@ -12,8 +12,8 @@ void Interface_editView_recalculate (void) {
         editView->height = interface.height - interface.tabBar.height;
         editView->width  = interface.width;
         
-        editView->padding    = (int)(glyphWidth * 2);
-        editView->rulerWidth = (int)(glyphWidth * 5);
+        editView->padding    = (int)(interface.fonts.glyphWidth * 2);
+        editView->rulerWidth = (int)(interface.fonts.glyphWidth * 5);
 
         editView->innerX      = editView->x      + editView->padding;
         editView->innerY      = editView->y      + editView->padding;
@@ -22,13 +22,15 @@ void Interface_editView_recalculate (void) {
 
         double textLeftOffset = editView->rulerWidth + editView->padding;
         editView->textX = editView->innerX + textLeftOffset;
-        editView->textY = editView->innerY + glyphHeight * 0.8;
+        editView->textY = editView->innerY + interface.fonts.glyphHeight * 0.8;
         editView->textWidth  = editView->width  - textLeftOffset;
         editView->textHeight = editView->height - editView->padding +
-                lineHeight;
+                interface.fonts.lineHeight;
 
-        double textDisplayWidth  = editView->textWidth  / glyphWidth;
-        double textDisplayHeight = editView->textHeight / lineHeight;
+        double textDisplayWidth =
+                editView->textWidth  / interface.fonts.glyphWidth;
+        double textDisplayHeight =
+                editView->textHeight / interface.fonts.lineHeight;
         if (textDisplayWidth  < 0) { textDisplayWidth  = 0; }
         if (textDisplayHeight < 0) { textDisplayHeight = 0; }
         TextDisplay_resize (
@@ -54,7 +56,8 @@ void Interface_editView_redraw (void) {
 
         cairo_set_source_rgb(Window_context, RULER_COLOR);
         cairo_set_line_width(Window_context, 2);
-        double columnMarkerX = editView->textX + glyphWidth * 80 + 1;
+        double columnMarkerX =
+                editView->textX + interface.fonts.glyphWidth * 80 + 1;
         cairo_move_to(Window_context, columnMarkerX, editView->y);
         cairo_line_to (
                 Window_context,
@@ -97,7 +100,7 @@ void Interface_editView_drawRuler (void) {
                         editView->innerX, y);
                 cairo_show_text(Window_context, lineNumberBuffer);
 
-                y += lineHeight;
+                y += interface.fonts.lineHeight;
         }
 }
 
@@ -138,15 +141,15 @@ void Interface_editView_drawCharsRow (size_t y) {
                 
                 double realX = editView->textX;
                 double realY = editView->innerY;
-                realX += (double)(x) * glyphWidth;
-                realY += (double)(y) * lineHeight;
+                realX += (double)(x) * interface.fonts.glyphWidth;
+                realY += (double)(y) * interface.fonts.lineHeight;
 
                 // background to clear what was previously there
                 cairo_set_source_rgb(Window_context, BACKGROUND_COLOR);
                 cairo_rectangle (
                         Window_context,
                         realX, realY,
-                        glyphWidth, lineHeight);
+                        interface.fonts.glyphWidth, interface.fonts.lineHeight);
                 cairo_fill(Window_context);
 
                 // draw indentation markers every tab stop
@@ -159,7 +162,7 @@ void Interface_editView_drawCharsRow (size_t y) {
                         cairo_line_to (
                                 Window_context,
                                 realX + 1,
-                                realY + glyphHeight);
+                                realY + interface.fonts.glyphHeight);
                         cairo_stroke(Window_context);
                 }
 
@@ -171,7 +174,7 @@ void Interface_editView_drawCharsRow (size_t y) {
                         cairo_line_to (
                                 Window_context,
                                 realX + 1,
-                                realY + lineHeight);
+                                realY + interface.fonts.lineHeight);
                         cairo_stroke(Window_context);
                 }
 
@@ -181,14 +184,15 @@ void Interface_editView_drawCharsRow (size_t y) {
                         cairo_rectangle (
                                 Window_context,
                                 realX, realY,
-                                glyphWidth, glyphHeight);
+                                interface.fonts.glyphWidth,
+                                interface.fonts.glyphHeight);
                         cairo_fill(Window_context);
                 }
 
                 // don't attempt to render whitespace
                 if (cell->rune != TEXTDISPLAY_EMPTY_CELL && !isSpace) {
                         unsigned int index = FT_Get_Char_Index (
-                                freetypeFaceNormal,
+                                interface.fonts.freetypeFaceNormal,
                                 cell->rune);
 
                         // if we couldn't find the character, display a red
@@ -197,9 +201,12 @@ void Interface_editView_drawCharsRow (size_t y) {
                                 cairo_set_source_rgb (
                                         Window_context,
                                         BAD_CHAR_COLOR);
-                                double scale   = glyphWidth / 3;
-                                double centerX = realX + glyphWidth / 2;
-                                double centerY = realY + glyphHeight / 2;
+                                double scale =
+                                        interface.fonts.glyphWidth / 3;
+                                double centerX =
+                                        realX + interface.fonts.glyphWidth / 2;
+                                double centerY =
+                                        realY + interface.fonts.glyphHeight / 2;
                                 cairo_set_line_width(Window_context, 2);
                                 cairo_move_to (
                                         Window_context,
@@ -225,7 +232,9 @@ void Interface_editView_drawCharsRow (size_t y) {
                         cairo_glyph_t glyph = {
                                 .index = index,
                                 .x     = realX,
-                                .y     = realY + glyphHeight * 0.8
+                                .y     =
+                                        realY +
+                                        interface.fonts.glyphHeight * 0.8
                         };
                         Interface_fontNormal();
                         cairo_set_source_rgb(Window_context, TEXT_COLOR);
@@ -248,7 +257,7 @@ void Interface_editView_drawCharsRow (size_t y) {
                         cairo_line_to (
                                 Window_context,
                                 realX + (double)(Options_cursorSize) / 2,
-                                realY + glyphHeight);
+                                realY + interface.fonts.glyphHeight);
                         cairo_stroke(Window_context);
                 }
         }
@@ -269,10 +278,10 @@ void Interface_findMouseHoverCell (
         
         int intCellX = (int) (
                 (mouseX - interface.editView.textX) /
-                glyphWidth);
+                interface.fonts.glyphWidth);
         int intCellY = (int) (
                 (mouseY - interface.editView.innerY) /
-                lineHeight);
+                interface.fonts.lineHeight);
 
         *cellX = (size_t)(intCellX);
         *cellY = (size_t)(intCellY);

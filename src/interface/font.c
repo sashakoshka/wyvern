@@ -1,41 +1,32 @@
 #include "module.h"
 #include "options.h"
 
-FT_Library         freetypeHandle     = { 0 };
-FT_Face            freetypeFaceNormal = { 0 };
-cairo_font_face_t *fontFaceNormal     = { 0 };
-
-double glyphHeight   = 0;
-double lineHeight    = 0;
-double glyphWidth    = 0;
-double capitalHeight = 0;
-
 /* Interface_loadFonts
  * Initializes FreeType, loads all fonts, and gathers information about font
  * dimensions.
  */
 Error Interface_loadFonts (void) {
-        int err = FT_Init_FreeType(&freetypeHandle);
+        int err = FT_Init_FreeType(&interface.fonts.freetypeHandle);
         if (err) { return Error_cantInitFreetype; }
         err = FT_New_Face (
-                freetypeHandle,
+                interface.fonts.freetypeHandle,
                 Options_fontName,
-                0, &freetypeFaceNormal);
+                0, &interface.fonts.freetypeFaceNormal);
         if (err) { return Error_cantLoadFont; }
-        fontFaceNormal = cairo_ft_font_face_create_for_ft_face (
-                freetypeFaceNormal, 0);
+        interface.fonts.fontFaceNormal = cairo_ft_font_face_create_for_ft_face (
+                interface.fonts.freetypeFaceNormal, 0);
 
         Interface_fontNormal();
 
         cairo_text_extents_t textExtents;
         cairo_text_extents(Window_context, "M", &textExtents);
-        capitalHeight = textExtents.height;
+        interface.fonts.capitalHeight = textExtents.height;
         
         cairo_font_extents_t fontExtents;
         cairo_font_extents(Window_context, &fontExtents);
-        lineHeight  = fontExtents.height;
-        glyphHeight = fontExtents.ascent;
-        glyphWidth  = fontExtents.max_x_advance;
+        interface.fonts.lineHeight  = fontExtents.height;
+        interface.fonts.glyphHeight = fontExtents.ascent;
+        interface.fonts.glyphWidth  = fontExtents.max_x_advance;
 
         return Error_none;
 }
@@ -45,7 +36,7 @@ Error Interface_loadFonts (void) {
  */
 void Interface_fontNormal (void) {
         cairo_set_font_size(Window_context, Options_fontSize);
-        cairo_set_font_face(Window_context, fontFaceNormal);
+        cairo_set_font_face(Window_context, interface.fonts.fontFaceNormal);
 }
 
 // void Interface_fontBold (void) {
