@@ -1,12 +1,11 @@
+#pragma once
+
 #include <ctype.h>
 #include <cairo.h>
-#include <cairo-ft.h>
-#include <ft2build.h>
-#include FT_FREETYPE_H
 
 #include "interface.h"
+#include "objects.h"
 #include "window.h"
-#include "text-display.h"
 
 // TODO: make this an enum, and make a function to set color based on input from
 // a value in that enum.
@@ -31,123 +30,6 @@
 #define HITBOX(xx, yy, element) \
         xx > (element.x) && xx < (element.x) + (element.width) && \
         yy > (element.y) && yy < (element.y) + (element.height)
-        
-// these callbacks should generally fire when button/key combinations are
-// pressed. it should not be possible to activate callbacks within from another
-// callback. callbacks relating to management of visual structures that map to
-// virtual structures (e.g. tabs) must update the virtual structure, and then
-// instruct the Interface to update the visual structure (e.g. creating or
-// deleting a tab and swapping the active edit buffer).
-typedef struct {
-        void (*onStart)     (void);
-        void (*onNewTab)    (void);
-        void (*onCloseTab)  (Interface_Tab *);
-        void (*onSwitchTab) (Interface_Tab *);
-} Interface_Callbacks;
-
-typedef struct {
-        FT_Library         freetypeHandle;
-        FT_Face            freetypeFaceNormal;
-        cairo_font_face_t *fontFaceNormal;
-        
-        double glyphHeight;
-        double lineHeight;
-        double glyphWidth;
-        double capitalHeight;
-} Interface_Fonts;
-
-typedef struct {
-        int x;
-        int y;
-
-        Window_State left;
-        Window_State middle;
-        Window_State right;
-
-        int    dragOriginX;
-        int    dragOriginY;
-        int    dragOriginInCell;
-        size_t dragOriginRealX;
-        size_t dragOriginRealY;
-} Interface_MouseState;
-
-typedef struct {
-        Window_State shift;
-        Window_State ctrl;
-        Window_State alt;
-} Interface_ModKeyState;
-
-#define INTERFACE_OBJECT \
-        double x;        \
-        double y;        \
-        double width;    \
-        double height;   \
-        int    needsRecalculate; \
-        int    needsRedraw;
-
-struct Interface_Object {
-        INTERFACE_OBJECT
-};
-
-struct Interface_Tab {
-        INTERFACE_OBJECT
-
-        double textX;
-        double textY;
-
-        char text[NAME_MAX + 1];
-
-        double closeX;
-        double closeY;
-        double closeWidth;
-        double closeHeight;
-
-        struct Interface_Tab *previous;
-        struct Interface_Tab *next;
-};
-
-struct Interface_TabBar {
-        INTERFACE_OBJECT
-
-        Interface_Tab *tabs;
-        Interface_Tab *activeTab;
-};
-
-struct Interface_EditView {
-        INTERFACE_OBJECT
-        
-        double padding;
-        double rulerWidth;
-
-        double innerX;
-        double innerY;
-        double innerWidth;
-        double innerHeight;
-
-        double textX;
-        double textY;
-        double textWidth;
-        double textHeight;
-
-        int cursorBlink;
-        
-        EditBuffer  *editBuffer;
-        TextDisplay *textDisplay;
-};
-
-struct Interface {
-        INTERFACE_OBJECT
-        
-        int horizontal;
-
-        Interface_TabBar   tabBar;
-        Interface_EditView editView;
-        
-        Interface_Fonts       fonts;
-        Interface_MouseState  mouseState;
-        Interface_ModKeyState modKeyState;
-        Interface_Callbacks   callbacks;
-};
 
 extern Interface interface;
 
