@@ -13,9 +13,9 @@ typedef struct Interface          Interface;
 Error Interface_run           (void);
 void  Interface_setEditBuffer (EditBuffer *newEditBuffer);
 
-Interface_Tab *Interface_TabBar_add       (void);
-void           Interface_TabBar_delete    (Interface_Tab *);
-void           Interface_TabBar_setActive (Interface_Tab *);
+Interface_Tab *Interface_tabBar_add       (void);
+void           Interface_tabBar_delete    (Interface_Tab *);
+void           Interface_tabBar_setActive (Interface_Tab *);
 void           Interface_Tab_setText      (Interface_Tab *, const char *);
 
 void Interface_onStart     (void (*) (void));

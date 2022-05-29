@@ -42,10 +42,10 @@ void Interface_tabBar_redraw (void) {
         cairo_stroke(Window_context);
 }
 
-/* Interface_TabBar_add
+/* Interface_tabBar_add
  * Appends a new tab to the linked list in the tab bar.
  */
-Interface_Tab *Interface_TabBar_add (void) {
+Interface_Tab *Interface_tabBar_add (void) {
         Interface_Tab *tab = Interface_Tab_new();
 
         if (interface.tabBar.tabs == NULL) {
@@ -64,10 +64,10 @@ Interface_Tab *Interface_TabBar_add (void) {
         return tab;
 }
 
-/* Interface_TabBar_delete
+/* Interface_tabBar_delete
  * Removes an existing tab from the linked list in the tab bar.
  */
-void Interface_TabBar_delete (Interface_Tab *tab) {
+void Interface_tabBar_delete (Interface_Tab *tab) {
         if (tab->previous == NULL) {
                 interface.tabBar.tabs = tab->next;
                 Interface_Tab_free(tab);
@@ -82,11 +82,11 @@ void Interface_TabBar_delete (Interface_Tab *tab) {
         Interface_Tab_free(tab);
 }
 
-/* Interface_TabBar_setActive
+/* Interface_tabBar_setActive
  * Sets the currently active tab. This function does not trigger any events, and
  * should be called from an event handler callback.
  */
-void Interface_TabBar_setActive (Interface_Tab *tab) {
+void Interface_tabBar_setActive (Interface_Tab *tab) {
         interface.tabBar.activeTab = tab;
 }
 
