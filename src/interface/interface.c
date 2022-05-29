@@ -67,22 +67,19 @@ static Error Interface_setup (void) {
 }
 
 /* Interface_recalculate
- * Recalculates the size and position of all interface elements.
+ * Recalculates the size and position of the base interface.
  */
 void Interface_recalculate () {
+        interface.x = 0;
+        interface.y = 0;
         interface.horizontal = interface.width > interface.height;
-        
-        Interface_tabBar_recalculate();
-        Interface_editView_recalculate();
 }
 
 /* Interface_redraw
- * Re-draws all interface elements. This should completely re-draw everything,
- * touching every part of the screen.
+ * Re-draws the base interface.
  */
 void Interface_redraw (void) {
-        Interface_tabBar_redraw();
-        Interface_editView_redraw();
+        
 }
 
 /* Interface_refresh
