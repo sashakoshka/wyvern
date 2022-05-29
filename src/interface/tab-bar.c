@@ -95,6 +95,7 @@ void Interface_TabBar_setActive (Interface_Tab *tab) {
  */
 void Interface_tabBar_invalidateLayout (void) {
         if (interface.tabBar.needsRecalculate == 1) { return; }
+        interface.tabBar.needsRedraw = 1;
         interface.tabBar.needsRecalculate = 1;
 
         Interface_Tab *tab = interface.tabBar.tabs;
@@ -315,6 +316,7 @@ static void Interface_Tab_free (Interface_Tab *tab) {
  * Invalidates the layout of a single tab.
  */
 void Interface_Tab_invalidateLayout (Interface_Tab *tab) {
+        tab->needsRedraw = 1;
         tab->needsRecalculate = 1;
 }
 

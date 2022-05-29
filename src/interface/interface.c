@@ -105,6 +105,7 @@ void Interface_refresh () {
  * Recursively invalidates the layout of the entire interface.
  */
 void Interface_invalidateLayout (void) {
+        interface.needsRedraw = 1;
         interface.needsRecalculate = 1;
         Interface_tabBar_invalidateLayout();
         Interface_editView_invalidateLayout();
