@@ -1,6 +1,19 @@
 #include "module.h"
 #include "options.h"
 
+/* Interface_editViewRuler_recalculate
+ * Recalculates the size and position of the ruler.
+ */
+void Interface_editViewRuler_recalculate (void) {
+        Interface_EditView      *editView = &interface.editView;
+        Interface_EditViewRuler *ruler    = &editView->ruler;
+
+        ruler->x = editView->x;
+        ruler->y = editView->y;
+        ruler->width  = (int)(interface.fonts.glyphWidth * 5);
+        ruler->height = editView->height;
+}
+
 /* Interface_editViewRuler_redraw
  * Redraws the line number ruler.
  */

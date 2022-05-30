@@ -1,10 +1,51 @@
 #include "module.h"
 #include "options.h"
 
-/* Interface_editView_drawCharsRow
- * Re-draws damaged characters at row y.
+/* Interface_editViewText_recalculate
+ * Recalculates the size and position of the text.
  */
-void Interface_editView_drawCharsRow (size_t y) {
+void Interface_editViewText_recalculate (void) {
+        Interface_EditView      *editView = &interface.editView;
+        Interface_EditViewText  *text     = &editView->text;
+
+        double textLeftOffset = editView->ruler.width + editView->padding;
+        text->x = editView->innerX + textLeftOffset;
+        text->y = editView->innerY + interface.fonts.glyphHeight * 0.8;
+        text->width  = editView->width  - textLeftOffset;
+        text->height = editView->height - editView->padding +
+                interface.fonts.lineHeight;
+
+        double textDisplayWidth =
+                text->width  / interface.fonts.glyphWidth;
+        double textDisplayHeight =
+                text->height / interface.fonts.lineHeight;
+        if (textDisplayWidth  < 0) { textDisplayWidth  = 0; }
+        if (textDisplayHeight < 0) { textDisplayHeight = 0; }
+        TextDisplay_resize (
+                text->display,
+                (size_t)(textDisplayWidth),
+                (size_t)(textDisplayHeight));
+}
+
+/* Interface_editViewText_redraw
+ * Updates the internal TextDisplay and re-draws damaged runes.
+ */
+void Interface_editViewText_redraw (void) {
+        Interface_EditView     *editView = &interface.editView;
+        Interface_EditViewText *text     = &editView->text;
+
+        // TODO: do this somewhere else, if the runes are invalid
+        TextDisplay_grab(text->display);
+
+        for (size_t y = 0; y < text->display->height; y ++) {
+                Interface_editViewText_redrawRow(y);
+        }
+}
+
+/* Interface_editViewText_redrawRow
+ * Re-draws damaged runes at row y.
+ */
+void Interface_editViewText_redrawRow (size_t y) {
         Interface_EditView     *editView = &interface.editView;
         Interface_EditViewText *text     = &editView->text;
         int inIndent = 1;

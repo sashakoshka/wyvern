@@ -6,8 +6,6 @@
  */
 void Interface_editView_recalculate (void) {
         Interface_EditView      *editView = &interface.editView;
-        Interface_EditViewText  *text     = &editView->text;
-        Interface_EditViewRuler *ruler    = &editView->ruler;
         
         editView->x      = 0;
         editView->y      = interface.tabBar.height;
@@ -15,30 +13,14 @@ void Interface_editView_recalculate (void) {
         editView->width  = interface.width;
         
         editView->padding = (int)(interface.fonts.glyphWidth * 2);
-        ruler->width      = (int)(interface.fonts.glyphWidth * 5);
-
+        
         editView->innerX      = editView->x      + editView->padding;
         editView->innerY      = editView->y      + editView->padding;
         editView->innerWidth  = editView->width  - editView->padding;
         editView->innerHeight = editView->height - editView->padding;
 
-        double textLeftOffset = editView->ruler.width + editView->padding;
-        text->x = editView->innerX + textLeftOffset;
-        text->y = editView->innerY + interface.fonts.glyphHeight * 0.8;
-        text->width  = editView->width  - textLeftOffset;
-        text->height = editView->height - editView->padding +
-                interface.fonts.lineHeight;
-
-        double textDisplayWidth =
-                text->width  / interface.fonts.glyphWidth;
-        double textDisplayHeight =
-                text->height / interface.fonts.lineHeight;
-        if (textDisplayWidth  < 0) { textDisplayWidth  = 0; }
-        if (textDisplayHeight < 0) { textDisplayHeight = 0; }
-        TextDisplay_resize (
-                text->display,
-                (size_t)(textDisplayWidth),
-                (size_t)(textDisplayHeight));
+        Interface_editViewRuler_recalculate();
+        Interface_editViewText_recalculate();
 }
 
 /* Interface_editView_redraw
@@ -67,21 +49,6 @@ void Interface_editView_redraw (void) {
                 columnMarkerX,
                 editView->y + editView->height);
         cairo_stroke(Window_context);
-}
-
-/* Interface_editView_drawChars
- * Updates the internal TextDisplay if grabModel is 1, and re-draws damaged
- * runes.
- */
-void Interface_editView_drawChars (int grabModel) {
-        Interface_EditView     *editView = &interface.editView;
-        Interface_EditViewText *text     = &editView->text;
-        
-        if (grabModel) { TextDisplay_grab(text->display); }
-
-        for (size_t y = 0; y < text->display->height; y ++) {
-                Interface_editView_drawCharsRow(y);
-        }
 }
 
 /* Interface_findMouseHoverCell
