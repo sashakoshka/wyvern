@@ -205,14 +205,14 @@ void Interface_handleKey (Window_KeySym keySym, Rune rune, Window_State state) {
         interface.editView.text.cursorBlink = 1;
         
         switch (keySym) {
-        case WINDOW_KEY_SHIFT: interface.modKeyState.shift = state; return;
-        case WINDOW_KEY_CTRL:  interface.modKeyState.ctrl  = state; return;
-        case WINDOW_KEY_ALT:   interface.modKeyState.alt   = state; return;
+        case WINDOW_KEY_SHIFT: interface.modKeyState.shift = state; break;
+        case WINDOW_KEY_CTRL:  interface.modKeyState.ctrl  = state; break;
+        case WINDOW_KEY_ALT:   interface.modKeyState.alt   = state; break;
 
-        case WINDOW_KEY_UP:    Interface_handleKeyUp(state);    return;
-        case WINDOW_KEY_DOWN:  Interface_handleKeyDown(state);  return;
-        case WINDOW_KEY_LEFT:  Interface_handleKeyLeft(state);  return;
-        case WINDOW_KEY_RIGHT: Interface_handleKeyRight(state); return;
+        case WINDOW_KEY_UP:    Interface_handleKeyUp(state);    break;
+        case WINDOW_KEY_DOWN:  Interface_handleKeyDown(state);  break;
+        case WINDOW_KEY_LEFT:  Interface_handleKeyLeft(state);  break;
+        case WINDOW_KEY_RIGHT: Interface_handleKeyRight(state); break;
 
         case WINDOW_KEY_ESCAPE:
                 EditBuffer_clearExtraCursors(interface.editView.text.buffer);
@@ -227,7 +227,7 @@ void Interface_handleKey (Window_KeySym keySym, Rune rune, Window_State state) {
                         Interface_editViewRuler_invalidateDrawing();
                         Interface_editViewText_invalidateDrawing();
                 }
-                return;
+                break;
 
         case WINDOW_KEY_TAB:
                 if (state == Window_State_on) {
@@ -240,7 +240,7 @@ void Interface_handleKey (Window_KeySym keySym, Rune rune, Window_State state) {
                         Interface_editViewRuler_invalidateDrawing();
                         Interface_editViewText_invalidateDrawing();
                 }
-                return;
+                break;
         
         case WINDOW_KEY_BACKSPACE:
                 if (state == Window_State_on) {
@@ -249,7 +249,7 @@ void Interface_handleKey (Window_KeySym keySym, Rune rune, Window_State state) {
                         Interface_editViewRuler_invalidateDrawing();
                         Interface_editViewText_invalidateDrawing();
                 }
-                return;
+                break;
         
         case WINDOW_KEY_DELETE:
                 if (state == Window_State_on) {
@@ -258,14 +258,16 @@ void Interface_handleKey (Window_KeySym keySym, Rune rune, Window_State state) {
                         Interface_editViewRuler_invalidateDrawing();
                         Interface_editViewText_invalidateDrawing();
                 }
-                return;
-        }
+                break;
 
-        if (keySym >> 8 == 0 && state == Window_State_on) {
-                EditBuffer_cursorsInsertRune (
-                        interface.editView.text.buffer, rune);
-                Interface_editViewRuler_invalidateDrawing();
-                Interface_editViewText_invalidateDrawing();
+        default:
+                if (keySym >> 8 == 0 && state == Window_State_on) {
+                        EditBuffer_cursorsInsertRune (
+                                interface.editView.text.buffer, rune);
+                        Interface_editViewRuler_invalidateDrawing();
+                        Interface_editViewText_invalidateDrawing();
+                }
+                break;
         }
         
         Interface_refresh();
@@ -298,8 +300,6 @@ void Interface_handleKeyUp (Window_State state) {
                 EditBuffer_cursorsMoveV(interface.editView.text.buffer, -1);
         }
         Interface_editViewText_invalidateDrawing();
-        
-        Interface_refresh();
 }
 
 /* Interface_handleKeyDown
@@ -329,8 +329,6 @@ void Interface_handleKeyDown (Window_State state) {
                 EditBuffer_cursorsMoveV(interface.editView.text.buffer, 1);
         }
         Interface_editViewText_invalidateDrawing();
-
-        Interface_refresh();
 }
 
 /* Interface_handleKeyLeft
@@ -344,8 +342,6 @@ void Interface_handleKeyLeft (Window_State state) {
                 EditBuffer_cursorsMoveH(interface.editView.text.buffer, -1);
         }
         Interface_editViewText_invalidateDrawing();
-        
-        Interface_refresh();
 }
 
 /* Interface_handleKeyRight
@@ -359,6 +355,4 @@ void Interface_handleKeyRight (Window_State state) {
                 EditBuffer_cursorsMoveH(interface.editView.text.buffer, 1);
         }
         Interface_editViewText_invalidateDrawing();
-        
-        Interface_refresh();
 }
