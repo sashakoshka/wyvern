@@ -28,7 +28,7 @@ void Interface_editViewText_recalculate (void) {
 }
 
 /* Interface_editViewText_redraw
- * Updates the internal TextDisplay and re-draws damaged runes.
+ * Updates the internal TextDisplay and redraws damaged cells.
  */
 void Interface_editViewText_redraw (void) {
         Interface_EditView     *editView = &interface.editView;
@@ -43,7 +43,7 @@ void Interface_editViewText_redraw (void) {
 }
 
 /* Interface_editViewText_redrawRow
- * Re-draws damaged runes at row y.
+ * Redraws damaged cells at row y.
  */
 void Interface_editViewText_redrawRow (size_t y) {
         Interface_EditView     *editView = &interface.editView;
@@ -55,6 +55,9 @@ void Interface_editViewText_redrawRow (size_t y) {
         }
 }
 
+/* Interface_editViewText_redrawRow
+ * Redraws the cell at column x and row y if it is damaged.
+ */
 void Interface_editViewText_redrawRune (size_t x, size_t y, int *inIndent) {
         Interface_EditView     *editView = &interface.editView;
         Interface_EditViewText *text     = &editView->text;
