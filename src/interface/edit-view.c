@@ -67,15 +67,12 @@ void Interface_editView_redraw (void) {
                 columnMarkerX,
                 editView->y + editView->height);
         cairo_stroke(Window_context);
-
-        Interface_editView_drawRuler();
-        Interface_editView_drawChars(1);
 }
 
-/* Interface_editView_drawRuler
+/* Interface_editViewRuler_redraw
  * Redraws the line number ruler.
  */
-void Interface_editView_drawRuler (void) {
+void Interface_editViewRuler_redraw (void) {
         Interface_EditView      *editView = &interface.editView;
         Interface_EditViewText  *text     = &editView->text;
         Interface_EditViewRuler *ruler    = &editView->ruler;
@@ -336,4 +333,79 @@ void Interface_updateTextSelection (void) {
         EditBuffer_Cursor_selectTo (
                 text->buffer->cursors,
                 realX, realY);
+}
+
+/* Interface_editView_refresh
+ * Refreshes the edit view.
+ */
+void Interface_editView_refresh (void) {
+        if (interface.editView.needsRecalculate == 1) {
+                Interface_editView_recalculate();
+                interface.editView.needsRecalculate = 0;
+        }
+
+        if (interface.editView.needsRedraw == 1) {
+                Interface_editView_redraw();
+                interface.editView.needsRedraw = 0;
+        }
+
+        // Interface_editViewRuler_refresh();
+        // Interface_editViewText_refresh();
+}
+
+/* Interface_editView_invalidateLayout
+ * Invalidates the layout of the edit view.
+ */
+void Interface_editView_invalidateLayout (void) {
+        Interface_EditView *editView = &interface.editView;
+        
+        editView->needsRedraw = 1;
+        editView->needsRecalculate = 1;
+        Interface_editViewRuler_invalidateLayout();
+        Interface_editViewText_invalidateLayout();
+}
+
+/* Interface_editView_invalidateDrawing
+ * Invalidates the drawing of the edit view.
+ */
+void Interface_editView_invalidateDrawing (void) {
+        Interface_EditView *editView = &interface.editView;
+        
+        editView->needsRedraw = 1;
+        Interface_editViewRuler_invalidateDrawing();
+        Interface_editViewText_invalidateDrawing();
+}
+
+/* Interface_editViewText_invalidateLayout
+ * Invalidates the layout of the text.
+ */
+void Interface_editViewText_invalidateLayout (void) {
+        Interface_EditViewText *text = &interface.editView.text;
+        text->needsRedraw = 1;
+        text->needsRecalculate = 1;
+}
+
+/* Interface_editViewText_invalidateDrawing
+ * Invalidates the drawing of the text.
+ */
+void Interface_editViewText_invalidateDrawing (void) {
+        Interface_EditViewText *text = &interface.editView.text;
+        text->needsRedraw = 1;
+}
+
+/* Interface_editViewRuler_invalidateLayout
+ * Invalidates the layout of the ruler.
+ */
+void Interface_editViewRuler_invalidateLayout (void) {
+        Interface_EditViewRuler *ruler = &interface.editView.ruler;
+        ruler->needsRedraw = 1;
+        ruler->needsRecalculate = 1;
+}
+
+/* Interface_editViewRuler_invalidateDrawing
+ * Invalidates the drawing of the ruler.
+ */
+void Interface_editViewRuler_invalidateDrawing (void) {
+        Interface_EditViewRuler *ruler = &interface.editView.ruler;
+        ruler->needsRedraw = 1;
 }

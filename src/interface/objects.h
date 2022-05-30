@@ -88,9 +88,6 @@ struct Interface_TabBar {
 
 struct Interface_EditViewRuler {
         INTERFACE_OBJECT
-        
-        size_t start;
-        size_t end;
 };
 
 struct Interface_EditViewText {

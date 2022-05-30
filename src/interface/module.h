@@ -43,7 +43,7 @@ void Interface_tabBar_redraw         (void);
 void Interface_Tab_redraw            (Interface_Tab *);
 void Interface_Tab_closeButtonRedraw (Interface_Tab *);
 void Interface_editView_redraw       (void);
-void Interface_editView_drawRuler    (void);
+void Interface_editViewRuler_redraw  (void);
 void Interface_editView_drawChars    (int);
 void Interface_editView_drawCharsRow (size_t);
 
@@ -52,14 +52,18 @@ void Interface_tabBar_refresh   (void);
 void Interface_Tab_refresh      (Interface_Tab *);
 void Interface_editView_refresh (void);
 
-void Interface_invalidateLayout           (void);
-void Interface_invalidateDrawing          (void);
-void Interface_tabBar_invalidateLayout    (void);
-void Interface_tabBar_invalidateDrawing   (void);
-void Interface_Tab_invalidateLayout       (Interface_Tab *);
-void Interface_Tab_invalidateDrawing      (Interface_Tab *);
-void Interface_editView_invalidateLayout  (void);
-void Interface_editView_invalidateDrawing (void);
+void Interface_invalidateLayout                (void);
+void Interface_invalidateDrawing               (void);
+void Interface_tabBar_invalidateLayout         (void);
+void Interface_tabBar_invalidateDrawing        (void);
+void Interface_Tab_invalidateLayout            (Interface_Tab *);
+void Interface_Tab_invalidateDrawing           (Interface_Tab *);
+void Interface_editView_invalidateLayout       (void);
+void Interface_editView_invalidateDrawing      (void);
+void Interface_editViewRuler_invalidateLayout  (void);
+void Interface_editViewRuler_invalidateDrawing (void);
+void Interface_editViewText_invalidateLayout   (void);
+void Interface_editViewText_invalidateDrawing  (void);
 
 void Interface_handleKeyRight    (Window_State);
 void Interface_handleKeyLeft     (Window_State);
