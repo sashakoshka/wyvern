@@ -209,8 +209,18 @@ void Interface_editViewText_invalidateDrawing (void) {
 }
 
 /* Interface_editViewText_refresh
- * Refreshes the edit view.
+ * Refreshes the text.
  */
 void Interface_editViewText_refresh (void) {
+        Interface_EditViewText *text = &interface.editView.text;
         
+        if (text->needsRecalculate == 1) {
+                Interface_editViewText_recalculate();
+                text->needsRecalculate = 0;
+        }
+
+        if (text->needsRedraw == 1) {
+                Interface_editViewText_redraw();
+                text->needsRedraw = 0;
+        }
 }

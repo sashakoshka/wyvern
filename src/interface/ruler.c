@@ -72,5 +72,15 @@ void Interface_editViewRuler_invalidateDrawing (void) {
  * Refreshes the ruler.
  */
 void Interface_editViewRuler_refresh (void) {
+        Interface_EditViewRuler *ruler = &interface.editView.ruler;
         
+        if (ruler->needsRecalculate == 1) {
+                Interface_editViewRuler_recalculate();
+                ruler->needsRecalculate = 0;
+        }
+
+        if (ruler->needsRedraw == 1) {
+                Interface_editViewRuler_redraw();
+                ruler->needsRedraw = 0;
+        }
 }
