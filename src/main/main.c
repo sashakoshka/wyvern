@@ -18,10 +18,10 @@ static void handleStart (void) {
         EditBuffer_open(editBuffer, "src/edit-buffer/edit-buffer.c");
         Interface_setEditBuffer(editBuffer);
         
-        Interface_Tab *tab = Interface_TabBar_add();
+        Interface_Tab *tab = Interface_tabBar_add();
         Interface_Tab_setText(tab, "rather long title");
         
-        tab = Interface_TabBar_add();
+        tab = Interface_tabBar_add();
         Interface_Tab_setText(tab, "another tab");
-        Interface_TabBar_setActive(tab);
+        Interface_tabBar_setActive(tab);
 }
