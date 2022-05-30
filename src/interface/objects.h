@@ -6,6 +6,50 @@
 #include "states.h"
 #include "text-display.h"
 
+/* The interface is structured as follows:
+ *
+ *   ┌───────────────────────────────────────────────────────────┐
+ *   │ Interface                                                 │
+ *   │ ┌───────────────────────────────────────────────────────┐ │
+ *   │ │ Interface_TabBar                                      │ │
+ *   │ │ ┌───────────────┐ ┌───────────────┐ ┌───────────────┐ │ │
+ *   │ │ │ Interface_Tab │ │ Interface_Tab │ │ Interface_Tab │ │ │
+ *   │ │ └───────────────┘ └───────────────┘ └───────────────┘ │ │
+ *   │ └───────────────────────────────────────────────────────┘ │
+ *   │ ┌───────────────────────────────────────────────────────┐ │
+ *   │ │ Interface_EditView                                    │ │
+ *   │ │ ┌───┐ ┌─────────────────────────────────────────────┐ │ │
+ *   │ │ │ I │ │ Interface_EditViewText                      │ │ │
+ *   │ │ │ n │ │                                             │ │ │
+ *   │ │ │ t │ │                                             │ │ │
+ *   │ │ │ e │ │                                             │ │ │
+ *   │ │ │ r │ │                                             │ │ │
+ *   │ │ │ f │ │                                             │ │ │
+ *   │ │ │ a │ │                                             │ │ │
+ *   │ │ │ c │ │                                             │ │ │
+ *   │ │ │ e │ │                                             │ │ │
+ *   │ │ │ _ │ │                                             │ │ │
+ *   │ │ │ E │ │                                             │ │ │
+ *   │ │ │ d │ │                                             │ │ │
+ *   │ │ │ i │ │                                             │ │ │
+ *   │ │ │ t │ │                                             │ │ │
+ *   │ │ │ V │ │                                             │ │ │
+ *   │ │ │ i │ │                                             │ │ │
+ *   │ │ │ e │ │                                             │ │ │
+ *   │ │ │ w │ │                                             │ │ │
+ *   │ │ │ R │ │                                             │ │ │
+ *   │ │ │ u │ │                                             │ │ │
+ *   │ │ │ l │ │                                             │ │ │
+ *   │ │ │ e │ │                                             │ │ │
+ *   │ │ │ r │ │                                             │ │ │
+ *   │ │ └───┘ └─────────────────────────────────────────────┘ │ │
+ *   │ └───────────────────────────────────────────────────────┘ │
+ *   └───────────────────────────────────────────────────────────┘
+ *
+ * Each struct in this file represents a visual object, and holds information
+ * that directly maps to, or is useful for, what is displayed on screen.
+ */
+
 #define INTERFACE_OBJECT \
         double x;        \
         double y;        \
@@ -42,26 +86,34 @@ struct Interface_TabBar {
         Interface_Tab *activeTab;
 };
 
+struct Interface_EditViewRuler {
+        INTERFACE_OBJECT
+        
+        size_t start;
+        size_t end;
+};
+
+struct Interface_EditViewText {
+        INTERFACE_OBJECT
+        
+        int cursorBlink;
+        
+        EditBuffer  *buffer;
+        TextDisplay *display;
+};
+
 struct Interface_EditView {
         INTERFACE_OBJECT
         
         double padding;
-        double rulerWidth;
 
         double innerX;
         double innerY;
         double innerWidth;
         double innerHeight;
 
-        double textX;
-        double textY;
-        double textWidth;
-        double textHeight;
-
-        int cursorBlink;
-        
-        EditBuffer  *editBuffer;
-        TextDisplay *textDisplay;
+        Interface_EditViewRuler ruler;
+        Interface_EditViewText  text;
 };
 
 struct Interface {

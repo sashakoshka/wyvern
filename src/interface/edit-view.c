@@ -5,36 +5,38 @@
  * Recalculates the position, size, and various layout bounds of the edit view.
  */
 void Interface_editView_recalculate (void) {
-        Interface_EditView *editView = &interface.editView;
+        Interface_EditView      *editView = &interface.editView;
+        Interface_EditViewText  *text     = &editView->text;
+        Interface_EditViewRuler *ruler    = &editView->ruler;
         
         editView->x      = 0;
         editView->y      = interface.tabBar.height;
         editView->height = interface.height - interface.tabBar.height;
         editView->width  = interface.width;
         
-        editView->padding    = (int)(interface.fonts.glyphWidth * 2);
-        editView->rulerWidth = (int)(interface.fonts.glyphWidth * 5);
+        editView->padding = (int)(interface.fonts.glyphWidth * 2);
+        ruler->width      = (int)(interface.fonts.glyphWidth * 5);
 
         editView->innerX      = editView->x      + editView->padding;
         editView->innerY      = editView->y      + editView->padding;
         editView->innerWidth  = editView->width  - editView->padding;
         editView->innerHeight = editView->height - editView->padding;
 
-        double textLeftOffset = editView->rulerWidth + editView->padding;
-        editView->textX = editView->innerX + textLeftOffset;
-        editView->textY = editView->innerY + interface.fonts.glyphHeight * 0.8;
-        editView->textWidth  = editView->width  - textLeftOffset;
-        editView->textHeight = editView->height - editView->padding +
+        double textLeftOffset = editView->ruler.width + editView->padding;
+        text->x = editView->innerX + textLeftOffset;
+        text->y = editView->innerY + interface.fonts.glyphHeight * 0.8;
+        text->width  = editView->width  - textLeftOffset;
+        text->height = editView->height - editView->padding +
                 interface.fonts.lineHeight;
 
         double textDisplayWidth =
-                editView->textWidth  / interface.fonts.glyphWidth;
+                text->width  / interface.fonts.glyphWidth;
         double textDisplayHeight =
-                editView->textHeight / interface.fonts.lineHeight;
+                text->height / interface.fonts.lineHeight;
         if (textDisplayWidth  < 0) { textDisplayWidth  = 0; }
         if (textDisplayHeight < 0) { textDisplayHeight = 0; }
         TextDisplay_resize (
-                editView->textDisplay,
+                text->display,
                 (size_t)(textDisplayWidth),
                 (size_t)(textDisplayHeight));
 }
@@ -43,7 +45,8 @@ void Interface_editView_recalculate (void) {
  * Completely redraws the edit view.
  */
 void Interface_editView_redraw (void) {
-        Interface_EditView *editView = &interface.editView;
+        Interface_EditView     *editView = &interface.editView;
+        Interface_EditViewText *text     = &editView->text;
         
         cairo_set_source_rgb(Window_context, BACKGROUND_COLOR);
         cairo_rectangle (
@@ -57,7 +60,7 @@ void Interface_editView_redraw (void) {
         cairo_set_source_rgb(Window_context, RULER_COLOR);
         cairo_set_line_width(Window_context, 2);
         double columnMarkerX =
-                editView->textX + interface.fonts.glyphWidth * 80 + 1;
+                text->x + interface.fonts.glyphWidth * 80 + 1;
         cairo_move_to(Window_context, columnMarkerX, editView->y);
         cairo_line_to (
                 Window_context,
@@ -73,22 +76,24 @@ void Interface_editView_redraw (void) {
  * Redraws the line number ruler.
  */
 void Interface_editView_drawRuler (void) {
-        Interface_EditView *editView = &interface.editView;
+        Interface_EditView      *editView = &interface.editView;
+        Interface_EditViewText  *text     = &editView->text;
+        Interface_EditViewRuler *ruler    = &editView->ruler;
         
         cairo_set_source_rgb(Window_context, RULER_COLOR);
         cairo_rectangle (
                 Window_context,
                 editView->x,
                 editView->y,
-                editView->innerX + editView->rulerWidth,
+                editView->innerX + ruler->width,
                 editView->height);
         cairo_fill(Window_context);
         
-        double y = editView->textY;
+        double y = text->y;
         for (
-                size_t index = editView->editBuffer->scroll;
-                index < editView->editBuffer->length &&
-                y < editView->textY + editView->textHeight;
+                size_t index = text->buffer->scroll;
+                index < text->buffer->length &&
+                y < text->y + text->height;
                 index ++
         ) {     
                 char lineNumberBuffer[8] = { 0 };
@@ -109,10 +114,12 @@ void Interface_editView_drawRuler (void) {
  * runes.
  */
 void Interface_editView_drawChars (int grabModel) {
-        Interface_EditView *editView = &interface.editView;
-        if (grabModel) { TextDisplay_grab(editView->textDisplay); }
+        Interface_EditView     *editView = &interface.editView;
+        Interface_EditViewText *text     = &editView->text;
+        
+        if (grabModel) { TextDisplay_grab(text->display); }
 
-        for (size_t y = 0; y < editView->textDisplay->height; y ++) {
+        for (size_t y = 0; y < text->display->height; y ++) {
                 Interface_editView_drawCharsRow(y);
         }
 }
@@ -121,15 +128,16 @@ void Interface_editView_drawChars (int grabModel) {
  * Re-draws damaged characters at row y.
  */
 void Interface_editView_drawCharsRow (size_t y) {
-        Interface_EditView *editView = &interface.editView;
+        Interface_EditView     *editView = &interface.editView;
+        Interface_EditViewText *text     = &editView->text;
         int inIndent = 1;
         
-        for (size_t x = 0; x < editView->textDisplay->width; x ++) {
+        for (size_t x = 0; x < text->display->width; x ++) {
                 // TODO: make a function to draw a single cell. this will also
                 // be faster to just call that to blink the cursors.
-                size_t coordinate = y * editView->textDisplay->width + x;
+                size_t coordinate = y * text->display->width + x;
                 TextDisplay_Cell *cell =
-                        &editView->textDisplay->cells[coordinate];
+                        &text->display->cells[coordinate];
 
                 // if the cell is undamaged, we don't want to render it.
                 // however, we'll make an exception for cursors because those
@@ -139,9 +147,9 @@ void Interface_editView_drawCharsRow (size_t y) {
                         cell->cursorState != TextDisplay_CursorState_cursor
                 ) { continue; }
                 
-                editView->textDisplay->cells[coordinate].damaged = 0;
+                text->display->cells[coordinate].damaged = 0;
                 
-                double realX = editView->textX;
+                double realX = text->x;
                 double realY = editView->innerY;
                 realX += (double)(x) * interface.fonts.glyphWidth;
                 realY += (double)(y) * interface.fonts.lineHeight;
@@ -246,7 +254,7 @@ void Interface_editView_drawCharsRow (size_t y) {
                 // draw blinking cursor yayayayayayaya
                 if (
                         cell->cursorState == TextDisplay_CursorState_cursor &&
-                        editView->cursorBlink
+                        text->cursorBlink
                 ) {
                         cairo_set_source_rgb(Window_context, CURSOR_COLOR);
                         cairo_set_line_width (
@@ -276,13 +284,14 @@ void Interface_findMouseHoverCell (
         size_t *cellX,
         size_t *cellY
 ) {
-        Interface_EditView *editView = &interface.editView;
+        Interface_EditView     *editView = &interface.editView;
+        Interface_EditViewText *text     = &editView->text;
         
         int intCellX = (int) (
-                (mouseX - interface.editView.textX) /
+                (mouseX - text->x) /
                 interface.fonts.glyphWidth);
         int intCellY = (int) (
-                (mouseY - interface.editView.innerY) /
+                (mouseY - editView->innerY) /
                 interface.fonts.lineHeight);
 
         *cellX = (size_t)(intCellX);
@@ -291,11 +300,11 @@ void Interface_findMouseHoverCell (
         if (intCellX < 0) { *cellX = 0; }
         if (intCellY < 0) { *cellY = 0; }
         
-        if (*cellX >= editView->textDisplay->width) {
-                *cellX = editView->textDisplay->width - 1;
+        if (*cellX >= text->display->width) {
+                *cellX = text->display->width - 1;
         }
-        if (*cellY >= editView->textDisplay->height) {
-                *cellY = editView->textDisplay->height - 1;
+        if (*cellY >= text->display->height) {
+                *cellY = text->display->height - 1;
         }
 }
 
@@ -304,7 +313,8 @@ void Interface_findMouseHoverCell (
  * be called when the user is actively selecting text with the mouse.
  */
 void Interface_updateTextSelection (void) {
-        Interface_EditView *editView = &interface.editView;
+        Interface_EditView     *editView = &interface.editView;
+        Interface_EditViewText *text     = &editView->text;
         
         size_t cellX = 0;
         size_t cellY = 0;
@@ -315,15 +325,15 @@ void Interface_updateTextSelection (void) {
         size_t realX;
         size_t realY;
         TextDisplay_getRealCoords (
-                editView->textDisplay,
+                text->display,
                 cellX, cellY,
                 &realX, &realY);
 
         EditBuffer_Cursor_moveTo (
-                editView->editBuffer->cursors,
+                text->buffer->cursors,
                 interface.mouseState.dragOriginRealX,
                 interface.mouseState.dragOriginRealY);
         EditBuffer_Cursor_selectTo (
-                editView->editBuffer->cursors,
+                text->buffer->cursors,
                 realX, realY);
 }

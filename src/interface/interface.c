@@ -32,10 +32,10 @@ Error Interface_run (void) {
  * Sets the active EditBuffer of the interface.
  */
 void Interface_setEditBuffer (EditBuffer *newEditBuffer) {
-        interface.editView.editBuffer = newEditBuffer;
+        interface.editView.text.buffer = newEditBuffer;
         TextDisplay_setModel (
-                interface.editView.textDisplay,
-                interface.editView.editBuffer);
+                interface.editView.text.display,
+                interface.editView.text.buffer);
 }
 
 /* Interface_setup
@@ -46,11 +46,11 @@ static Error Interface_setup (void) {
         Error err = Interface_loadFonts();
         if (err) { return err; }
         
-        if (interface.editView.textDisplay != NULL) {
-                free(interface.editView.textDisplay);
+        if (interface.editView.text.display != NULL) {
+                free(interface.editView.text.display);
         }
-        interface.editView.textDisplay = TextDisplay_new (
-                interface.editView.editBuffer,
+        interface.editView.text.display = TextDisplay_new (
+                interface.editView.text.buffer,
                 (size_t)interface.width,
                 (size_t)interface.height);
         
