@@ -207,3 +207,10 @@ void Interface_editViewText_invalidateDrawing (void) {
         Interface_EditViewText *text = &interface.editView.text;
         text->needsRedraw = 1;
 }
+
+/* Interface_editViewText_refresh
+ * Refreshes the edit view.
+ */
+void Interface_editViewText_refresh (void) {
+        
+}

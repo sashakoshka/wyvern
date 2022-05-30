@@ -49,10 +49,12 @@ void Interface_editViewRuler_redraw   (void);
 void Interface_editViewText_redraw    (void);
 void Interface_editViewText_redrawRow (size_t);
 
-void Interface_refresh          (void);
-void Interface_tabBar_refresh   (void);
-void Interface_Tab_refresh      (Interface_Tab *);
-void Interface_editView_refresh (void);
+void Interface_refresh               (void);
+void Interface_tabBar_refresh        (void);
+void Interface_Tab_refresh           (Interface_Tab *);
+void Interface_editView_refresh      (void);
+void Interface_editViewRuler_refresh (void);
+void Interface_editViewText_refresh  (void);
 
 void Interface_invalidateLayout                (void);
 void Interface_invalidateDrawing               (void);

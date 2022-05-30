@@ -130,8 +130,8 @@ void Interface_editView_refresh (void) {
                 interface.editView.needsRedraw = 0;
         }
 
-        // Interface_editViewRuler_refresh();
-        // Interface_editViewText_refresh();
+        Interface_editViewRuler_refresh();
+        Interface_editViewText_refresh();
 }
 
 /* Interface_editView_invalidateLayout
