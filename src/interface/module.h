@@ -40,14 +40,15 @@ void Interface_editView_recalculate      (void);
 void Interface_editViewRuler_recalculate (void);
 void Interface_editViewText_recalculate  (void);
 
-void Interface_redraw                 (void);
-void Interface_tabBar_redraw          (void);
-void Interface_Tab_redraw             (Interface_Tab *);
-void Interface_Tab_closeButtonRedraw  (Interface_Tab *);
-void Interface_editView_redraw        (void);
-void Interface_editViewRuler_redraw   (void);
-void Interface_editViewText_redraw    (void);
-void Interface_editViewText_redrawRow (size_t);
+void Interface_redraw                  (void);
+void Interface_tabBar_redraw           (void);
+void Interface_Tab_redraw              (Interface_Tab *);
+void Interface_Tab_closeButtonRedraw   (Interface_Tab *);
+void Interface_editView_redraw         (void);
+void Interface_editViewRuler_redraw    (void);
+void Interface_editViewText_redraw     (void);
+void Interface_editViewText_redrawRow  (size_t);
+void Interface_editViewText_redrawRune (size_t, size_t, int *);
 
 void Interface_refresh               (void);
 void Interface_tabBar_refresh        (void);
