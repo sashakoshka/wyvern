@@ -31,6 +31,12 @@
         xx > (element.x) && xx < (element.x) + (element.width) && \
         yy > (element.y) && yy < (element.y) + (element.height)
 
+#define Interface_Object_invalidateLayout(object) \
+        Interface_Object_invalidateLayoutBack((Interface_Object *)(object))
+
+#define Interface_Object_invalidateDrawing(object) \
+        Interface_Object_invalidateDrawingBack((Interface_Object *)(object))
+
 extern Interface interface;
 
 void Interface_recalculate               (void);
@@ -57,6 +63,8 @@ void Interface_editView_refresh      (void);
 void Interface_editViewRuler_refresh (void);
 void Interface_editViewText_refresh  (void);
 
+void Interface_Object_invalidateLayoutBack     (Interface_Object *);
+void Interface_Object_invalidateDrawingBack    (Interface_Object *);
 void Interface_invalidateLayout                (void);
 void Interface_invalidateDrawing               (void);
 void Interface_tabBar_invalidateLayout         (void);
@@ -65,10 +73,6 @@ void Interface_Tab_invalidateLayout            (Interface_Tab *);
 void Interface_Tab_invalidateDrawing           (Interface_Tab *);
 void Interface_editView_invalidateLayout       (void);
 void Interface_editView_invalidateDrawing      (void);
-void Interface_editViewRuler_invalidateLayout  (void);
-void Interface_editViewRuler_invalidateDrawing (void);
-void Interface_editViewText_invalidateLayout   (void);
-void Interface_editViewText_invalidateDrawing  (void);
 
 void Interface_handleKeyRight    (Window_State);
 void Interface_handleKeyLeft     (Window_State);

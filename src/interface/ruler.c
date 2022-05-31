@@ -51,23 +51,6 @@ void Interface_editViewRuler_redraw (void) {
         }
 }
 
-/* Interface_editViewRuler_invalidateLayout
- * Invalidates the layout of the ruler.
- */
-void Interface_editViewRuler_invalidateLayout (void) {
-        Interface_EditViewRuler *ruler = &interface.editView.ruler;
-        ruler->needsRedraw = 1;
-        ruler->needsRecalculate = 1;
-}
-
-/* Interface_editViewRuler_invalidateDrawing
- * Invalidates the drawing of the ruler.
- */
-void Interface_editViewRuler_invalidateDrawing (void) {
-        Interface_EditViewRuler *ruler = &interface.editView.ruler;
-        ruler->needsRedraw = 1;
-}
-
 /* Interface_editViewRuler_refresh
  * Refreshes the ruler.
  */

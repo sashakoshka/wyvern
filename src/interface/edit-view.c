@@ -142,8 +142,8 @@ void Interface_editView_invalidateLayout (void) {
         
         editView->needsRedraw = 1;
         editView->needsRecalculate = 1;
-        Interface_editViewRuler_invalidateLayout();
-        Interface_editViewText_invalidateLayout();
+        Interface_Object_invalidateLayout(&editView->ruler);
+        Interface_Object_invalidateLayout(&editView->text);
 }
 
 /* Interface_editView_invalidateDrawing
@@ -153,6 +153,6 @@ void Interface_editView_invalidateDrawing (void) {
         Interface_EditView *editView = &interface.editView;
         
         editView->needsRedraw = 1;
-        Interface_editViewRuler_invalidateDrawing();
-        Interface_editViewText_invalidateDrawing();
+        Interface_Object_invalidateDrawing(&editView->ruler);
+        Interface_Object_invalidateDrawing(&editView->text);
 }

@@ -199,23 +199,6 @@ void Interface_editViewText_redrawRune (size_t x, size_t y, int *inIndent) {
         }
 }
 
-/* Interface_editViewText_invalidateLayout
- * Invalidates the layout of the text.
- */
-void Interface_editViewText_invalidateLayout (void) {
-        Interface_EditViewText *text = &interface.editView.text;
-        text->needsRedraw = 1;
-        text->needsRecalculate = 1;
-}
-
-/* Interface_editViewText_invalidateDrawing
- * Invalidates the drawing of the text.
- */
-void Interface_editViewText_invalidateDrawing (void) {
-        Interface_EditViewText *text = &interface.editView.text;
-        text->needsRedraw = 1;
-}
-
 /* Interface_editViewText_refresh
  * Refreshes the text.
  */

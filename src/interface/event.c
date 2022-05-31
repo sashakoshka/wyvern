@@ -94,7 +94,8 @@ void Interface_handleMouseButton (
                                 EditBuffer_addNewCursor (
                                         interface.editView.text.buffer,
                                         realX, realY);
-                                Interface_editViewText_invalidateDrawing();
+                                Interface_Object_invalidateDrawing (
+                                        &interface.editView.text);
                                 break;
                         }
 
@@ -103,7 +104,8 @@ void Interface_handleMouseButton (
                         EditBuffer_Cursor_moveTo (
                                 interface.editView.text.buffer->cursors,
                                 realX, realY);
-                        Interface_editViewText_invalidateDrawing();
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
                 }
                 break;
         
@@ -133,8 +135,10 @@ void Interface_handleMouseButton (
                                         interface.editView.text.display);
                         }
         
-                        Interface_editViewRuler_invalidateDrawing();
-                        Interface_editViewText_invalidateDrawing();
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
                 }
                 break;
                 
@@ -154,8 +158,10 @@ void Interface_handleMouseButton (
                                         interface.editView.text.display);
                         }
                         
-                        Interface_editViewRuler_invalidateDrawing();
-                        Interface_editViewText_invalidateDrawing();
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
                 }
                 break;
         }
@@ -175,7 +181,7 @@ void Interface_handleMouseMove (int render, int x, int y) {
                 interface.mouseState.dragOriginInCell
         ) {
                 Interface_updateTextSelection();
-                Interface_editViewText_invalidateDrawing();
+                Interface_Object_invalidateDrawing(&interface.editView.text);
         }
         
         conditionallyRefresh(render);
@@ -190,7 +196,7 @@ void Interface_handleInterval (int render) {
         // TODO: just invalidate the cursor blinking? possibly create a function
         // to invalidate the text display and call that every time the text
         // changes (that is, not here).
-        Interface_editViewText_invalidateDrawing();
+        Interface_Object_invalidateDrawing(&interface.editView.text);
         
         conditionallyRefresh(render);
 }
@@ -223,7 +229,8 @@ void Interface_handleKey (
 
         case WINDOW_KEY_ESCAPE:
                 EditBuffer_clearExtraCursors(interface.editView.text.buffer);
-                        Interface_editViewText_invalidateDrawing();
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
                 break;
 
         case WINDOW_KEY_ENTER:
@@ -231,8 +238,10 @@ void Interface_handleKey (
                 if (state == Window_State_on) {
                         EditBuffer_cursorsInsertRune (
                                 interface.editView.text.buffer, '\n');
-                        Interface_editViewRuler_invalidateDrawing();
-                        Interface_editViewText_invalidateDrawing();
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
                 }
                 break;
 
@@ -244,8 +253,10 @@ void Interface_handleKey (
                                 EditBuffer_cursorsMoveH (
                                         interface.editView.text.buffer, 1);
                         }
-                        Interface_editViewRuler_invalidateDrawing();
-                        Interface_editViewText_invalidateDrawing();
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
                 }
                 break;
         
@@ -253,8 +264,10 @@ void Interface_handleKey (
                 if (state == Window_State_on) {
                         EditBuffer_cursorsBackspaceRune (
                                 interface.editView.text.buffer);
-                        Interface_editViewRuler_invalidateDrawing();
-                        Interface_editViewText_invalidateDrawing();
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
                 }
                 break;
         
@@ -262,8 +275,10 @@ void Interface_handleKey (
                 if (state == Window_State_on) {
                         EditBuffer_cursorsDeleteRune (
                                 interface.editView.text.buffer);
-                        Interface_editViewRuler_invalidateDrawing();
-                        Interface_editViewText_invalidateDrawing();
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
                 }
                 break;
 
@@ -271,8 +286,10 @@ void Interface_handleKey (
                 if (keySym >> 8 == 0 && state == Window_State_on) {
                         EditBuffer_cursorsInsertRune (
                                 interface.editView.text.buffer, rune);
-                        Interface_editViewRuler_invalidateDrawing();
-                        Interface_editViewText_invalidateDrawing();
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
                 }
                 break;
         }
@@ -306,7 +323,8 @@ void Interface_handleKeyUp (Window_State state) {
         } else {
                 EditBuffer_cursorsMoveV(interface.editView.text.buffer, -1);
         }
-        Interface_editViewText_invalidateDrawing();
+        
+        Interface_Object_invalidateDrawing(&interface.editView.text);
 }
 
 /* Interface_handleKeyDown
@@ -335,7 +353,8 @@ void Interface_handleKeyDown (Window_State state) {
         } else {
                 EditBuffer_cursorsMoveV(interface.editView.text.buffer, 1);
         }
-        Interface_editViewText_invalidateDrawing();
+        
+        Interface_Object_invalidateDrawing(&interface.editView.text);
 }
 
 /* Interface_handleKeyLeft
@@ -348,7 +367,8 @@ void Interface_handleKeyLeft (Window_State state) {
         } else {
                 EditBuffer_cursorsMoveH(interface.editView.text.buffer, -1);
         }
-        Interface_editViewText_invalidateDrawing();
+        
+        Interface_Object_invalidateDrawing(&interface.editView.text);
 }
 
 /* Interface_handleKeyRight
@@ -361,7 +381,8 @@ void Interface_handleKeyRight (Window_State state) {
         } else {
                 EditBuffer_cursorsMoveH(interface.editView.text.buffer, 1);
         }
-        Interface_editViewText_invalidateDrawing();
+        
+        Interface_Object_invalidateDrawing(&interface.editView.text);
 }
 
 /* conditionallyRefresh

@@ -119,3 +119,20 @@ void Interface_invalidateDrawing (void) {
         Interface_tabBar_invalidateDrawing();
         Interface_editView_invalidateDrawing();
 }
+
+/* Interface_Object_invalidateLayoutBack
+ * Invalidates the layout of a generic object. This should not be called on
+ * objects with children, as those children will not be processed.
+ */
+void Interface_Object_invalidateLayoutBack (Interface_Object *object) {
+        object->needsRedraw = 1;
+        object->needsRecalculate = 1;
+}
+
+/* Interface_Object_invalidateDrawingBack
+ * Invalidates the drawing of a generic object. This should not be called on
+ * objects with children, as those children will not be processed.
+ */
+void Interface_Object_invalidateDrawingBack (Interface_Object *object) {
+        object->needsRedraw = 1;
+}
