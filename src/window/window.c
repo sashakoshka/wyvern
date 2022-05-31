@@ -34,11 +34,11 @@ static int      screen  = { 0 };
 static Atom windowDeleteEvent;
 
 static struct {
-        void (*onRedraw)      (int, int);
-        void (*onMouseButton) (Window_MouseButton, Window_State);
-        void (*onMouseMove)   (int, int);
-        void (*onInterval)    (void);
-        void (*onKey)         (Window_KeySym, Rune, Window_State);
+        void (*onRedraw)      (int, int, int);
+        void (*onMouseButton) (int, Window_MouseButton, Window_State);
+        void (*onMouseMove)   (int, int, int);
+        void (*onInterval)    (int);
+        void (*onKey)         (int, Window_KeySym, Rune, Window_State);
 } callbacks = { 0 };
 
 static Error respondToEvent       (XEvent);
@@ -130,7 +130,7 @@ Error Window_listen (void) {
                 if (timedOut || newTimestamp > maxTimestamp) {
                         previousTimestamp = newTimestamp;
                         if (callbacks.onInterval != NULL) {
-                                callbacks.onInterval();
+                                callbacks.onInterval(1);
                         }
                 }
 
@@ -188,14 +188,14 @@ static Error respondToEvent (XEvent event) {
                         &garbageU);
                         
                 if (callbacks.onMouseMove == NULL) { break; }
-                callbacks.onMouseMove(mouseX, mouseY);
+                callbacks.onMouseMove(1, mouseX, mouseY);
                 break;
 
         case Expose:
                 if (callbacks.onRedraw == NULL) { break; }
 
                 cairo_paint(Window_context);
-                callbacks.onRedraw(width, height);
+                callbacks.onRedraw(1, width, height);
                 break;
 
         case ConfigureNotify: ;
@@ -230,19 +230,19 @@ static Error respondToEventButton (
         
         switch (button) {
         case 1:
-                callbacks.onMouseButton(Window_MouseButton_left, state);
+                callbacks.onMouseButton(1, Window_MouseButton_left, state);
                 break;
         case 2:
-                callbacks.onMouseButton(Window_MouseButton_middle, state);
+                callbacks.onMouseButton(1, Window_MouseButton_middle, state);
                 break;
         case 3:
-                callbacks.onMouseButton(Window_MouseButton_right, state);
+                callbacks.onMouseButton(1, Window_MouseButton_right, state);
                 break;
         case 4:
-                callbacks.onMouseButton(Window_MouseButton_scrollUp, state);
+                callbacks.onMouseButton(1, Window_MouseButton_scrollUp, state);
                 break;
         case 5:
-                callbacks.onMouseButton(Window_MouseButton_scrollDown, state);
+                callbacks.onMouseButton(1, Window_MouseButton_scrollDown, state);
                 break;
         }
 
@@ -261,7 +261,7 @@ static Error respondToEventKey (
                 0, event->state & ShiftMask ? 1 : 0);
         
         Rune rune = (Rune)(xkb_keysym_to_utf32((xkb_keysym_t)(keySym)));
-        callbacks.onKey(keySym, rune, state);
+        callbacks.onKey(1, keySym, rune, state);
 
         return Error_none;
 }
@@ -344,7 +344,7 @@ Error Window_setTitle (const char *title) {
  * Sets the function to be called when the window is redrawn. The new window
  * dimensions are passed as width and height.
  */
-void Window_onRedraw (void (*callback) (int width, int height)) {
+void Window_onRedraw (void (*callback) (int render, int width, int height)) {
         callbacks.onRedraw = callback;
 }
 
@@ -354,7 +354,10 @@ void Window_onRedraw (void (*callback) (int width, int height)) {
  * pressed or released is passed as state.
  */
 void Window_onMouseButton (
-        void (*callback) (Window_MouseButton button, Window_State state)
+        void (*callback) (
+                int                render,
+                Window_MouseButton button,
+                Window_State       state)
 ) {
         callbacks.onMouseButton = callback;
 }
@@ -363,14 +366,14 @@ void Window_onMouseButton (
  * Sets the function to be called when the mouse is moved. The new mouse
  * position is passed as x and y.
  */
-void Window_onMouseMove (void (*callback) (int x, int y)) {
+void Window_onMouseMove (void (*callback) (int render, int x, int y)) {
         callbacks.onMouseMove = callback;
 }
 
 /* Window_onInterval
  * Sets the function to be called on an interval specified by Window_interval.
  */
-void Window_onInterval (void (*callback) (void)) {
+void Window_onInterval (void (*callback) (int render)) {
         callbacks.onInterval = callback;
 }
 
@@ -382,6 +385,7 @@ void Window_onInterval (void (*callback) (void)) {
  */
 void Window_onKey (
         void (*callback) (
+                int           render,
                 Window_KeySym keySym,
                 Rune          rune,
                 Window_State  state)

@@ -32,7 +32,7 @@ void Interface_onSwitchTab (void (*callback) (Interface_Tab *)) {
 /* Interface_handleRedraw
  * Fires when the screen needs to be redrawn.
  */
-void Interface_handleRedraw (int width, int height) {
+void Interface_handleRedraw (int render, int width, int height) {
         // TODO: make generic setter method for this
         interface.width  = width;
         interface.height = height;
@@ -47,6 +47,7 @@ void Interface_handleRedraw (int width, int height) {
  * Fires when a mouse button is pressed or released.
  */
 void Interface_handleMouseButton (
+        int                render, 
         Window_MouseButton button,
         Window_State state
 ) {
@@ -163,7 +164,7 @@ void Interface_handleMouseButton (
 /* Interface_handleMouseMove
  * Fires when the mouse is moved.
  */
-void Interface_handleMouseMove (int x, int y) {
+void Interface_handleMouseMove (int render, int x, int y) {
         interface.mouseState.x = x;
         interface.mouseState.y = y;
 
@@ -181,7 +182,7 @@ void Interface_handleMouseMove (int x, int y) {
 /* Interface_handleInterval
  * Fires every 500 milliseconds.
  */
-void Interface_handleInterval (void) {
+void Interface_handleInterval (int render) {
         interface.editView.text.cursorBlink =
                 !interface.editView.text.cursorBlink;
         // TODO: just invalidate the cursor blinking? possibly create a function
@@ -195,7 +196,11 @@ void Interface_handleInterval (void) {
 /* Interface_handleKey
  * Fires when a key is pressed or released.
  */
-void Interface_handleKey (Window_KeySym keySym, Rune rune, Window_State state) {
+void Interface_handleKey (
+        int           render,
+        Window_KeySym keySym,
+        Rune          rune,
+        Window_State  state) {
         // if (state == Window_State_on) {
                 // printf("%lx\n", keySym);
         // }

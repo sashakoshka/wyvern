@@ -74,11 +74,11 @@ void Interface_handleKeyRight    (Window_State);
 void Interface_handleKeyLeft     (Window_State);
 void Interface_handleKeyDown     (Window_State);
 void Interface_handleKeyUp       (Window_State);
-void Interface_handleKey         (Window_KeySym, Rune, Window_State);
-void Interface_handleInterval    (void);
-void Interface_handleMouseMove   (int, int);
-void Interface_handleMouseButton (Window_MouseButton, Window_State);
-void Interface_handleRedraw      (int, int);
+void Interface_handleKey         (int, Window_KeySym, Rune, Window_State);
+void Interface_handleInterval    (int);
+void Interface_handleMouseMove   (int, int, int);
+void Interface_handleMouseButton (int, Window_MouseButton, Window_State);
+void Interface_handleRedraw      (int, int, int);
 
 Error Interface_loadFonts      (void);
 void  Interface_fontNormal     (void);
