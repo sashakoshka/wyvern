@@ -156,3 +156,21 @@ void Interface_editView_invalidateDrawing (void) {
         Interface_Object_invalidateDrawing(&editView->ruler);
         Interface_Object_invalidateDrawing(&editView->text);
 }
+
+/* Interface_editView_getHoveredObject
+ * Returns the object that the x and y coordinates are within.
+ */
+Interface_Object *Interface_editView_getHoveredObject (int x, int y) {
+        Interface_EditView *editView = &interface.editView;
+        if (!Interface_Object_isWithinBounds(editView, x, y)) { return NULL; }
+        
+        if (Interface_Object_isWithinBounds(&editView->ruler, x, y)) {
+                return TO_GENERIC(&editView->ruler);
+        }
+        
+        if (Interface_Object_isWithinBounds(&editView->text, x, y)) {
+                return TO_GENERIC(&editView->text);
+        }
+
+        return TO_GENERIC(editView);
+}

@@ -35,6 +35,9 @@
 
 #define TO_GENERIC(object) (Interface_Object *)(object)
 
+#define Interface_Object_isWithinBounds(object, x, y) \
+        Interface_Object_isWithinBoundsBack(TO_GENERIC(object), x, y)
+
 #define Interface_Object_invalidateLayout(object) \
         Interface_Object_invalidateLayoutBack(TO_GENERIC(object))
 
@@ -42,6 +45,12 @@
         Interface_Object_invalidateDrawingBack(TO_GENERIC(object))
 
 extern Interface interface;
+
+Interface_Object *Interface_getHoveredObject          (int, int);
+Interface_Object *Interface_tabBar_getHoveredObject   (int, int);
+Interface_Object *Interface_editView_getHoveredObject (int, int);
+
+int Interface_Object_isWithinBoundsBack (Interface_Object *, int, int);
 
 void Interface_recalculate               (void);
 void Interface_Tab_recalculate           (Interface_Tab *);

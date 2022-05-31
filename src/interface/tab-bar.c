@@ -378,6 +378,14 @@ void Interface_newTabButton_redraw (void) {
                 newTabButton->width,
                 newTabButton->height);
         cairo_fill(Window_context);
+        
+        // cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
+        // Interface_roundedRectangle (
+                // newTabButton->x,
+                // newTabButton->y,
+                // newTabButton->width,
+                // newTabButton->height, 4);
+        // cairo_fill(Window_context);
 
         cairo_set_source_rgb(Window_context, BUTTON_SYMBOL_COLOR);
         double verticalX   = newTabButton->x + newTabButton->width / 2;
@@ -421,4 +429,26 @@ void Interface_newTabButton_refresh (void) {
                 Interface_newTabButton_redraw();
                 newTabButton->needsRedraw = 0;
         }
+}
+
+/* Interface_tabBar_getHoveredObject
+ * Returns the object that the x and y coordinates are within.
+ */
+Interface_Object *Interface_tabBar_getHoveredObject (int x, int y) {
+        Interface_TabBar *tabBar = &interface.tabBar;
+        if (!Interface_Object_isWithinBounds(tabBar, x, y)) { return NULL; }
+        
+        if (Interface_Object_isWithinBounds(&tabBar->newTabButton, x, y)) {
+                return TO_GENERIC(&tabBar->newTabButton);
+        }
+
+        Interface_Tab *tab = interface.tabBar.tabs;
+        while (tab != NULL) {
+                if (Interface_Object_isWithinBounds(tab, x, y)) {
+                        return TO_GENERIC(tab);
+                }
+                tab = tab->next;
+        }
+
+        return TO_GENERIC(tabBar);
 }

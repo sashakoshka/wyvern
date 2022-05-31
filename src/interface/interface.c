@@ -136,3 +136,31 @@ void Interface_Object_invalidateLayoutBack (Interface_Object *object) {
 void Interface_Object_invalidateDrawingBack (Interface_Object *object) {
         object->needsRedraw = 1;
 }
+
+/* Interface_getHoveredObject
+ * Returns the object that the x and y coordinates are within.
+ */
+Interface_Object *Interface_getHoveredObject (int x, int y) {
+        Interface_Object *object;
+
+        object = Interface_tabBar_getHoveredObject(x, y);
+        if (object != NULL) { return object; }
+
+        object = Interface_editView_getHoveredObject(x, y);
+        if (object != NULL) { return object; }
+
+        return TO_GENERIC(&interface);
+}
+
+/* Interface_Object_isWithinBoundsBack
+ * Returns 1 if the x and y coordinates are within the object's bounds.
+ */
+int Interface_Object_isWithinBoundsBack (
+        Interface_Object *object,
+        int x,
+        int y
+) {
+        return 
+                x > (object->x) && x < (object->x) + (object->width) &&
+                y > (object->y) && y < (object->y) + (object->height);
+}

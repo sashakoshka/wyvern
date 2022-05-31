@@ -44,6 +44,9 @@ typedef struct {
         int    dragOriginInCell;
         size_t dragOriginRealX;
         size_t dragOriginRealY;
+
+        Interface_Object *hoverObject;
+        Interface_Object *downObject;
 } Interface_MouseState;
 
 typedef struct {

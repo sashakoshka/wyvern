@@ -53,6 +53,11 @@ void Interface_handleMouseButton (
         Window_MouseButton button,
         Window_State state
 ) {
+        interface.mouseState.downObject = Interface_getHoveredObject (
+                interface.mouseState.x,
+                interface.mouseState.y);
+        interface.mouseState.hoverObject = interface.mouseState.downObject;
+
         // something is going to move or change - we need the cursor to be
         // visible
         interface.editView.text.cursorBlink = 1;
@@ -175,6 +180,10 @@ void Interface_handleMouseButton (
 void Interface_handleMouseMove (int render, int x, int y) {
         interface.mouseState.x = x;
         interface.mouseState.y = y;
+        
+        interface.mouseState.hoverObject = Interface_getHoveredObject (
+                interface.mouseState.x,
+                interface.mouseState.y);
 
         if (
                 interface.mouseState.left &&
