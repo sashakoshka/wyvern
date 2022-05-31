@@ -181,7 +181,9 @@ void Interface_handleMouseButton (
 void Interface_handleMouseMove (int render, int x, int y) {
         interface.mouseState.x = x;
         interface.mouseState.y = y;
-        
+
+        interface.mouseState.previousHoverObject =
+                interface.mouseState.hoverObject;
         interface.mouseState.hoverObject = Interface_getHoveredObject (
                 interface.mouseState.x,
                 interface.mouseState.y);

@@ -41,6 +41,10 @@
 
 #define Interface_Object_isHovered(object) \
         interface.mouseState.hoverObject == TO_GENERIC(object)
+        
+#define Interface_Object_isNewlyHovered(object) \
+        interface.mouseState.hoverObject == TO_GENERIC(object) && \
+        interface.mouseState.previousHoverObject != TO_GENERIC(object)
 
 #define Interface_Object_isClicked(object) \
         interface.mouseState.downObject == TO_GENERIC(object)

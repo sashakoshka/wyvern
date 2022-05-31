@@ -42,6 +42,7 @@ typedef struct {
         size_t dragOriginRealX;
         size_t dragOriginRealY;
 
+        Interface_Object *previousHoverObject;
         Interface_Object *hoverObject;
         Interface_Object *downObject;
 } Interface_MouseState;
