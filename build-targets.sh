@@ -29,7 +29,7 @@ val)
 
 prof)
         buildAll && "./$DEBUG_PATH" && \
-        gprof $DEBUG_PATH gmon.out
+        gprof -b $DEBUG_PATH gmon.out
         ;;
 *)
         buildModule $1 $2
