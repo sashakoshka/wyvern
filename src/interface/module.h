@@ -14,12 +14,14 @@
 #define TEXT_COLOR       0.925, 0.937, 0.957
 #define ACCENT_COLOR     0.506, 0.631, 0.757
 
-#define RULER_COLOR         0.180, 0.204, 0.251
-#define RULER_TEXT_COLOR    0.298, 0.337, 0.416
-#define CURSOR_COLOR        0.298, 0.337, 0.416
-#define BAD_CHAR_COLOR      0.749, 0.380, 0.419
-#define SELECTION_COLOR     0.298, 0.337, 0.416
-#define BUTTON_SYMBOL_COLOR 0.682, 0.718, 0.776
+#define RULER_COLOR               0.180, 0.204, 0.251
+#define RULER_TEXT_COLOR          0.298, 0.337, 0.416
+#define CURSOR_COLOR              0.298, 0.337, 0.416
+#define BAD_CHAR_COLOR            0.749, 0.380, 0.419
+#define SELECTION_COLOR           0.298, 0.337, 0.416
+#define BUTTON_SYMBOL_COLOR       0.682, 0.718, 0.776
+#define BUTTON_SYMBOL_HOVER_COLOR 0.298, 0.337, 0.416
+#define BUTTON_SYMBOL_CLICK_COLOR 0.188, 0.212, 0.263
 
 #define TAB_BAR_COLOR           0.141, 0.161, 0.200
 #define INACTIVE_TAB_COLOR      0.141, 0.161, 0.200
@@ -42,9 +44,9 @@
 #define Interface_Object_isHovered(object) \
         interface.mouseState.hoverObject == TO_GENERIC(object)
         
-#define Interface_Object_isNewlyHovered(object) \
+#define Interface_Object_isNewlyHovered(object) ( \
         interface.mouseState.hoverObject == TO_GENERIC(object) && \
-        interface.mouseState.previousHoverObject != TO_GENERIC(object)
+        interface.mouseState.previousHoverObject != TO_GENERIC(object))
 
 #define Interface_Object_isClicked(object) \
         interface.mouseState.downObject == TO_GENERIC(object)

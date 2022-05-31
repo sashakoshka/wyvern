@@ -370,8 +370,20 @@ void Interface_newTabButton_recalculate (void) {
 void Interface_newTabButton_redraw (void) {
         Interface_NewTabButton *newTabButton = &interface.tabBar.newTabButton;
 
-        if (Interface_Object_isNewlyHovered(newTabButton)) {
-                cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
+        if (
+                Interface_Object_isHovered(newTabButton) ||
+                Interface_Object_isClicked(newTabButton)
+        ) {
+                if (Interface_Object_isClicked(newTabButton)) {
+                        cairo_set_source_rgb (
+                                Window_context,
+                                BUTTON_SYMBOL_CLICK_COLOR);
+                } else {
+                        cairo_set_source_rgb (
+                                Window_context,
+                                BUTTON_SYMBOL_HOVER_COLOR);
+                }
+                
                 Interface_roundedRectangle (
                         newTabButton->x,
                         newTabButton->y,

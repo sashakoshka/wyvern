@@ -55,9 +55,10 @@
         double y;        \
         double width;    \
         double height;   \
-        int    needsRecalculate; \
-        int    needsRedraw;      \
-        int    redrawOnHover;
+        int    needsRecalculate;    \
+        int    needsRedraw;         \
+        int    redrawOnHover;       \
+        int    redrawOnMouseButton;
 
 struct Interface_Object {
         INTERFACE_OBJECT

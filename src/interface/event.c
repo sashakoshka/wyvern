@@ -53,9 +53,24 @@ void Interface_handleMouseButton (
         Window_MouseButton button,
         Window_State state
 ) {
-        interface.mouseState.downObject = Interface_getHoveredObject (
+        Interface_Object *object = Interface_getHoveredObject (
                 interface.mouseState.x,
                 interface.mouseState.y);
+                
+        if (state == Window_State_on) {
+                if (object != NULL && object->redrawOnMouseButton) {
+                        object->needsRedraw = 1;
+                }
+
+                interface.mouseState.downObject = object;
+        } else {
+                object = interface.mouseState.downObject;
+                if (object != NULL && object->redrawOnMouseButton) {
+                        object->needsRedraw = 1;
+                }
+        
+                interface.mouseState.downObject = NULL;
+        }
 
         // something is going to move or change - we need the cursor to be
         // visible
