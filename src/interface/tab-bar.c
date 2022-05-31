@@ -4,8 +4,6 @@
 static Interface_Tab *Interface_Tab_new  (void);
 static void           Interface_Tab_free (Interface_Tab *);
 
-// TABBAR MEMBER FUNCTIONS
-
 /* Interface_tabBar_recalculate
  * Recalculates the position and size of the tab bar.
  */
@@ -332,13 +330,13 @@ void Interface_Tab_invalidateDrawing (Interface_Tab *tab) {
  * needs to redrawn.
  */
 void Interface_Tab_refresh (Interface_Tab *tab) {
-        if (interface.tabBar.needsRecalculate == 1) {
+        if (tab->needsRecalculate == 1) {
                 Interface_Tab_recalculate(tab);
-                interface.tabBar.needsRecalculate = 0;
+                tab->needsRecalculate = 0;
         }
         
-        if (interface.tabBar.needsRedraw == 1) {
+        if (tab->needsRedraw == 1) {
                 Interface_Tab_redraw(tab);
-                interface.tabBar.needsRedraw = 0;
+                tab->needsRedraw = 0;
         }
 }

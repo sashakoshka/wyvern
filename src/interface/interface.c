@@ -53,15 +53,15 @@ static Error Interface_setup (void) {
                 interface.editView.text.buffer,
                 (size_t)interface.width,
                 (size_t)interface.height);
+                
+        Window_interval = 500;
+        Window_setTitle("Text Editor");
         
         Window_onRedraw      (Interface_handleRedraw);
         Window_onMouseButton (Interface_handleMouseButton);
         Window_onMouseMove   (Interface_handleMouseMove);
         Window_onInterval    (Interface_handleInterval);
         Window_onKey         (Interface_handleKey);
-        
-        Window_interval = 500;
-        Window_setTitle("Text Editor");
 
         return Error_none;
 }
