@@ -132,3 +132,8 @@ struct Interface {
         Interface_ModKeyState modKeyState;
         Interface_Callbacks   callbacks;
 };
+
+// TODO: make function that checks to see if the mouse coordinates are witin
+// the bounds of an object, and create system that recursively goes through all
+// objects and determines which one is being hovered over, and then sets a value
+// in that element sa ying it is.

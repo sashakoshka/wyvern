@@ -109,7 +109,7 @@ Error Window_listen (void) {
         while (listening) {
                 XEvent event;
                 int timedOut = nextXEventOrTimeout(&event, Window_interval);
-                int render   = XEventsQueued(display, QueuedAfterFlush) == 0;
+                int render   = XEventsQueued(display, QueuedAfterFlush) < 2;
 
                 cairo_push_group(Window_context);
 
