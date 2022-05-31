@@ -56,7 +56,6 @@ void Interface_handleMouseButton (
         interface.mouseState.downObject = Interface_getHoveredObject (
                 interface.mouseState.x,
                 interface.mouseState.y);
-        interface.mouseState.hoverObject = interface.mouseState.downObject;
 
         // something is going to move or change - we need the cursor to be
         // visible
@@ -182,11 +181,29 @@ void Interface_handleMouseMove (int render, int x, int y) {
         interface.mouseState.x = x;
         interface.mouseState.y = y;
 
-        interface.mouseState.previousHoverObject =
-                interface.mouseState.hoverObject;
-        interface.mouseState.hoverObject = Interface_getHoveredObject (
+        Interface_Object *newHoverObject = Interface_getHoveredObject (
                 interface.mouseState.x,
                 interface.mouseState.y);
+
+        if (interface.mouseState.hoverObject != newHoverObject) {
+                if (
+                        interface.mouseState.hoverObject != NULL &&
+                        interface.mouseState.hoverObject->redrawOnHover
+                ) {
+                        interface.mouseState.hoverObject->needsRedraw = 1;
+                }
+                
+                if (
+                        newHoverObject != NULL &&
+                        newHoverObject->redrawOnHover
+                ) {
+                        newHoverObject->needsRedraw = 1;
+                }
+        }
+        
+        interface.mouseState.previousHoverObject =
+                interface.mouseState.hoverObject;
+        interface.mouseState.hoverObject = newHoverObject;
 
         if (
                 interface.mouseState.left && (

@@ -49,7 +49,6 @@
 #define Interface_Object_isClicked(object) \
         interface.mouseState.downObject == TO_GENERIC(object)
 
-
 extern Interface interface;
 
 Interface_Object *Interface_getHoveredObject          (int, int);

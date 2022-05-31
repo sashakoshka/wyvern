@@ -370,22 +370,24 @@ void Interface_newTabButton_recalculate (void) {
 void Interface_newTabButton_redraw (void) {
         Interface_NewTabButton *newTabButton = &interface.tabBar.newTabButton;
 
-        cairo_set_source_rgb(Window_context, TAB_BAR_COLOR);
-        cairo_rectangle (
-                Window_context,
-                newTabButton->x,
-                newTabButton->y,
-                newTabButton->width,
-                newTabButton->height);
-        cairo_fill(Window_context);
-        
-        // cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
-        // Interface_roundedRectangle (
-                // newTabButton->x,
-                // newTabButton->y,
-                // newTabButton->width,
-                // newTabButton->height, 4);
-        // cairo_fill(Window_context);
+        if (Interface_Object_isNewlyHovered(newTabButton)) {
+                cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
+                Interface_roundedRectangle (
+                        newTabButton->x,
+                        newTabButton->y,
+                        newTabButton->width,
+                        newTabButton->height, 4);
+                cairo_fill(Window_context);
+        } else {
+                cairo_set_source_rgb(Window_context, TAB_BAR_COLOR);
+                cairo_rectangle (
+                        Window_context,
+                        newTabButton->x,
+                        newTabButton->y,
+                        newTabButton->width,
+                        newTabButton->height);
+                cairo_fill(Window_context);
+        }
 
         cairo_set_source_rgb(Window_context, BUTTON_SYMBOL_COLOR);
         double verticalX   = newTabButton->x + newTabButton->width / 2;

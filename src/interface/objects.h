@@ -56,7 +56,8 @@
         double width;    \
         double height;   \
         int    needsRecalculate; \
-        int    needsRedraw;
+        int    needsRedraw;      \
+        int    redrawOnHover;
 
 struct Interface_Object {
         INTERFACE_OBJECT

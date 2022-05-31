@@ -63,6 +63,8 @@ static Error Interface_setup (void) {
         Window_onInterval    (Interface_handleInterval);
         Window_onKey         (Interface_handleKey);
 
+        interface.tabBar.newTabButton.redrawOnHover = 1;
+
         return Error_none;
 }
 
