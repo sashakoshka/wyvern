@@ -41,9 +41,9 @@ static struct {
         void (*onKey)         (int, Window_KeySym, Rune, Window_State);
 } callbacks = { 0 };
 
-static Error respondToEvent       (XEvent);
-static Error respondToEventButton (unsigned int, Window_State);
-static Error respondToEventKey    (XKeyEvent *, Window_State);
+static Error respondToEvent       (int, XEvent);
+static Error respondToEventButton (int, unsigned int, Window_State);
+static Error respondToEventKey    (int, XKeyEvent *, Window_State);
 
 static int       fileDescriptorTimeout (int, time_t);
 static int       nextXEventOrTimeout   (XEvent *, time_t);
@@ -107,19 +107,14 @@ Error Window_show (void) {
 Error Window_listen (void) {
         listening = 1;
         while (listening) {
-                cairo_push_group(Window_context);
-
-                // TODO: use XNextEventsQueued to get the number of queued
-                // events. if there are more queued events after this, tell
-                // whatever handles the events to *not draw anything yet*, and
-                // don't paint, or flush. this will keep events from
-                // stacking up while the program struggles to paint each one
-                // on lower end hardware (or in valgrind!).
-        
                 XEvent event;
                 int timedOut = nextXEventOrTimeout(&event, Window_interval);
+                int render   = XEventsQueued(display, QueuedAfterFlush) == 0;
+
+                cairo_push_group(Window_context);
+
                 if (!timedOut) {
-                        Error err = respondToEvent(event);
+                        Error err = respondToEvent(render, event);
                         if (err) { return err; }
                 }
 
@@ -134,7 +129,6 @@ Error Window_listen (void) {
                         }
                 }
 
-                // TODO: only paint and flush when drawing has taken place.
                 cairo_pop_group_to_source(Window_context);
                 cairo_paint(Window_context);        
                 cairo_surface_flush(Window_surface);
@@ -146,12 +140,13 @@ Error Window_listen (void) {
 /* respondToEvent
  * Handle a single event from the Xlib event loop in Window_listen.
  */
-static Error respondToEvent (XEvent event) {
+static Error respondToEvent (int render, XEvent event) {
         Error err;
         
         switch (event.type) {
         case ButtonPress:
                 err = respondToEventButton (
+                        render,
                         event.xbutton.button,
                         Window_State_on);
                 if (err) { return err; }
@@ -159,18 +154,19 @@ static Error respondToEvent (XEvent event) {
         
         case ButtonRelease:
                 err = respondToEventButton (
+                        render,
                         event.xbutton.button,
                         Window_State_off);
                 if (err) { return err; }
                 break;
 
         case KeyPress:
-                err = respondToEventKey(&event.xkey, Window_State_on);
+                err = respondToEventKey(render, &event.xkey, Window_State_on);
                 if (err) { return err; }
                 break;
         
         case KeyRelease:
-                err = respondToEventKey(&event.xkey, Window_State_off);
+                err = respondToEventKey(render, &event.xkey, Window_State_off);
                 if (err) { return err; }
                 break;
 
@@ -188,14 +184,14 @@ static Error respondToEvent (XEvent event) {
                         &garbageU);
                         
                 if (callbacks.onMouseMove == NULL) { break; }
-                callbacks.onMouseMove(1, mouseX, mouseY);
+                callbacks.onMouseMove(render, mouseX, mouseY);
                 break;
 
         case Expose:
                 if (callbacks.onRedraw == NULL) { break; }
 
                 cairo_paint(Window_context);
-                callbacks.onRedraw(1, width, height);
+                callbacks.onRedraw(render, width, height);
                 break;
 
         case ConfigureNotify: ;
@@ -223,6 +219,7 @@ static Error respondToEvent (XEvent event) {
  * Respond to a single mouse button event.
  */
 static Error respondToEventButton (
+        int          render, 
         unsigned int button,
         Window_State state
 ) {
@@ -230,19 +227,34 @@ static Error respondToEventButton (
         
         switch (button) {
         case 1:
-                callbacks.onMouseButton(1, Window_MouseButton_left, state);
+                callbacks.onMouseButton (
+                        render,
+                        Window_MouseButton_left,
+                        state);
                 break;
         case 2:
-                callbacks.onMouseButton(1, Window_MouseButton_middle, state);
+                callbacks.onMouseButton (
+                        render,
+                        Window_MouseButton_middle,
+                        state);
                 break;
         case 3:
-                callbacks.onMouseButton(1, Window_MouseButton_right, state);
+                callbacks.onMouseButton (
+                        render,
+                        Window_MouseButton_right,
+                        state);
                 break;
         case 4:
-                callbacks.onMouseButton(1, Window_MouseButton_scrollUp, state);
+                callbacks.onMouseButton (
+                        render,
+                        Window_MouseButton_scrollUp,
+                        state);
                 break;
         case 5:
-                callbacks.onMouseButton(1, Window_MouseButton_scrollDown, state);
+                callbacks.onMouseButton (
+                        render,
+                        Window_MouseButton_scrollDown,
+                        state);
                 break;
         }
 
@@ -250,6 +262,7 @@ static Error respondToEventButton (
 }
 
 static Error respondToEventKey (
+        int          render,
         XKeyEvent   *event,
         Window_State state
 ) {
@@ -261,7 +274,7 @@ static Error respondToEventKey (
                 0, event->state & ShiftMask ? 1 : 0);
         
         Rune rune = (Rune)(xkb_keysym_to_utf32((xkb_keysym_t)(keySym)));
-        callbacks.onKey(1, keySym, rune, state);
+        callbacks.onKey(render, keySym, rune, state);
 
         return Error_none;
 }
