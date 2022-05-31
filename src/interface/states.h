@@ -39,9 +39,6 @@ typedef struct {
         Window_State middle;
         Window_State right;
 
-        int    dragOriginX;
-        int    dragOriginY;
-        int    dragOriginInCell;
         size_t dragOriginRealX;
         size_t dragOriginRealY;
 

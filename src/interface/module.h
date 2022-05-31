@@ -28,11 +28,6 @@
 #define ACTIVE_TAB_TEXT_COLOR   0.925, 0.937, 0.957
 #define CLOSE_BUTTON_COLOR      0.749, 0.380, 0.419
 
-// TODO: get rid of this macro
-#define HITBOX(xx, yy, element) \
-        xx > (element.x) && xx < (element.x) + (element.width) && \
-        yy > (element.y) && yy < (element.y) + (element.height)
-
 #define TO_GENERIC(object) (Interface_Object *)(object)
 
 #define Interface_Object_isWithinBounds(object, x, y) \
@@ -43,6 +38,13 @@
 
 #define Interface_Object_invalidateDrawing(object) \
         Interface_Object_invalidateDrawingBack(TO_GENERIC(object))
+
+#define Interface_Object_isHovered(object) \
+        interface.mouseState.hoverObject == TO_GENERIC(object)
+
+#define Interface_Object_isClicked(object) \
+        interface.mouseState.downObject == TO_GENERIC(object)
+
 
 extern Interface interface;
 

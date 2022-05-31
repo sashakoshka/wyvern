@@ -62,10 +62,15 @@ void Interface_handleMouseButton (
         // visible
         interface.editView.text.cursorBlink = 1;
 
-        int inCell = HITBOX (
-                interface.mouseState.x,
-                interface.mouseState.y,
-                interface.editView);
+        int inCell =
+                Interface_Object_isHovered(&interface.editView)      ||
+                Interface_Object_isHovered(&interface.editView.text) ||
+                Interface_Object_isHovered(&interface.editView.ruler);
+
+        int dragOriginInCell =
+                Interface_Object_isClicked(&interface.editView)      ||
+                Interface_Object_isClicked(&interface.editView.text) ||
+                Interface_Object_isClicked(&interface.editView.ruler);
         
         size_t cellX = 0;
         size_t cellY = 0;
@@ -76,10 +81,6 @@ void Interface_handleMouseButton (
                         interface.mouseState.x,
                         interface.mouseState.y,
                         &cellX, &cellY);
-                
-                interface.mouseState.dragOriginX = interface.mouseState.x;
-                interface.mouseState.dragOriginY = interface.mouseState.y;
-                interface.mouseState.dragOriginInCell = inCell;
         
                 interface.mouseState.left = state;
         
@@ -133,7 +134,7 @@ void Interface_handleMouseButton (
 
                         if (
                                 interface.mouseState.left &&
-                                interface.mouseState.dragOriginInCell
+                                dragOriginInCell
                         ) {
                                 Interface_updateTextSelection();
                                 TextDisplay_grab (
@@ -156,7 +157,7 @@ void Interface_handleMouseButton (
 
                         if (
                                 interface.mouseState.left &&
-                                interface.mouseState.dragOriginInCell
+                                dragOriginInCell
                         ) {
                                 Interface_updateTextSelection();
                                 TextDisplay_grab (
@@ -186,8 +187,11 @@ void Interface_handleMouseMove (int render, int x, int y) {
                 interface.mouseState.y);
 
         if (
-                interface.mouseState.left &&
-                interface.mouseState.dragOriginInCell
+                interface.mouseState.left && (
+                        Interface_Object_isClicked(&interface.editView)      ||
+                        Interface_Object_isClicked(&interface.editView.text) ||
+                        Interface_Object_isClicked(&interface.editView.ruler)
+                )
         ) {
                 Interface_updateTextSelection();
                 Interface_Object_invalidateDrawing(&interface.editView.text);
