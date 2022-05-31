@@ -14,11 +14,12 @@
 #define TEXT_COLOR       0.925, 0.937, 0.957
 #define ACCENT_COLOR     0.506, 0.631, 0.757
 
-#define RULER_COLOR      0.180, 0.204, 0.251
-#define RULER_TEXT_COLOR 0.298, 0.337, 0.416
-#define CURSOR_COLOR     0.298, 0.337, 0.416
-#define BAD_CHAR_COLOR   0.749, 0.380, 0.419
-#define SELECTION_COLOR  0.298, 0.337, 0.416
+#define RULER_COLOR         0.180, 0.204, 0.251
+#define RULER_TEXT_COLOR    0.298, 0.337, 0.416
+#define CURSOR_COLOR        0.298, 0.337, 0.416
+#define BAD_CHAR_COLOR      0.749, 0.380, 0.419
+#define SELECTION_COLOR     0.298, 0.337, 0.416
+#define BUTTON_SYMBOL_COLOR 0.682, 0.718, 0.776
 
 #define TAB_BAR_COLOR           0.141, 0.161, 0.200
 #define INACTIVE_TAB_COLOR      0.141, 0.161, 0.200
@@ -40,16 +41,17 @@
 extern Interface interface;
 
 void Interface_recalculate               (void);
-void Interface_tabBar_recalculate        (void);
 void Interface_Tab_recalculate           (Interface_Tab *);
+void Interface_newTabButton_recalculate  (void);
+void Interface_tabBar_recalculate        (void);
 void Interface_editView_recalculate      (void);
 void Interface_editViewRuler_recalculate (void);
 void Interface_editViewText_recalculate  (void);
 
 void Interface_redraw                  (void);
-void Interface_tabBar_redraw           (void);
 void Interface_Tab_redraw              (Interface_Tab *);
-void Interface_Tab_closeButtonRedraw   (Interface_Tab *);
+void Interface_newTabButton_redraw     (void);
+void Interface_tabBar_redraw           (void);
 void Interface_editView_redraw         (void);
 void Interface_editViewRuler_redraw    (void);
 void Interface_editViewText_redraw     (void);
@@ -59,6 +61,7 @@ void Interface_editViewText_redrawRune (size_t, size_t, int *);
 void Interface_refresh               (void);
 void Interface_tabBar_refresh        (void);
 void Interface_Tab_refresh           (Interface_Tab *);
+void Interface_newTabButton_refresh  (void);
 void Interface_editView_refresh      (void);
 void Interface_editViewRuler_refresh (void);
 void Interface_editViewText_refresh  (void);

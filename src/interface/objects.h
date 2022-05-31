@@ -79,11 +79,17 @@ struct Interface_Tab {
         struct Interface_Tab *next;
 };
 
+struct Interface_NewTabButton {
+        INTERFACE_OBJECT
+};
+
 struct Interface_TabBar {
         INTERFACE_OBJECT
 
         Interface_Tab *tabs;
         Interface_Tab *activeTab;
+
+        Interface_NewTabButton newTabButton;
 };
 
 struct Interface_EditViewRuler {

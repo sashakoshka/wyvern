@@ -1,8 +1,9 @@
 #include "module.h"
 #include "utility.h"
 
-static Interface_Tab *Interface_Tab_new  (void);
-static void           Interface_Tab_free (Interface_Tab *);
+static Interface_Tab *Interface_Tab_new               (void);
+static void           Interface_Tab_free              (Interface_Tab *);
+static void           Interface_Tab_closeButtonRedraw (Interface_Tab *);
 
 /* Interface_tabBar_recalculate
  * Recalculates the position and size of the tab bar.
@@ -101,6 +102,8 @@ void Interface_tabBar_invalidateLayout (void) {
                 Interface_Tab_invalidateLayout(tab);
                 tab = tab->next;
         }
+
+        Interface_Object_invalidateLayout(&interface.tabBar.newTabButton);
 }
 
 /* Interface_tabBar_invalidateLayout
@@ -115,6 +118,8 @@ void Interface_tabBar_invalidateDrawing (void) {
                 Interface_Tab_invalidateDrawing(tab);
                 tab = tab->next;
         }
+        
+        Interface_Object_invalidateDrawing(&interface.tabBar.newTabButton);
 }
 
 /* Interface_tabBar_refresh
@@ -137,6 +142,8 @@ void Interface_tabBar_refresh (void) {
                 Interface_Tab_refresh(tab);
                 tab = tab->next;
         }
+
+        Interface_newTabButton_refresh();
 }
 
 /* Interface_Tab_redraw
@@ -247,7 +254,7 @@ void Interface_Tab_redraw (Interface_Tab *tab) {
 /* Interface_Tab_closeButtonRedraw
  * Redraws the tab's close button.
  */
-void Interface_Tab_closeButtonRedraw (Interface_Tab *tab) {
+static void Interface_Tab_closeButtonRedraw (Interface_Tab *tab) {
         if (tab == interface.tabBar.activeTab) {
                 cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
         } else {
@@ -325,7 +332,7 @@ void Interface_Tab_invalidateDrawing (Interface_Tab *tab) {
         tab->needsRedraw = 1;
 }
 
-/* Interface_tabBar_refresh
+/* Interface_Tab_refresh
  * Recalculates the tab bar if it needs to be recalculated, and redraws if it
  * needs to redrawn.
  */
@@ -338,5 +345,80 @@ void Interface_Tab_refresh (Interface_Tab *tab) {
         if (tab->needsRedraw == 1) {
                 Interface_Tab_redraw(tab);
                 tab->needsRedraw = 0;
+        }
+}
+
+/* Interface_newTabButton_recalculate
+ * Recalculates the size amd position of the new tab button.
+ */
+void Interface_newTabButton_recalculate (void) {
+        Interface_TabBar       *tabBar       = &interface.tabBar;
+        Interface_NewTabButton *newTabButton = &tabBar->newTabButton;
+
+        newTabButton->height = tabBar->height - 8;
+        newTabButton->width  = newTabButton->height;
+        newTabButton->x =
+                tabBar->x +
+                tabBar->width -
+                newTabButton->width - 4;
+        newTabButton->y = tabBar->y + 4;
+}
+
+/* Interface_newTabButton_redraw
+ * Redraws the mew tab button.
+ */
+void Interface_newTabButton_redraw (void) {
+        Interface_NewTabButton *newTabButton = &interface.tabBar.newTabButton;
+
+        cairo_set_source_rgb(Window_context, TAB_BAR_COLOR);
+        cairo_rectangle (
+                Window_context,
+                newTabButton->x,
+                newTabButton->y,
+                newTabButton->width,
+                newTabButton->height);
+        cairo_fill(Window_context);
+
+        cairo_set_source_rgb(Window_context, BUTTON_SYMBOL_COLOR);
+        double verticalX   = newTabButton->x + newTabButton->width / 2;
+        double verticalY   = newTabButton->y + newTabButton->width / 2 - 6;
+        double horizontalX = newTabButton->x + newTabButton->width / 2 - 6;
+        double horizontalY = newTabButton->y + newTabButton->width / 2;
+        cairo_set_line_width(Window_context, 1);
+        cairo_move_to (
+                Window_context,
+                verticalX,
+                verticalY);
+        cairo_line_to (
+                Window_context,
+                verticalX,
+                verticalY + 12);
+                cairo_stroke(Window_context);
+        cairo_move_to (
+                Window_context,
+                horizontalX,
+                horizontalY);
+        cairo_line_to (
+                Window_context,
+                horizontalX + 12,
+                horizontalY);
+                cairo_stroke(Window_context);
+}
+
+/* Interface_newTabButton_refresh
+ * Recalculates the new tab button if it needs to be recalculated, and redraws
+ * if it needs to redrawn.
+ */
+void Interface_newTabButton_refresh (void) {
+        Interface_NewTabButton *newTabButton = &interface.tabBar.newTabButton;
+
+        if (newTabButton->needsRecalculate == 1) {
+                Interface_newTabButton_recalculate();
+                newTabButton->needsRecalculate = 0;
+        }
+        
+        if (newTabButton->needsRedraw == 1) {
+                Interface_newTabButton_redraw();
+                newTabButton->needsRedraw = 0;
         }
 }
