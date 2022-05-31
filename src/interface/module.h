@@ -28,15 +28,18 @@
 #define ACTIVE_TAB_TEXT_COLOR   0.925, 0.937, 0.957
 #define CLOSE_BUTTON_COLOR      0.749, 0.380, 0.419
 
+// TODO: get rid of this macro
 #define HITBOX(xx, yy, element) \
         xx > (element.x) && xx < (element.x) + (element.width) && \
         yy > (element.y) && yy < (element.y) + (element.height)
 
+#define TO_GENERIC(object) (Interface_Object *)(object)
+
 #define Interface_Object_invalidateLayout(object) \
-        Interface_Object_invalidateLayoutBack((Interface_Object *)(object))
+        Interface_Object_invalidateLayoutBack(TO_GENERIC(object))
 
 #define Interface_Object_invalidateDrawing(object) \
-        Interface_Object_invalidateDrawingBack((Interface_Object *)(object))
+        Interface_Object_invalidateDrawingBack(TO_GENERIC(object))
 
 extern Interface interface;
 
@@ -66,16 +69,16 @@ void Interface_editView_refresh      (void);
 void Interface_editViewRuler_refresh (void);
 void Interface_editViewText_refresh  (void);
 
-void Interface_Object_invalidateLayoutBack     (Interface_Object *);
-void Interface_Object_invalidateDrawingBack    (Interface_Object *);
-void Interface_invalidateLayout                (void);
-void Interface_invalidateDrawing               (void);
-void Interface_tabBar_invalidateLayout         (void);
-void Interface_tabBar_invalidateDrawing        (void);
-void Interface_Tab_invalidateLayout            (Interface_Tab *);
-void Interface_Tab_invalidateDrawing           (Interface_Tab *);
-void Interface_editView_invalidateLayout       (void);
-void Interface_editView_invalidateDrawing      (void);
+void Interface_Object_invalidateLayoutBack  (Interface_Object *);
+void Interface_Object_invalidateDrawingBack (Interface_Object *);
+void Interface_invalidateLayout             (void);
+void Interface_invalidateDrawing            (void);
+void Interface_tabBar_invalidateLayout      (void);
+void Interface_tabBar_invalidateDrawing     (void);
+void Interface_Tab_invalidateLayout         (Interface_Tab *);
+void Interface_Tab_invalidateDrawing        (Interface_Tab *);
+void Interface_editView_invalidateLayout    (void);
+void Interface_editView_invalidateDrawing   (void);
 
 void Interface_handleKeyRight    (Window_State);
 void Interface_handleKeyLeft     (Window_State);
@@ -95,3 +98,5 @@ void  Interface_fontNormal     (void);
 
 void Interface_findMouseHoverCell  (int, int, size_t *, size_t *);
 void Interface_updateTextSelection (void);
+
+void Interface_roundedRectangle (double, double, double, double, double);
