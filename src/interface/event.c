@@ -1,6 +1,8 @@
 #include "module.h"
 #include "options.h"
 
+static void conditionallyRefresh (int);
+
 /* Interface_onStart
  * Sets the function to be called when Interface finishes starting up.
  */
@@ -40,7 +42,7 @@ void Interface_handleRedraw (int render, int width, int height) {
         Interface_invalidateLayout();
         Interface_invalidateDrawing();
 
-        Interface_refresh();
+        conditionallyRefresh(render);
 }
 
 /* Interface_handleMouseButton
@@ -158,7 +160,7 @@ void Interface_handleMouseButton (
                 break;
         }
         
-        Interface_refresh();
+        conditionallyRefresh(render);
 }
 
 /* Interface_handleMouseMove
@@ -176,7 +178,7 @@ void Interface_handleMouseMove (int render, int x, int y) {
                 Interface_editViewText_invalidateDrawing();
         }
         
-        Interface_refresh();
+        conditionallyRefresh(render);
 }
 
 /* Interface_handleInterval
@@ -190,7 +192,7 @@ void Interface_handleInterval (int render) {
         // changes (that is, not here).
         Interface_editViewText_invalidateDrawing();
         
-        Interface_refresh();
+        conditionallyRefresh(render);
 }
 
 /* Interface_handleKey
@@ -275,7 +277,7 @@ void Interface_handleKey (
                 break;
         }
         
-        Interface_refresh();
+        conditionallyRefresh(render);
 }
 
 /* Interface_handleKeyUp
@@ -360,4 +362,13 @@ void Interface_handleKeyRight (Window_State state) {
                 EditBuffer_cursorsMoveH(interface.editView.text.buffer, 1);
         }
         Interface_editViewText_invalidateDrawing();
+}
+
+/* conditionallyRefresh
+ * Refreshes the entire interface if the render parameter is 1.
+ */
+static void conditionallyRefresh (int render) {
+        if (render) {
+                Interface_refresh();
+        }
 }
