@@ -85,7 +85,7 @@ void Interface_tabBar_delete (Interface_Tab *tab) {
  */
 void Interface_tabBar_setActive (Interface_Tab *tab) {
         interface.tabBar.activeTab = tab;
-        Interface_invalidateDrawing();
+        Interface_invalidateLayout();
 }
 
 /* Interface_tabBar_invalidateLayout

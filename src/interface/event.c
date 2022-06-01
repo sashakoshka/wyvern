@@ -131,7 +131,9 @@ void Interface_handleMouseButton (
                         break;
                 }
 
-                checkTabSelect();
+                if (state == Window_State_on) {
+                        checkTabSelect();
+                }
                 break;
         
         case Window_MouseButton_middle:
