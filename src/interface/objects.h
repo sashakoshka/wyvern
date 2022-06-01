@@ -79,6 +79,8 @@ struct Interface_Tab {
 
         Interface_TabCloseButton closeButton;
 
+        size_t bufferId;
+
         struct Interface_Tab *previous;
         struct Interface_Tab *next;
 };

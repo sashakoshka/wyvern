@@ -112,6 +112,12 @@ void Interface_Tab_setText (Interface_Tab *tab, const char *text) {
         Utility_copyCString(tab->text, text, NAME_MAX);
 }
 
+/* Interface_Tab_getBufferId
+ * Returns the buffer id of the tab. This can be used as a key for BufferManger.
+ */
+size_t Interface_Tab_getBufferId (Interface_Tab *tab) {
+        return tab->bufferId;
+}
 
 /* Interface_Tab_new
  * Allocates and returns new tab.

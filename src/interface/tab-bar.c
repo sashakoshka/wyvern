@@ -39,8 +39,9 @@ void Interface_tabBar_redraw (void) {
 /* Interface_tabBar_add
  * Appends a new tab to the linked list in the tab bar.
  */
-Interface_Tab *Interface_tabBar_add (void) {
+Interface_Tab *Interface_tabBar_add (size_t bufferId) {
         Interface_Tab *tab = Interface_Tab_new();
+        tab->bufferId = bufferId;
 
         if (interface.tabBar.tabs == NULL) {
                 interface.tabBar.tabs = tab;

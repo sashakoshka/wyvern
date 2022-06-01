@@ -17,10 +17,11 @@ typedef struct Interface                Interface;
 Error Interface_run           (void);
 void  Interface_setEditBuffer (EditBuffer *newEditBuffer);
 
-Interface_Tab *Interface_tabBar_add       (void);
+Interface_Tab *Interface_tabBar_add       (size_t);
 void           Interface_tabBar_delete    (Interface_Tab *);
 void           Interface_tabBar_setActive (Interface_Tab *);
 void           Interface_Tab_setText      (Interface_Tab *, const char *);
+size_t         Interface_Tab_getBufferId  (Interface_Tab *);
 
 void Interface_onStart     (void (*) (void));
 void Interface_onNewTab    (void (*) (void));
