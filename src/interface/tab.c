@@ -25,7 +25,7 @@ void Interface_Tab_recalculate (Interface_Tab *tab) {
         tab->textY = tab->y + tab->height - padding;
 
         // close button dimensions
-        tab->closeButton.width  = 8;
+        tab->closeButton.width  = 20;
         tab->closeButton.height = tab->closeButton.width;
         double closeMargin = (tab->height - tab->closeButton.height) / 2;
 
@@ -120,6 +120,8 @@ Interface_Tab *Interface_Tab_new (void) {
         Interface_Tab *tab = calloc(1, sizeof(*tab));
         tab->redrawOnHover = 1;
         tab->closeButton.tab = tab;
+        tab->closeButton.redrawOnHover = 1;
+        tab->closeButton.redrawOnMouseButton = 1;
         return tab;
 }
 
@@ -213,15 +215,17 @@ void Interface_TabCloseButton_redraw (Interface_TabCloseButton *closeButton) {
                 closeButton->height);
         cairo_fill(Window_context);
 
-        if (Interface_Object_isHovered(closeButton)) {
-                cairo_set_source_rgb(Window_context, CLOSE_BUTTON_COLOR);
+        if (Interface_Object_isClicked(closeButton)) {
+                cairo_set_source_rgb(Window_context, CLOSE_BUTTON_CLICK_COLOR);
+        } else if (Interface_Object_isHovered(closeButton)) {
+                cairo_set_source_rgb(Window_context, CLOSE_BUTTON_HOVER_COLOR);
         } else {
                 cairo_set_source_rgb(Window_context, BUTTON_SYMBOL_COLOR);
         }
-        double nearX = closeButton->x + 1;
-        double nearY = closeButton->y + 1;
-        double farX  = closeButton->x + closeButton->width  - 1;
-        double farY  = closeButton->y + closeButton->height - 1;
+        double nearX = closeButton->x + 7;
+        double nearY = closeButton->y + 7;
+        double farX  = closeButton->x + closeButton->width  - 7;
+        double farY  = closeButton->y + closeButton->height - 7;
         cairo_set_line_width(Window_context, 1);
         cairo_move_to (
                 Window_context,
