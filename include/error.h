@@ -9,4 +9,5 @@ typedef enum {
         Error_cantOpenFile,
         Error_cantInitFreetype,
         Error_cantLoadFont,
+        Error_outOfBounds
 } Error;
