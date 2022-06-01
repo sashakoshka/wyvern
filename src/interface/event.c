@@ -3,6 +3,7 @@
 
 static void conditionallyRefresh (int);
 static int  checkTabSelect       (void);
+static int  checkNewTab          (void);
 
 /* Interface_onStart
  * Sets the function to be called when Interface finishes starting up.
@@ -88,8 +89,6 @@ void Interface_handleMouseButton (
                         if (object != NULL && object->redrawOnMouseButton) {
                                 object->needsRedraw = 1;
                         }
-                
-                        interface.mouseState.downObject = NULL;
                 }
         
                 Interface_findMouseHoverCell (
@@ -128,11 +127,14 @@ void Interface_handleMouseButton (
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
 
-                        break;
+                } else if (state == Window_State_on) {
+                        checkTabSelect();
+                } else {
+                        checkNewTab();
                 }
 
-                if (state == Window_State_on) {
-                        checkTabSelect();
+                if (state == Window_State_off) {
+                        interface.mouseState.downObject = NULL;
                 }
                 break;
         
@@ -460,11 +462,34 @@ static int checkTabSelect (void) {
                         Interface_Tab_invalidateDrawing (
                                 interface.tabBar.activeTab);
                         Interface_Tab_invalidateDrawing(tab);
-                        interface.callbacks.onSwitchTab(tab);
+
+                        if (interface.callbacks.onSwitchTab != NULL) {
+                                interface.callbacks.onSwitchTab(tab);
+                        }
                         return 1;
                 }
                 
                 tab = tab->next;
+        }
+
+        return 0;
+}
+
+/* checkNewTab
+ * Checks if a tab has been selected, and if it has, fires the onNewTab event.
+ * If it happened, returns 1. Assumes the left mouse button has been released.
+ */
+static int checkNewTab (void) {
+        Interface_NewTabButton *newTabButton = &interface.tabBar.newTabButton;
+        
+        if (
+                Interface_Object_isHovered(newTabButton) &&
+                Interface_Object_isClicked(newTabButton)
+        ) {
+                if (interface.callbacks.onNewTab != NULL) {
+                        interface.callbacks.onNewTab();
+                }
+                return 1;
         }
 
         return 0;

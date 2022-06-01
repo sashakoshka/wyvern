@@ -7,6 +7,7 @@
 
 static void   handleStart     (void);
 static void   handleSwitchTab (Interface_Tab *);
+static void   handleNewTab    (void);
 static size_t openInNewTab    (const char *);
 
 int main () {
@@ -14,6 +15,7 @@ int main () {
         Options_start();
         Interface_onStart(handleStart);
         Interface_onSwitchTab(handleSwitchTab);
+        Interface_onNewTab(handleNewTab);
         Interface_run();
 }
 
@@ -27,6 +29,10 @@ static void handleSwitchTab (Interface_Tab *tab) {
         Interface_tabBar_setActive(tab);
         size_t bufferId = Interface_Tab_getBufferId(tab);
         Interface_setEditBuffer(BufferManager_get(bufferId));
+}
+
+static void handleNewTab (void) {
+        openInNewTab(NULL);
 }
 
 static size_t openInNewTab (const char *path) {
