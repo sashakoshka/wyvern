@@ -2,6 +2,7 @@
 #include "options.h"
 
 static void conditionallyRefresh (int);
+static int  checkTabSelect       (void);
 
 /* Interface_onStart
  * Sets the function to be called when Interface finishes starting up.
@@ -126,7 +127,11 @@ void Interface_handleMouseButton (
                                 realX, realY);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+
+                        break;
                 }
+
+                checkTabSelect();
                 break;
         
         case Window_MouseButton_middle:
@@ -439,4 +444,26 @@ static void conditionallyRefresh (int render) {
         if (render) {
                 Interface_refresh();
         }
+}
+
+/* checkTabSelect
+ * Checks if a tab has been selected, and if it has, fires the onTabSelect
+ * event. If it happened, returns 1. Assumes the left mouse button has been
+ * pressed.
+ */
+static int checkTabSelect (void) {
+        Interface_Tab *tab = interface.tabBar.tabs;
+        while (tab != NULL) {
+                if (Interface_Object_isHovered(tab)) {
+                        Interface_Tab_invalidateDrawing (
+                                interface.tabBar.activeTab);
+                        Interface_Tab_invalidateDrawing(tab);
+                        interface.callbacks.onSwitchTab(tab);
+                        return 1;
+                }
+                
+                tab = tab->next;
+        }
+
+        return 0;
 }

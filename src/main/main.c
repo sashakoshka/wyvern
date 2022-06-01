@@ -4,11 +4,13 @@
 #include "interface.h"
 #include "edit-buffer.h"
 
-static void handleStart (void);
+static void handleStart     (void);
+static void handleSwitchTab (Interface_Tab *);
 
 int main () {
         Options_start();
         Interface_onStart(handleStart);
+        Interface_onSwitchTab(handleSwitchTab);
         Interface_run();
 }
 
@@ -23,5 +25,9 @@ static void handleStart (void) {
         
         tab = Interface_tabBar_add();
         Interface_Tab_setText(tab, "another tab");
+        Interface_tabBar_setActive(tab);
+}
+
+static void handleSwitchTab (Interface_Tab *tab) {
         Interface_tabBar_setActive(tab);
 }
