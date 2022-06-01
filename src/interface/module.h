@@ -57,34 +57,39 @@ extern Interface interface;
 Interface_Object *Interface_getHoveredObject          (int, int);
 Interface_Object *Interface_tabBar_getHoveredObject   (int, int);
 Interface_Object *Interface_editView_getHoveredObject (int, int);
+Interface_Object *Interface_Tab_getHoveredObject (
+        Interface_Tab *,
+        int, int);
 
 int Interface_Object_isWithinBoundsBack (Interface_Object *, int, int);
 
-void Interface_recalculate               (void);
-void Interface_Tab_recalculate           (Interface_Tab *);
-void Interface_newTabButton_recalculate  (void);
-void Interface_tabBar_recalculate        (void);
-void Interface_editView_recalculate      (void);
-void Interface_editViewRuler_recalculate (void);
-void Interface_editViewText_recalculate  (void);
+void Interface_recalculate                (void);
+void Interface_tabBar_recalculate         (void);
+void Interface_Tab_recalculate            (Interface_Tab *);
+void Interface_newTabButton_recalculate   (void);
+void Interface_editView_recalculate       (void);
+void Interface_editViewRuler_recalculate  (void);
+void Interface_editViewText_recalculate   (void);
 
 void Interface_redraw                  (void);
-void Interface_Tab_redraw              (Interface_Tab *);
-void Interface_newTabButton_redraw     (void);
 void Interface_tabBar_redraw           (void);
+void Interface_Tab_redraw              (Interface_Tab *);
+void Interface_TabCloseButton_redraw   (Interface_TabCloseButton *);
+void Interface_newTabButton_redraw     (void);
 void Interface_editView_redraw         (void);
 void Interface_editViewRuler_redraw    (void);
 void Interface_editViewText_redraw     (void);
 void Interface_editViewText_redrawRow  (size_t);
 void Interface_editViewText_redrawRune (size_t, size_t, int *);
 
-void Interface_refresh               (void);
-void Interface_tabBar_refresh        (void);
-void Interface_Tab_refresh           (Interface_Tab *);
-void Interface_newTabButton_refresh  (void);
-void Interface_editView_refresh      (void);
-void Interface_editViewRuler_refresh (void);
-void Interface_editViewText_refresh  (void);
+void Interface_refresh                (void);
+void Interface_tabBar_refresh         (void);
+void Interface_Tab_refresh            (Interface_Tab *);
+void Interface_TabCloseButton_refresh (Interface_TabCloseButton *);
+void Interface_newTabButton_refresh   (void);
+void Interface_editView_refresh       (void);
+void Interface_editViewRuler_refresh  (void);
+void Interface_editViewText_refresh   (void);
 
 void Interface_Object_invalidateLayoutBack  (Interface_Object *);
 void Interface_Object_invalidateDrawingBack (Interface_Object *);
@@ -117,3 +122,6 @@ void Interface_findMouseHoverCell  (int, int, size_t *, size_t *);
 void Interface_updateTextSelection (void);
 
 void Interface_roundedRectangle (double, double, double, double, double);
+
+Interface_Tab *Interface_Tab_new  (void);
+void           Interface_Tab_free (Interface_Tab *);

@@ -64,6 +64,11 @@ struct Interface_Object {
         INTERFACE_OBJECT
 };
 
+struct Interface_TabCloseButton {
+        INTERFACE_OBJECT
+        Interface_Tab *tab;
+};
+
 struct Interface_Tab {
         INTERFACE_OBJECT
 
@@ -72,10 +77,7 @@ struct Interface_Tab {
 
         char text[NAME_MAX + 1];
 
-        double closeX;
-        double closeY;
-        double closeWidth;
-        double closeHeight;
+        Interface_TabCloseButton closeButton;
 
         struct Interface_Tab *previous;
         struct Interface_Tab *next;
