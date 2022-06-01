@@ -73,6 +73,8 @@ void Interface_handleMouseButton (
                 Interface_Object_isClicked(&interface.editView.text) ||
                 Interface_Object_isClicked(&interface.editView.ruler);
         
+        // TODO: calculate cell x and cell y when mouse moves, store in mouse
+        // struct
         size_t cellX = 0;
         size_t cellY = 0;
 
