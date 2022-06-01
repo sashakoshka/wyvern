@@ -52,7 +52,10 @@ void Interface_Tab_redraw (Interface_Tab *tab) {
         // tab background
         if (tab == interface.tabBar.activeTab) {
                 cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
-        } else if (Interface_Object_isHovered(tab)) {
+        } else if (
+                Interface_Object_isHovered(tab) ||
+                Interface_Object_isHovered(&tab->closeButton)
+        ) {
                 cairo_set_source_rgb(Window_context, HOVER_TAB_COLOR);
         } else {
                 cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
@@ -208,7 +211,10 @@ void Interface_TabCloseButton_refresh (Interface_TabCloseButton *closeButton) {
 void Interface_TabCloseButton_redraw (Interface_TabCloseButton *closeButton) {
         if (closeButton->tab == interface.tabBar.activeTab) {
                 cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
-        } else if (Interface_Object_isHovered(closeButton->tab)) {
+        } else if (
+                Interface_Object_isHovered(closeButton->tab) ||
+                Interface_Object_isHovered(closeButton)
+        ) {
                 cairo_set_source_rgb(Window_context, HOVER_TAB_COLOR);
         } else {
                 cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
