@@ -19,19 +19,23 @@ void EditBuffer_free (EditBuffer *editBuffer) {
 }
 
 /* EditBuffer_open
- * Loads a file into an edit buffer.
+ * Loads a file into an edit buffer. This resets the buffer first. If filePath
+ * is NULL, or the operation fails, the buffer will just have one (blank) line.
  */
 Error EditBuffer_open (EditBuffer *editBuffer, const char *filePath) {
         EditBuffer_reset(editBuffer);
         Utility_copyCString(editBuffer->filePath, filePath, PATH_MAX);
 
-        FILE *file = fopen(filePath, "r");
-        if (file == NULL) { return Error_cantOpenFile; }
-
         String *line = String_new("");
         EditBuffer_placeLine (
                 editBuffer, line,
                 editBuffer->length);
+        
+        if (filePath == NULL) { return Error_none; }
+
+        FILE *file = fopen(filePath, "r");
+        if (file == NULL) { return Error_cantOpenFile; }
+
         int reachedEnd = 0;
         while (!reachedEnd) {
                 Rune rune = Unicode_utf8FileGetRune(file, &reachedEnd);

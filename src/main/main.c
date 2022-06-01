@@ -7,7 +7,7 @@
 
 static void   handleStart     (void);
 static void   handleSwitchTab (Interface_Tab *);
-static size_t newTab          (void);
+static size_t openInNewTab    (const char *);
 
 int main () {
         BufferManager_init();
@@ -18,9 +18,7 @@ int main () {
 }
 
 static void handleStart (void) {
-        newTab();
-        newTab();
-        newTab();
+        openInNewTab(NULL);
 }
 
 static void handleSwitchTab (Interface_Tab *tab) {
@@ -29,9 +27,9 @@ static void handleSwitchTab (Interface_Tab *tab) {
         Interface_setEditBuffer(BufferManager_get(bufferId));
 }
 
-static size_t newTab (void) {
+static size_t openInNewTab (const char *path) {
         EditBuffer *editBuffer = EditBuffer_new();
-        EditBuffer_open(editBuffer, "src/edit-buffer/edit-buffer.c");
+        EditBuffer_open(editBuffer, path);
         
         size_t bufferId = BufferManager_add(editBuffer);
         Interface_Tab *tab = Interface_tabBar_add(bufferId);
