@@ -19,6 +19,8 @@ int main () {
 
 static void handleStart (void) {
         openInNewTab(NULL);
+        openInNewTab("src/interface/interface.c");
+        openInNewTab("src/edit-buffer/edit-buffer.c");
 }
 
 static void handleSwitchTab (Interface_Tab *tab) {

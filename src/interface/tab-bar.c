@@ -55,6 +55,8 @@ Interface_Tab *Interface_tabBar_add (size_t bufferId) {
 
         current->next = tab;
         tab->previous = current;
+
+        Interface_tabBar_invalidateLayout();
         
         return tab;
 }
@@ -83,6 +85,7 @@ void Interface_tabBar_delete (Interface_Tab *tab) {
  */
 void Interface_tabBar_setActive (Interface_Tab *tab) {
         interface.tabBar.activeTab = tab;
+        Interface_invalidateDrawing();
 }
 
 /* Interface_tabBar_invalidateLayout
