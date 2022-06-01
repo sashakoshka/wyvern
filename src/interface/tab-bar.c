@@ -197,6 +197,8 @@ void Interface_Tab_redraw (Interface_Tab *tab) {
         // tab background
         if (tab == interface.tabBar.activeTab) {
                 cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
+        } else if (Interface_Object_isHovered(tab)) {
+                cairo_set_source_rgb(Window_context, HOVER_TAB_COLOR);
         } else {
                 cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
         }
@@ -257,6 +259,8 @@ void Interface_Tab_redraw (Interface_Tab *tab) {
 static void Interface_Tab_closeButtonRedraw (Interface_Tab *tab) {
         if (tab == interface.tabBar.activeTab) {
                 cairo_set_source_rgb(Window_context, ACTIVE_TAB_COLOR);
+        } else if (Interface_Object_isHovered(tab)) {
+                cairo_set_source_rgb(Window_context, HOVER_TAB_COLOR);
         } else {
                 cairo_set_source_rgb(Window_context, INACTIVE_TAB_COLOR);
         }
@@ -267,13 +271,17 @@ static void Interface_Tab_closeButtonRedraw (Interface_Tab *tab) {
                 tab->closeWidth,
                 tab->closeHeight);
         cairo_fill(Window_context);
-        
-        cairo_set_source_rgb(Window_context, CLOSE_BUTTON_COLOR);
+
+        if (Interface_Object_isHovered(tab)) {
+                cairo_set_source_rgb(Window_context, CLOSE_BUTTON_COLOR);
+        } else {
+                cairo_set_source_rgb(Window_context, BUTTON_SYMBOL_COLOR);
+        }
         double nearX = tab->closeX + 1;
         double nearY = tab->closeY + 1;
         double farX  = tab->closeX + tab->closeWidth  - 1;
         double farY  = tab->closeY + tab->closeHeight - 1;
-        cairo_set_line_width(Window_context, 2);
+        cairo_set_line_width(Window_context, 1);
         cairo_move_to (
                 Window_context,
                 nearX,
@@ -307,6 +315,7 @@ void Interface_Tab_setText (Interface_Tab *tab, const char *text) {
  */
 static Interface_Tab *Interface_Tab_new (void) {
         Interface_Tab *tab = calloc(1, sizeof(*tab));
+        tab->redrawOnHover = 1;
         return tab;
 }
 
@@ -370,6 +379,15 @@ void Interface_newTabButton_recalculate (void) {
 void Interface_newTabButton_redraw (void) {
         Interface_NewTabButton *newTabButton = &interface.tabBar.newTabButton;
 
+        cairo_set_source_rgb(Window_context, TAB_BAR_COLOR);
+        cairo_rectangle (
+                Window_context,
+                newTabButton->x,
+                newTabButton->y,
+                newTabButton->width,
+                newTabButton->height);
+        cairo_fill(Window_context);
+
         if (
                 Interface_Object_isHovered(newTabButton) ||
                 Interface_Object_isClicked(newTabButton)
@@ -389,15 +407,6 @@ void Interface_newTabButton_redraw (void) {
                         newTabButton->y,
                         newTabButton->width,
                         newTabButton->height, 4);
-                cairo_fill(Window_context);
-        } else {
-                cairo_set_source_rgb(Window_context, TAB_BAR_COLOR);
-                cairo_rectangle (
-                        Window_context,
-                        newTabButton->x,
-                        newTabButton->y,
-                        newTabButton->width,
-                        newTabButton->height);
                 cairo_fill(Window_context);
         }
 
