@@ -106,6 +106,15 @@ void Interface_Tab_redraw (Interface_Tab *tab) {
                 Window_context,
                 tab->textX, tab->textY);
         cairo_show_text(Window_context, tab->text);
+
+        // if we just overwrote the new tab button, re-draw that
+        if (
+                tab->x + tab->width >
+                interface.tabBar.x + interface.tabBar.tabClippingPoint
+        ) {
+                Interface_Object_invalidateDrawing (
+                        &interface.tabBar.newTabButton);
+        }
 }
 
 /* Interface_Tab_setText
@@ -257,4 +266,13 @@ void Interface_TabCloseButton_redraw (Interface_TabCloseButton *closeButton) {
                 nearX,
                 farY);
                 cairo_stroke(Window_context);
+
+        // if we just overwrote the new tab button, re-draw that
+        if (
+                closeButton->x + closeButton->width >
+                interface.tabBar.x + interface.tabBar.tabClippingPoint
+        ) {
+                Interface_Object_invalidateDrawing (
+                        &interface.tabBar.newTabButton);
+        }
 }

@@ -60,6 +60,13 @@
         int    redrawOnHover;       \
         int    redrawOnMouseButton;
 
+#define INTERFACE_PADDED_BOX \
+        double padding; \
+        double innerX;  \
+        double innerY;  \
+        double innerWidth;  \
+        double innerHeight; \
+
 struct Interface_Object {
         INTERFACE_OBJECT
 };
@@ -87,6 +94,7 @@ struct Interface_Tab {
 
 struct Interface_NewTabButton {
         INTERFACE_OBJECT
+        INTERFACE_PADDED_BOX
 };
 
 struct Interface_TabBar {
@@ -94,6 +102,8 @@ struct Interface_TabBar {
 
         Interface_Tab *tabs;
         Interface_Tab *activeTab;
+
+        double tabClippingPoint;
 
         Interface_NewTabButton newTabButton;
 };
@@ -113,13 +123,7 @@ struct Interface_EditViewText {
 
 struct Interface_EditView {
         INTERFACE_OBJECT
-        
-        double padding;
-
-        double innerX;
-        double innerY;
-        double innerWidth;
-        double innerHeight;
+        INTERFACE_PADDED_BOX
 
         Interface_EditViewRuler ruler;
         Interface_EditViewText  text;

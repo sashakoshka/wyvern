@@ -8,6 +8,9 @@ void Interface_tabBar_recalculate (void) {
         interface.tabBar.y      = 0;
         interface.tabBar.height = 35;
         interface.tabBar.width  = interface.width;
+
+        interface.tabBar.tabClippingPoint =
+                interface.tabBar.width - interface.tabBar.height;
 }
 
 /* Interface_tabBar_redraw
@@ -152,13 +155,26 @@ void Interface_newTabButton_recalculate (void) {
         Interface_TabBar       *tabBar       = &interface.tabBar;
         Interface_NewTabButton *newTabButton = &tabBar->newTabButton;
 
-        newTabButton->height = tabBar->height - 8;
+        newTabButton->padding = 4;
+
+        newTabButton->height = tabBar->height;
         newTabButton->width  = newTabButton->height;
+
+        newTabButton->innerHeight =
+                newTabButton->height -
+                newTabButton->padding * 2;
+        newTabButton->innerWidth =
+                newTabButton->width -
+                newTabButton->padding * 2;
+                
         newTabButton->x =
                 tabBar->x +
                 tabBar->width -
-                newTabButton->width - 4;
-        newTabButton->y = tabBar->y + 4;
+                newTabButton->width;
+        newTabButton->y = tabBar->y;
+        
+        newTabButton->innerX = newTabButton->x + newTabButton->padding;
+        newTabButton->innerY = newTabButton->y + newTabButton->padding;
 }
 
 /* Interface_newTabButton_redraw
@@ -173,7 +189,7 @@ void Interface_newTabButton_redraw (void) {
                 newTabButton->x,
                 newTabButton->y,
                 newTabButton->width,
-                newTabButton->height);
+                newTabButton->height - 1);
         cairo_fill(Window_context);
 
         if (
@@ -191,10 +207,10 @@ void Interface_newTabButton_redraw (void) {
                 }
                 
                 Interface_roundedRectangle (
-                        newTabButton->x,
-                        newTabButton->y,
-                        newTabButton->width,
-                        newTabButton->height, 4);
+                        newTabButton->innerX,
+                        newTabButton->innerY,
+                        newTabButton->innerWidth,
+                        newTabButton->innerHeight, 4);
                 cairo_fill(Window_context);
         }
 
