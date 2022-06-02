@@ -203,10 +203,15 @@ void Interface_handleMouseMove (int render, int x, int y) {
                 interface.mouseState.x,
                 interface.mouseState.y);
 
-        interface.mouseState.inEditView =
-                Interface_Object_isHovered(&interface.editView)      ||
-                Interface_Object_isHovered(&interface.editView.text) ||
-                Interface_Object_isHovered(&interface.editView.ruler);
+        interface.mouseState.inTabBar = Interface_Object_isWithinBounds (
+                &interface.tabBar,
+                interface.mouseState.x,
+                interface.mouseState.y);
+
+        interface.mouseState.inEditView = Interface_Object_isWithinBounds (
+                &interface.editView,
+                interface.mouseState.x,
+                interface.mouseState.y);
 
         Interface_findMouseHoverCell (
                 interface.mouseState.x,
@@ -234,11 +239,8 @@ void Interface_handleMouseMove (int render, int x, int y) {
         interface.mouseState.hoverObject = newHoverObject;
 
         if (
-                interface.mouseState.left && (
-                        Interface_Object_isClicked(&interface.editView)      ||
-                        Interface_Object_isClicked(&interface.editView.text) ||
-                        Interface_Object_isClicked(&interface.editView.ruler)
-                )
+                interface.mouseState.left && 
+                interface.mouseState.dragOriginInEditView
         ) {
                 Interface_updateTextSelection();
                 Interface_Object_invalidateDrawing(&interface.editView.text);
