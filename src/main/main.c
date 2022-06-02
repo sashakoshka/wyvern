@@ -40,9 +40,8 @@ static size_t openInNewTab (const char *path) {
         EditBuffer_open(editBuffer, path);
         
         size_t bufferId = BufferManager_add(editBuffer);
-        Interface_Tab *tab = Interface_tabBar_add(bufferId);
+        Interface_Tab *tab = Interface_tabBar_add(bufferId, "Untitled");
 
-        Interface_Tab_setText(tab, "Untitled");
         Interface_tabBar_setActive(tab);
         Interface_setEditBuffer(BufferManager_get(bufferId));
 

@@ -1,5 +1,6 @@
 #include "module.h"
 #include "utility.h"
+
 /* Interface_tabBar_recalculate
  * Recalculates the position and size of the tab bar.
  */
@@ -42,9 +43,10 @@ void Interface_tabBar_redraw (void) {
 /* Interface_tabBar_add
  * Appends a new tab to the linked list in the tab bar.
  */
-Interface_Tab *Interface_tabBar_add (size_t bufferId) {
+Interface_Tab *Interface_tabBar_add (size_t bufferId, const char *text) {
         Interface_Tab *tab = Interface_Tab_new();
         tab->bufferId = bufferId;
+        Interface_Tab_setText(tab, text);
 
         if (interface.tabBar.tabs == NULL) {
                 interface.tabBar.tabs = tab;
@@ -58,7 +60,6 @@ Interface_Tab *Interface_tabBar_add (size_t bufferId) {
 
         current->next = tab;
         tab->previous = current;
-
         Interface_tabBar_invalidateLayout();
         
         return tab;
@@ -87,7 +88,19 @@ void Interface_tabBar_delete (Interface_Tab *tab) {
  * should be called from an event handler callback.
  */
 void Interface_tabBar_setActive (Interface_Tab *tab) {
-        interface.tabBar.activeTab = tab;
+        Interface_TabBar *tabBar = &interface.tabBar;
+        tabBar->activeTab = tab;
+
+        if (tab->x < tabBar->x) {
+               tabBar->scroll += (int)(tab->x - tabBar->x);
+        } else if (
+                tab->x + tab->width >
+                tabBar->x + tabBar->tabClippingPoint
+        ) {
+                tabBar->scroll -= (int)(
+                        (tabBar->x + tabBar->tabClippingPoint) -
+                        (tab->x + tab->width));
+        }
         Interface_invalidateLayout();
 }
 

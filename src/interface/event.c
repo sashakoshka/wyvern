@@ -160,6 +160,12 @@ void Interface_handleMouseButton (
                                 &interface.editView.ruler);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                } else if (interface.mouseState.inTabBar) {
+                        interface.tabBar.scroll -= 32;
+                        if (interface.tabBar.scroll < 0) {
+                                interface.tabBar.scroll = 0;
+                        }
+                        Interface_tabBar_invalidateLayout();
                 }
                 break;
                 
@@ -185,6 +191,9 @@ void Interface_handleMouseButton (
                                 &interface.editView.ruler);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                } else if (interface.mouseState.inTabBar) {
+                        interface.tabBar.scroll += 32;
+                        Interface_tabBar_invalidateLayout();
                 }
                 break;
         }

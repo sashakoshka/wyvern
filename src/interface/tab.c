@@ -6,10 +6,12 @@
  */
 void Interface_Tab_recalculate (Interface_Tab *tab) {
         // tab position
-        tab->x = 0 + interface.tabBar.x - interface.tabBar.scroll;
+        tab->x = 0 + interface.tabBar.x;
         tab->y = 0 + interface.tabBar.y;
 
-        if (tab->previous != NULL) {
+        if (tab->previous == NULL) {
+                tab->x -= interface.tabBar.scroll;
+        } else {
                 tab->x += tab->previous->x + tab->previous->width;
         }
 
