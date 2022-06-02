@@ -6,7 +6,7 @@
  */
 void Interface_Tab_recalculate (Interface_Tab *tab) {
         // tab position
-        tab->x = 0 + interface.tabBar.x;
+        tab->x = 0 + interface.tabBar.x - interface.tabBar.scroll;
         tab->y = 0 + interface.tabBar.y;
 
         if (tab->previous != NULL) {

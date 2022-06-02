@@ -45,6 +45,13 @@ typedef struct {
         Interface_Object *previousHoverObject;
         Interface_Object *hoverObject;
         Interface_Object *downObject;
+
+        int inEditView;
+        int dragOriginInEditView;
+        int inTabBar;
+
+        size_t cellX;
+        size_t cellY;
 } Interface_MouseState;
 
 typedef struct {

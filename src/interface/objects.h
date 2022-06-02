@@ -104,6 +104,7 @@ struct Interface_TabBar {
         Interface_Tab *activeTab;
 
         double tabClippingPoint;
+        int    scroll;
 
         Interface_NewTabButton newTabButton;
 };
