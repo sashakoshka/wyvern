@@ -34,9 +34,6 @@ void Interface_editViewText_redraw (void) {
         Interface_EditView     *editView = &interface.editView;
         Interface_EditViewText *text     = &editView->text;
 
-        // TODO: do this somewhere else, if the runes are invalid
-        TextDisplay_grab(text->display);
-
         for (size_t y = 0; y < text->display->height; y ++) {
                 Interface_editViewText_redrawRow(y);
         }
@@ -199,6 +196,14 @@ void Interface_editViewText_redrawRune (size_t x, size_t y, int *inIndent) {
         }
 }
 
+/* Interface_editViewText_invalidateText
+ * Invalidates the text content of the edit view.
+ */
+void Interface_editViewText_invalidateText (void) {
+        Interface_EditView *editView = &interface.editView;
+        editView->text.needsGrab = 1;
+}
+
 /* Interface_editViewText_refresh
  * Refreshes the text.
  */
@@ -208,6 +213,12 @@ void Interface_editViewText_refresh (void) {
         if (text->needsRecalculate == 1) {
                 Interface_editViewText_recalculate();
                 text->needsRecalculate = 0;
+        }
+
+        if (text->needsGrab == 1) {
+                puts("asddsa");
+                TextDisplay_grab(text->display);
+                text->needsGrab = 0;
         }
 
         if (text->needsRedraw == 1) {

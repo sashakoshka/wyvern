@@ -106,6 +106,7 @@ void Interface_handleMouseButton (
                                         realX, realY);
                                 Interface_Object_invalidateDrawing (
                                         &interface.editView.text);
+                                Interface_editViewText_invalidateText();
                                 break;
                         }
 
@@ -116,6 +117,7 @@ void Interface_handleMouseButton (
                                 realX, realY);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                        Interface_editViewText_invalidateText();
 
                 } else if (state == Window_State_on) {
                         checkTabSelect();
@@ -160,6 +162,7 @@ void Interface_handleMouseButton (
                                 &interface.editView.ruler);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 } else if (interface.mouseState.inTabBar) {
                         interface.tabBar.scroll -= 32;
                         if (interface.tabBar.scroll < 0) {
@@ -191,6 +194,7 @@ void Interface_handleMouseButton (
                                 &interface.editView.ruler);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 } else if (interface.mouseState.inTabBar) {
                         interface.tabBar.scroll += 32;
                         Interface_tabBar_invalidateLayout();
@@ -216,6 +220,7 @@ void Interface_handleMouseMove (int render, int x, int y) {
         ) {
                 Interface_updateTextSelection();
                 Interface_Object_invalidateDrawing(&interface.editView.text);
+                Interface_editViewText_invalidateText();
         }
         
         conditionallyRefresh(render);
@@ -309,6 +314,7 @@ void Interface_handleKey (
                 EditBuffer_clearExtraCursors(interface.editView.text.buffer);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 break;
 
         case WINDOW_KEY_ENTER:
@@ -320,6 +326,7 @@ void Interface_handleKey (
                                 &interface.editView.ruler);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 }
                 break;
 
@@ -335,6 +342,7 @@ void Interface_handleKey (
                                 &interface.editView.ruler);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 }
                 break;
         
@@ -346,6 +354,7 @@ void Interface_handleKey (
                                 &interface.editView.ruler);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 }
                 break;
         
@@ -357,6 +366,7 @@ void Interface_handleKey (
                                 &interface.editView.ruler);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 }
                 break;
 
@@ -368,6 +378,7 @@ void Interface_handleKey (
                                 &interface.editView.ruler);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 }
                 break;
         }
@@ -403,6 +414,7 @@ void Interface_handleKeyUp (Window_State state) {
         }
         
         Interface_Object_invalidateDrawing(&interface.editView.text);
+        Interface_editViewText_invalidateText();
 }
 
 /* Interface_handleKeyDown
@@ -433,6 +445,7 @@ void Interface_handleKeyDown (Window_State state) {
         }
         
         Interface_Object_invalidateDrawing(&interface.editView.text);
+        Interface_editViewText_invalidateText();
 }
 
 /* Interface_handleKeyLeft
@@ -447,6 +460,7 @@ void Interface_handleKeyLeft (Window_State state) {
         }
         
         Interface_Object_invalidateDrawing(&interface.editView.text);
+        Interface_editViewText_invalidateText();
 }
 
 /* Interface_handleKeyRight
@@ -461,6 +475,7 @@ void Interface_handleKeyRight (Window_State state) {
         }
         
         Interface_Object_invalidateDrawing(&interface.editView.text);
+        Interface_editViewText_invalidateText();
 }
 
 /* conditionallyRefresh

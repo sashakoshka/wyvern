@@ -103,6 +103,8 @@ void Interface_Tab_invalidateDrawing        (Interface_Tab *);
 void Interface_editView_invalidateLayout    (void);
 void Interface_editView_invalidateDrawing   (void);
 
+void Interface_editViewText_invalidateText (void);
+
 void Interface_handleKeyRight    (Window_State);
 void Interface_handleKeyLeft     (Window_State);
 void Interface_handleKeyDown     (Window_State);

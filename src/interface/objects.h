@@ -118,6 +118,7 @@ struct Interface_EditViewText {
         INTERFACE_OBJECT
         
         int cursorBlink;
+        int needsGrab;
         
         EditBuffer  *buffer;
         TextDisplay *display;

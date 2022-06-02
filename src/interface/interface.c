@@ -36,6 +36,7 @@ void Interface_setEditBuffer (EditBuffer *newEditBuffer) {
         TextDisplay_setModel (
                 interface.editView.text.display,
                 interface.editView.text.buffer);
+        Interface_editViewText_invalidateText();
 }
 
 /* Interface_setup

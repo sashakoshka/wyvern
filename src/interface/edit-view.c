@@ -144,6 +144,7 @@ void Interface_editView_invalidateLayout (void) {
         editView->needsRecalculate = 1;
         Interface_Object_invalidateLayout(&editView->ruler);
         Interface_Object_invalidateLayout(&editView->text);
+        Interface_editViewText_invalidateText();
 }
 
 /* Interface_editView_invalidateDrawing
