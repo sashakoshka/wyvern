@@ -72,6 +72,8 @@ void Interface_editView_recalculate       (void);
 void Interface_editViewRuler_recalculate  (void);
 void Interface_editViewText_recalculate   (void);
 
+void Interface_tabBar_scroll (int);
+
 void Interface_redraw                  (void);
 void Interface_tabBar_redraw           (void);
 void Interface_Tab_redraw              (Interface_Tab *);

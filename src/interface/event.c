@@ -166,11 +166,7 @@ void Interface_handleMouseButton (
                                 &interface.editView.text);
                         Interface_editViewText_invalidateText();
                 } else if (interface.mouseState.inTabBar) {
-                        interface.tabBar.scroll -= 32;
-                        if (interface.tabBar.scroll < 0) {
-                                interface.tabBar.scroll = 0;
-                        }
-                        Interface_tabBar_invalidateLayout();
+                        Interface_tabBar_scroll(-32);
                 }
                 break;
                 
@@ -198,8 +194,7 @@ void Interface_handleMouseButton (
                                 &interface.editView.text);
                         Interface_editViewText_invalidateText();
                 } else if (interface.mouseState.inTabBar) {
-                        interface.tabBar.scroll += 32;
-                        Interface_tabBar_invalidateLayout();
+                        Interface_tabBar_scroll(32);
                 }
                 break;
         }

@@ -102,6 +102,7 @@ struct Interface_TabBar {
 
         Interface_Tab *tabs;
         Interface_Tab *activeTab;
+        Interface_Tab *lastTab;
 
         double tabClippingPoint;
         int    scroll;

@@ -5,13 +5,15 @@
  * Recalculates the position and size of the tab bar.
  */
 void Interface_tabBar_recalculate (void) {
-        interface.tabBar.x      = 0;
-        interface.tabBar.y      = 0;
-        interface.tabBar.height = 35;
-        interface.tabBar.width  = interface.width;
+        Interface_TabBar *tabBar = &interface.tabBar;
+        
+        tabBar->x      = 0;
+        tabBar->y      = 0;
+        tabBar->height = 35;
+        tabBar->width  = interface.width;
 
         interface.tabBar.tabClippingPoint =
-                interface.tabBar.width - interface.tabBar.height;
+                tabBar->width - interface.tabBar.height;
 
         interface.tabBar.layoutIsValid = 1;
 }
@@ -42,6 +44,33 @@ void Interface_tabBar_redraw (void) {
         cairo_stroke(Window_context);
 }
 
+/* Interface_tabBar_scroll
+ * Scrolls the tab bar by amount, keeping the tabs within bounds. ote that the
+ * tab positions will only update when the tab bar gets recalculated!
+ */
+void Interface_tabBar_scroll (int amount) {
+        Interface_TabBar *tabBar = &interface.tabBar;
+        
+        double tabsBeginX  = tabBar->tabs->x - amount;
+        double tabsExtentX = tabBar->lastTab->x + tabBar->lastTab->width - amount;
+        double tabBoundX   = tabBar->x + tabBar->tabClippingPoint;
+
+        tabBar->scroll += amount;
+        
+        if (tabsExtentX < tabBoundX) {
+                double tabsWidth = tabsExtentX - tabsBeginX;
+                tabBar->scroll = 0 - (int)(
+                        tabBar->tabClippingPoint -
+                        tabsWidth);
+        }
+        
+        if (tabBar->scroll <= 0) {
+                tabBar->scroll = 0;
+        }
+
+        Interface_tabBar_invalidateLayout();
+}
+
 /* Interface_tabBar_add
  * Appends a new tab to the linked list in the tab bar.
  */
@@ -54,6 +83,8 @@ Interface_Tab *Interface_tabBar_add (size_t bufferId, const char *text) {
                 interface.tabBar.tabs = tab;
                 return tab;
         }
+        
+        interface.tabBar.lastTab = tab;
 
         Interface_Tab *current = interface.tabBar.tabs;
         while (current->next != NULL) {
@@ -77,6 +108,10 @@ Interface_Tab *Interface_tabBar_add (size_t bufferId, const char *text) {
  * Removes an existing tab from the linked list in the tab bar.
  */
 void Interface_tabBar_delete (Interface_Tab *tab) {
+        if (tab->next == NULL) {
+                interface.tabBar.lastTab = tab->previous;
+        }
+
         if (tab->previous == NULL) {
                 interface.tabBar.tabs = tab->next;
                 tab->next->previous = NULL;
