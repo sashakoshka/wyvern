@@ -136,6 +136,27 @@ size_t Interface_Tab_getBufferId (Interface_Tab *tab) {
         return tab->bufferId;
 }
 
+/* Interface_Tab_getPrevious
+ * Returns the tab right behind this tab.
+ */
+Interface_Tab *Interface_Tab_getPrevious (Interface_Tab *tab) {
+        return tab->previous;
+}
+
+/* Interface_Tab_getNext
+ * Returns the tab right in front of this tab.
+ */
+Interface_Tab *Interface_Tab_getNext (Interface_Tab *tab) {
+        return tab->next;
+}
+
+/* Interface_Tab_isActive
+ * Rethers whether or not the tab is currently active.
+ */
+int Interface_Tab_isActive (Interface_Tab *tab) {
+        return interface.tabBar.activeTab == tab;
+}
+
 /* Interface_Tab_new
  * Allocates and returns new tab.
  */

@@ -216,7 +216,6 @@ void Interface_editViewText_refresh (void) {
         }
 
         if (text->needsGrab == 1) {
-                puts("asddsa");
                 TextDisplay_grab(text->display);
                 text->needsGrab = 0;
         }

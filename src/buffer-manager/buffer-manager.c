@@ -27,11 +27,12 @@ size_t BufferManager_add (EditBuffer *editBuffer) {
 }
 
 size_t BufferManager_addNew (void) {
-       return BufferManager_add(EditBuffer_new()); 
+        return BufferManager_add(EditBuffer_new()); 
 }
 
 Error BufferManager_delete (size_t index) {
         if (index >= store.size) { return Error_outOfBounds; }
+        EditBuffer_free(store.list[index]);
         store.list[index] = NULL;
         
         if (index == store.size - 1) {

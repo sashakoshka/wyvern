@@ -22,6 +22,9 @@ void           Interface_tabBar_delete    (Interface_Tab *);
 void           Interface_tabBar_setActive (Interface_Tab *);
 void           Interface_Tab_setText      (Interface_Tab *, const char *);
 size_t         Interface_Tab_getBufferId  (Interface_Tab *);
+Interface_Tab *Interface_Tab_getPrevious  (Interface_Tab *);
+Interface_Tab *Interface_Tab_getNext      (Interface_Tab *);
+int            Interface_Tab_isActive     (Interface_Tab *);
 
 void Interface_onStart     (void (*) (void));
 void Interface_onNewTab    (void (*) (void));

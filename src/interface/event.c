@@ -5,6 +5,7 @@ static void conditionallyRefresh (int);
 static void updateHoverObject    (void);
 static int  checkTabSelect       (void);
 static int  checkNewTab          (void);
+static int  checkCloseTab        (void);
 
 /* Interface_onStart
  * Sets the function to be called when Interface finishes starting up.
@@ -123,6 +124,7 @@ void Interface_handleMouseButton (
                         checkTabSelect();
                 } else {
                         checkNewTab();
+                        checkCloseTab();
                 }
 
                 if (state == Window_State_off) {
@@ -527,6 +529,31 @@ static int checkNewTab (void) {
                         interface.callbacks.onNewTab();
                 }
                 return 1;
+        }
+
+        return 0;
+}
+
+/* checkCloseTab
+ * Checks if a tab's close button has been pressed, and if it has, fires the
+ * onTabSelect event. If it happened, returns 1. Assumes the left mouse button
+ * has been released.
+ */
+static int checkCloseTab (void) {
+        Interface_Tab *tab = interface.tabBar.tabs;
+        while (tab != NULL) {
+                if (
+                        Interface_Object_isHovered(&tab->closeButton) &&
+                        Interface_Object_isClicked(&tab->closeButton)
+                ) {
+                        Interface_tabBar_invalidateLayout();
+                        if (interface.callbacks.onCloseTab != NULL) {
+                                interface.callbacks.onCloseTab(tab);
+                        }
+                        return 1;
+                }
+                
+                tab = tab->next;
         }
 
         return 0;

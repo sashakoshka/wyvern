@@ -79,6 +79,7 @@ Interface_Tab *Interface_tabBar_add (size_t bufferId, const char *text) {
 void Interface_tabBar_delete (Interface_Tab *tab) {
         if (tab->previous == NULL) {
                 interface.tabBar.tabs = tab->next;
+                tab->next->previous = NULL;
                 Interface_Tab_free(tab);
                 return;
         }
