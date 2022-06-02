@@ -12,6 +12,8 @@ void Interface_tabBar_recalculate (void) {
 
         interface.tabBar.tabClippingPoint =
                 interface.tabBar.width - interface.tabBar.height;
+
+        interface.tabBar.layoutIsValid = 1;
 }
 
 /* Interface_tabBar_redraw
@@ -60,6 +62,12 @@ Interface_Tab *Interface_tabBar_add (size_t bufferId, const char *text) {
 
         current->next = tab;
         tab->previous = current;
+
+        // if we can, we need to recalculate this tab, so that
+        // Interface_tabBar_setActive will be able to scroll to it.
+        if (interface.tabBar.layoutIsValid) {
+                Interface_Tab_recalculate(tab);
+        }
         Interface_tabBar_invalidateLayout();
         
         return tab;

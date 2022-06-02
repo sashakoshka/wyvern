@@ -105,7 +105,7 @@ struct Interface_TabBar {
 
         double tabClippingPoint;
         int    scroll;
-        int    needsScrollBind;
+        int    layoutIsValid;
 
         Interface_NewTabButton newTabButton;
 };
