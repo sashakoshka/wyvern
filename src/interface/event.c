@@ -2,6 +2,7 @@
 #include "options.h"
 
 static void conditionallyRefresh (int);
+static void updateHoverObject    (void);
 static int  checkTabSelect       (void);
 static int  checkNewTab          (void);
 
@@ -37,7 +38,7 @@ void Interface_onSwitchTab (void (*callback) (Interface_Tab *)) {
  * Fires when the screen needs to be redrawn.
  */
 void Interface_handleRedraw (int render, int width, int height) {
-        // TODO: make generic setter method for this
+        // TODO: make generic setter method for this??
         interface.width  = width;
         interface.height = height;
         
@@ -55,9 +56,8 @@ void Interface_handleMouseButton (
         Window_MouseButton button,
         Window_State state
 ) {
-        Interface_Object *object = Interface_getHoveredObject (
-                interface.mouseState.x,
-                interface.mouseState.y);
+        updateHoverObject();
+        Interface_Object *object = interface.mouseState.hoverObject;
 
         // something is going to move or change - we need the cursor to be
         // visible
@@ -208,6 +208,23 @@ void Interface_handleMouseMove (int render, int x, int y) {
         interface.mouseState.x = x;
         interface.mouseState.y = y;
 
+        updateHoverObject();
+
+        if (
+                interface.mouseState.left && 
+                interface.mouseState.dragOriginInEditView
+        ) {
+                Interface_updateTextSelection();
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+        }
+        
+        conditionallyRefresh(render);
+}
+
+/* updateHoverObject
+ * Updates various information about what the mouse is currently hovering over.
+ */
+static void updateHoverObject (void) {
         Interface_Object *newHoverObject = Interface_getHoveredObject (
                 interface.mouseState.x,
                 interface.mouseState.y);
@@ -246,16 +263,6 @@ void Interface_handleMouseMove (int render, int x, int y) {
         interface.mouseState.previousHoverObject =
                 interface.mouseState.hoverObject;
         interface.mouseState.hoverObject = newHoverObject;
-
-        if (
-                interface.mouseState.left && 
-                interface.mouseState.dragOriginInEditView
-        ) {
-                Interface_updateTextSelection();
-                Interface_Object_invalidateDrawing(&interface.editView.text);
-        }
-        
-        conditionallyRefresh(render);
 }
 
 /* Interface_handleInterval
