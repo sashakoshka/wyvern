@@ -12,7 +12,11 @@ static void   handleNewTab    (void);
 static void   handleCloseTab  (Interface_Tab *);
 static size_t openInNewTab    (char *);
 
-int main () {
+static char *filePathArgument = NULL;
+
+int main (int argc, char *argv[]) {
+        if (argc > 1) { filePathArgument = argv[1]; }
+
         BufferManager_init();
         Options_start();
         Interface_onStart(handleStart);
@@ -23,9 +27,7 @@ int main () {
 }
 
 static void handleStart (void) {
-        openInNewTab(NULL);
-        openInNewTab("src/interface/interface.c");
-        openInNewTab("src/edit-buffer/edit-buffer.c");
+        openInNewTab(filePathArgument);
 }
 
 static void handleSwitchTab (Interface_Tab *tab) {

@@ -13,7 +13,7 @@ clean)
         ;;
 
 run)
-        buildAll && "./$DEBUG_PATH"
+        buildAll && "./$DEBUG_PATH" "src/interface/event.c"
         ;;
 
 lint)
