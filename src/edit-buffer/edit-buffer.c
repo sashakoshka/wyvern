@@ -86,6 +86,8 @@ void EditBuffer_reset (EditBuffer *editBuffer) {
                 String_free(editBuffer->lines[index]);
         }
 
+        free(editBuffer->lines);
+
         *editBuffer = (const EditBuffer) { 0 };
         EditBuffer_addNewCursor(editBuffer, 0, 0);
 }
