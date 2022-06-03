@@ -10,6 +10,7 @@ static void updateHoverObject    (void);
 static int  checkTabSelect       (void);
 static int  checkNewTab          (void);
 static int  checkCloseTab        (void);
+static int  checkMiddleCloseTab  (void);
 static int  checkTextClick       (void);
 
 /* Interface_onStart
@@ -101,7 +102,9 @@ void Interface_handleMouseButton (
         
         case Window_MouseButton_middle:
                 interface.mouseState.middle = state;
-                // TODO: copy/paste
+                if (state == Window_State_on) {
+                        checkMiddleCloseTab();
+                }
                 break;
         
         case Window_MouseButton_right:
@@ -525,7 +528,7 @@ static int checkNewTab (void) {
 
 /* checkCloseTab
  * Checks if a tab's close button has been pressed, and if it has, fires the
- * onTabSelect event. If it happened, returns 1. Assumes the left mouse button
+ * onCloseTab event. If it happened, returns 1. Assumes the left mouse button
  * has been released.
  */
 static int checkCloseTab (void) {
@@ -536,6 +539,32 @@ static int checkCloseTab (void) {
                         Interface_Object_isClicked(&tab->closeButton)
                 ) {
                         Interface_tabBar_invalidateLayout();
+                        if (interface.callbacks.onCloseTab != NULL) {
+                                interface.callbacks.onCloseTab(tab);
+                        }
+                        return 1;
+                }
+                
+                tab = tab->next;
+        }
+
+        return 0;
+}
+
+/* checkMiddleCloseTab
+ * Checks if a tab has been closed with the middle mouse button, and if it has,
+ * fires the onCloseTab event. If it happened, returns 1. Assumes the middle
+ * mouse button has been pressed.
+ */
+static int checkMiddleCloseTab (void) {
+        Interface_Tab *tab = interface.tabBar.tabs;
+        while (tab != NULL) {
+                if (
+                        Interface_Object_isHovered(tab) ||
+                        Interface_Object_isHovered(&tab->closeButton)
+                ) {
+                        Interface_tabBar_invalidateLayout();
+
                         if (interface.callbacks.onCloseTab != NULL) {
                                 interface.callbacks.onCloseTab(tab);
                         }

@@ -1,0 +1,10 @@
+need to revamp architecture such that the refresh functions primarily do
+rendering (maybe call them something else?). have layout recalculation be done
+by those functions, and also other functions that need the layout to be
+recalculated. keep system where layout changes set needsRecalculate, but have it
+so that any functions which need the layout to be valid (including the refresh
+functions) will call a special function that basically does what the refresh
+functions do now but just for layout. this will allow the layout, in certain
+areas, to be recalculated multiple times for every event so that layout changes
+can depend on other layout changes. have recalculating the layout set
+needsRedraw.
