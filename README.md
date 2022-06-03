@@ -1,9 +1,11 @@
 # wyvern
 
-![Wyvern viewing its own source code](images/screenshot.png)
+![Wyvern editing its own source code](images/screenshot.png)
 
 A minimalist graphical text editor built with xlib and cairo.
 
-This is currently in early development. ~~It cannot edit text yet, it can only
-display it~~, and all configuration values are hard-coded. Ok it can *kind of*
-edit text now but you can't save it though.
+This is currently in very early development. It is missing a lot of features,
+all configuration values are hard-coded, and it cannot save files.
+
+To run, you will need to edit src/options/options.c and change the font path to
+something on your machine.
