@@ -377,7 +377,22 @@ void Interface_handleKey (
                 break;
 
         default:
-                if (
+                if (state == Window_State_on && interface.modKeyState.ctrl) {
+                        switch (keySym) {
+                        case 'w':
+                                Interface_tabBar_invalidateLayout();
+                                if (interface.callbacks.onCloseTab != NULL) {
+                                        interface.callbacks.onCloseTab (
+                                                interface.tabBar.activeTab);
+                                }
+                                break;
+                        case 't':
+                                if (interface.callbacks.onNewTab != NULL) {
+                                        interface.callbacks.onNewTab();
+                                }
+                                break;
+                        }
+                } else if (
                         keySym >> 8 == 0 && state == Window_State_on &&
                         BUFFER_EXISTS
                 ) {
