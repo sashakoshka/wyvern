@@ -342,6 +342,40 @@ void Interface_handleKey (
                 }
                 break;
 
+        case WINDOW_KEY_PAGEUP:
+                if (state == Window_State_on) {
+                        if (interface.modKeyState.ctrl) {
+                                Interface_tabBar_invalidateLayout();
+                                Interface_Tab *tab =
+                                        interface.tabBar.activeTab->previous;
+                                if (tab == NULL) {
+                                        tab = interface.tabBar.lastTab;
+                                }
+                                
+                                if (interface.callbacks.onSwitchTab != NULL) {
+                                        interface.callbacks.onSwitchTab(tab);
+                                }
+                        }
+                }
+                break;
+        
+        case WINDOW_KEY_PAGEDOWN:
+                if (state == Window_State_on) {
+                        if (interface.modKeyState.ctrl) {
+                                Interface_tabBar_invalidateLayout();
+                                Interface_Tab *tab =
+                                        interface.tabBar.activeTab->next;
+                                if (tab == NULL) {
+                                        tab = interface.tabBar.tabs;
+                                }
+                                
+                                if (interface.callbacks.onSwitchTab != NULL) {
+                                        interface.callbacks.onSwitchTab(tab);
+                                }
+                        }
+                }
+                break;
+
         default:
                 if (
                         keySym >> 8 == 0 && state == Window_State_on &&
