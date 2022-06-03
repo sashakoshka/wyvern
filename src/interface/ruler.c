@@ -22,6 +22,8 @@ void Interface_editViewRuler_redraw (void) {
         Interface_EditViewText  *text     = &editView->text;
         Interface_EditViewRuler *ruler    = &editView->ruler;
         
+        if (text->buffer == NULL) { return; }
+
         cairo_set_source_rgb(Window_context, RULER_COLOR);
         cairo_rectangle (
                 Window_context,

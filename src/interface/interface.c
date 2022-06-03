@@ -168,3 +168,12 @@ int Interface_Object_isWithinBoundsBack (
                 x > (object->x) && x < (object->x) + (object->width) &&
                 y > (object->y) && y < (object->y) + (object->height);
 }
+
+/* Interface_Object_detatchReferencesBack
+ * Sets references relating to this object to NULL.
+ */
+void Interface_Object_detatchReferencesBack (Interface_Object *object) {
+        REMOVE_REFERENCE(interface.mouseState.previousHoverObject, object)
+        REMOVE_REFERENCE(interface.mouseState.hoverObject, object)
+        REMOVE_REFERENCE(interface.mouseState.downObject, object)
+}

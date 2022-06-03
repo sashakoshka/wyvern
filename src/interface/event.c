@@ -1,11 +1,16 @@
 #include "module.h"
 #include "options.h"
 
+// im a twisted fucking cycle path
+#define OR ||
+#define BUFFER_EXISTS (interface.editView.text.buffer != NULL)
+
 static void conditionallyRefresh (int);
 static void updateHoverObject    (void);
 static int  checkTabSelect       (void);
 static int  checkNewTab          (void);
 static int  checkCloseTab        (void);
+static int  checkTextClick       (void);
 
 /* Interface_onStart
  * Sets the function to be called when Interface finishes starting up.
@@ -79,51 +84,13 @@ void Interface_handleMouseButton (
                         }
                 }
         
-                interface.mouseState.dragOriginInEditView =
-                        Interface_Object_isClicked(&interface.editView)      ||
-                        Interface_Object_isClicked(&interface.editView.text) ||
-                        Interface_Object_isClicked(&interface.editView.ruler);
-        
                 interface.mouseState.left = state;
         
-                if (
-                        state == Window_State_on &&
-                        interface.mouseState.inEditView
-                ) {
-                        size_t realX = 0;
-                        size_t realY = 0;
-                        TextDisplay_getRealCoords (
-                                interface.editView.text.display,
-                                interface.mouseState.cellX,
-                                interface.mouseState.cellY,
-                                &realX, &realY);
-
-                        interface.mouseState.dragOriginRealX = realX;
-                        interface.mouseState.dragOriginRealY = realY;
-                        
-                        if (interface.modKeyState.ctrl) {
-                                EditBuffer_addNewCursor (
-                                        interface.editView.text.buffer,
-                                        realX, realY);
-                                Interface_Object_invalidateDrawing (
-                                        &interface.editView.text);
-                                Interface_editViewText_invalidateText();
-                                break;
-                        }
-
-                        EditBuffer_clearExtraCursors (
-                                interface.editView.text.buffer);
-                        EditBuffer_Cursor_moveTo (
-                                interface.editView.text.buffer->cursors,
-                                realX, realY);
-                        Interface_Object_invalidateDrawing (
-                                &interface.editView.text);
-                        Interface_editViewText_invalidateText();
-
-                } else if (state == Window_State_on) {
+                if (state == Window_State_on) {
+                        checkTextClick() OR
                         checkTabSelect();
                 } else {
-                        checkNewTab();
+                        checkNewTab() OR
                         checkCloseTab();
                 }
 
@@ -145,7 +112,7 @@ void Interface_handleMouseButton (
         case Window_MouseButton_scrollUp:
                 if (state == Window_State_off) { break; }
                 
-                if (interface.mouseState.inEditView) {
+                if (interface.mouseState.inEditView && BUFFER_EXISTS) {
                         EditBuffer_scroll (
                                 interface.editView.text.buffer,
                                 Options_scrollSize * -1);
@@ -173,7 +140,7 @@ void Interface_handleMouseButton (
         case Window_MouseButton_scrollDown:
                 if (state == Window_State_off) { break; }
                 
-                if (interface.mouseState.inEditView) {
+                if (interface.mouseState.inEditView && BUFFER_EXISTS) {
                         EditBuffer_scroll (
                                 interface.editView.text.buffer,
                                 Options_scrollSize);
@@ -213,7 +180,8 @@ void Interface_handleMouseMove (int render, int x, int y) {
 
         if (
                 interface.mouseState.left && 
-                interface.mouseState.dragOriginInEditView
+                interface.mouseState.dragOriginInEditView &&
+                BUFFER_EXISTS
         ) {
                 Interface_updateTextSelection();
                 Interface_Object_invalidateDrawing(&interface.editView.text);
@@ -273,10 +241,11 @@ static void updateHoverObject (void) {
 void Interface_handleInterval (int render) {
         interface.editView.text.cursorBlink =
                 !interface.editView.text.cursorBlink;
-        // TODO: just invalidate the cursor blinking? possibly create a function
-        // to invalidate the text display and call that every time the text
-        // changes (that is, not here).
-        Interface_Object_invalidateDrawing(&interface.editView.text);
+
+        // we don't need to blink the cursor if the buffer doesn't exist
+        if (BUFFER_EXISTS) {
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+        }
         
         conditionallyRefresh(render);
 }
@@ -308,15 +277,18 @@ void Interface_handleKey (
         case WINDOW_KEY_RIGHT: Interface_handleKeyRight(state); break;
 
         case WINDOW_KEY_ESCAPE:
-                EditBuffer_clearExtraCursors(interface.editView.text.buffer);
+                if (BUFFER_EXISTS) {
+                        EditBuffer_clearExtraCursors (
+                                interface.editView.text.buffer);
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
                         Interface_editViewText_invalidateText();
+                }
                 break;
 
         case WINDOW_KEY_ENTER:
         case WINDOW_KEY_PAD_ENTER:
-                if (state == Window_State_on) {
+                if (state == Window_State_on && BUFFER_EXISTS) {
                         EditBuffer_cursorsInsertRune (
                                 interface.editView.text.buffer, '\n');
                         Interface_Object_invalidateDrawing (
@@ -328,7 +300,7 @@ void Interface_handleKey (
                 break;
 
         case WINDOW_KEY_TAB:
-                if (state == Window_State_on) {
+                if (state == Window_State_on && BUFFER_EXISTS) {
                         EditBuffer_cursorsInsertRune (
                                 interface.editView.text.buffer, '\t');
                         if (!Options_tabsToSpaces) {
@@ -344,7 +316,7 @@ void Interface_handleKey (
                 break;
         
         case WINDOW_KEY_BACKSPACE:
-                if (state == Window_State_on) {
+                if (state == Window_State_on && BUFFER_EXISTS) {
                         EditBuffer_cursorsBackspaceRune (
                                 interface.editView.text.buffer);
                         Interface_Object_invalidateDrawing (
@@ -356,7 +328,7 @@ void Interface_handleKey (
                 break;
         
         case WINDOW_KEY_DELETE:
-                if (state == Window_State_on) {
+                if (state == Window_State_on && BUFFER_EXISTS) {
                         EditBuffer_cursorsDeleteRune (
                                 interface.editView.text.buffer);
                         Interface_Object_invalidateDrawing (
@@ -368,7 +340,10 @@ void Interface_handleKey (
                 break;
 
         default:
-                if (keySym >> 8 == 0 && state == Window_State_on) {
+                if (
+                        keySym >> 8 == 0 && state == Window_State_on &&
+                        BUFFER_EXISTS
+                ) {
                         EditBuffer_cursorsInsertRune (
                                 interface.editView.text.buffer, rune);
                         Interface_Object_invalidateDrawing (
@@ -388,30 +363,33 @@ void Interface_handleKey (
  */
 void Interface_handleKeyUp (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (interface.modKeyState.shift == Window_State_on) {
-                if (interface.modKeyState.alt == Window_State_on) {
-                        size_t column =
-                                interface.
-                                editView.
-                                text.buffer->cursors[0].column;
-                        size_t row =
-                                interface.
-                                editView.
-                                text.buffer->cursors[0].row;
-                        EditBuffer_Cursor_moveV (
-                                interface.editView.text.buffer->cursors, -1);
-                        EditBuffer_addNewCursor (
-                                interface.editView.text.buffer, column, row);
+
+        if (BUFFER_EXISTS) {
+                if (interface.modKeyState.shift == Window_State_on) {
+                        if (interface.modKeyState.alt == Window_State_on) {
+                                size_t column =
+                                        interface.
+                                        editView.
+                                        text.buffer->cursors[0].column;
+                                size_t row =
+                                        interface.
+                                        editView.
+                                        text.buffer->cursors[0].row;
+                                EditBuffer_Cursor_moveV (
+                                        interface.editView.text.buffer->cursors, -1);
+                                EditBuffer_addNewCursor (
+                                        interface.editView.text.buffer, column, row);
+                        } else {
+                                EditBuffer_cursorsSelectV (
+                                        interface.editView.text.buffer, -1);
+                        }
                 } else {
-                        EditBuffer_cursorsSelectV (
-                                interface.editView.text.buffer, -1);
+                        EditBuffer_cursorsMoveV(interface.editView.text.buffer, -1);
                 }
-        } else {
-                EditBuffer_cursorsMoveV(interface.editView.text.buffer, -1);
+                
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+                Interface_editViewText_invalidateText();
         }
-        
-        Interface_Object_invalidateDrawing(&interface.editView.text);
-        Interface_editViewText_invalidateText();
 }
 
 /* Interface_handleKeyDown
@@ -419,30 +397,36 @@ void Interface_handleKeyUp (Window_State state) {
  */
 void Interface_handleKeyDown (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (interface.modKeyState.shift == Window_State_on) {
-                if (interface.modKeyState.alt == Window_State_on) {
-                        size_t column =
-                                interface.
-                                editView.
-                                text.buffer->cursors[0].column;
-                        size_t row =
-                                interface.
-                                editView.
-                                text.buffer->cursors[0].row;
-                        EditBuffer_Cursor_moveV (
-                                interface.editView.text.buffer->cursors, 1);
-                        EditBuffer_addNewCursor (
-                                interface.editView.text.buffer, column, row);
+
+        if (BUFFER_EXISTS) {
+                if (interface.modKeyState.shift == Window_State_on) {
+                        if (interface.modKeyState.alt == Window_State_on) {
+                                size_t column =
+                                        interface.
+                                        editView.
+                                        text.buffer->cursors[0].column;
+                                size_t row =
+                                        interface.
+                                        editView.
+                                        text.buffer->cursors[0].row;
+                                EditBuffer_Cursor_moveV (
+                                        interface.editView.text.buffer->cursors,
+                                        1);
+                                EditBuffer_addNewCursor (
+                                        interface.editView.text.buffer, column,
+                                        row);
+                        } else {
+                                EditBuffer_cursorsSelectV (
+                                        interface.editView.text.buffer, 1);
+                        }
                 } else {
-                        EditBuffer_cursorsSelectV (
+                        EditBuffer_cursorsMoveV (
                                 interface.editView.text.buffer, 1);
                 }
-        } else {
-                EditBuffer_cursorsMoveV(interface.editView.text.buffer, 1);
+                
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+                Interface_editViewText_invalidateText();
         }
-        
-        Interface_Object_invalidateDrawing(&interface.editView.text);
-        Interface_editViewText_invalidateText();
 }
 
 /* Interface_handleKeyLeft
@@ -450,14 +434,19 @@ void Interface_handleKeyDown (Window_State state) {
  */
 void Interface_handleKeyLeft (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (interface.modKeyState.shift == Window_State_on) {
-                EditBuffer_cursorsSelectH(interface.editView.text.buffer, -1);
-        } else {
-                EditBuffer_cursorsMoveH(interface.editView.text.buffer, -1);
-        }
         
-        Interface_Object_invalidateDrawing(&interface.editView.text);
-        Interface_editViewText_invalidateText();
+        if (BUFFER_EXISTS) {
+                if (interface.modKeyState.shift == Window_State_on) {
+                        EditBuffer_cursorsSelectH (
+                                interface.editView.text.buffer, -1);
+                } else {
+                        EditBuffer_cursorsMoveH (
+                                interface.editView.text.buffer, -1);
+                }
+                
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+                Interface_editViewText_invalidateText();
+        }
 }
 
 /* Interface_handleKeyRight
@@ -465,14 +454,19 @@ void Interface_handleKeyLeft (Window_State state) {
  */
 void Interface_handleKeyRight (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (interface.modKeyState.shift == Window_State_on) {
-                EditBuffer_cursorsSelectH(interface.editView.text.buffer, 1);
-        } else {
-                EditBuffer_cursorsMoveH(interface.editView.text.buffer, 1);
+
+        if (BUFFER_EXISTS) {
+                if (interface.modKeyState.shift == Window_State_on) {
+                        EditBuffer_cursorsSelectH (
+                                interface.editView.text.buffer, 1);
+                } else {
+                        EditBuffer_cursorsMoveH (
+                                interface.editView.text.buffer, 1);
+                }
+                
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+                Interface_editViewText_invalidateText();
         }
-        
-        Interface_Object_invalidateDrawing(&interface.editView.text);
-        Interface_editViewText_invalidateText();
 }
 
 /* conditionallyRefresh
@@ -549,6 +543,50 @@ static int checkCloseTab (void) {
                 }
                 
                 tab = tab->next;
+        }
+
+        return 0;
+}
+
+/* checkTextClick
+ * Handles mouse down interaction with the text view. If something was handled,
+ * returns 1. Assumes the left mouse button has been pressed.
+ */
+static int checkTextClick (void) {
+        interface.mouseState.dragOriginInEditView =
+                interface.mouseState.inEditView;
+        
+        if (interface.mouseState.inEditView && BUFFER_EXISTS) {
+                size_t realX = 0;
+                size_t realY = 0;
+                TextDisplay_getRealCoords (
+                        interface.editView.text.display,
+                        interface.mouseState.cellX,
+                        interface.mouseState.cellY,
+                        &realX, &realY);
+
+                interface.mouseState.dragOriginRealX = realX;
+                interface.mouseState.dragOriginRealY = realY;
+                
+                if (interface.modKeyState.ctrl) {
+                        EditBuffer_addNewCursor (
+                                interface.editView.text.buffer,
+                                realX, realY);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
+                } else {
+                        EditBuffer_clearExtraCursors (
+                                interface.editView.text.buffer);
+                        EditBuffer_Cursor_moveTo (
+                                interface.editView.text.buffer->cursors,
+                                realX, realY);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
+                }
+
+                return 1;
         }
 
         return 0;

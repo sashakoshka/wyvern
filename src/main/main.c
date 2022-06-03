@@ -46,9 +46,17 @@ static void handleCloseTab (Interface_Tab *tab) {
                 if (switchTo == NULL) {
                         switchTo = Interface_Tab_getPrevious(tab);
                 }
+                
                 Interface_tabBar_setActive(switchTo);
-                size_t previousBufferId = Interface_Tab_getBufferId(switchTo);
-                Interface_setEditBuffer(BufferManager_get(previousBufferId));
+
+                EditBuffer *bufferSwitchTo = NULL;
+                if (switchTo != NULL) {
+                        size_t previousBufferId =
+                                Interface_Tab_getBufferId(switchTo);
+                        bufferSwitchTo = BufferManager_get(previousBufferId);
+                }
+                
+                Interface_setEditBuffer(bufferSwitchTo);
         }
         
         Interface_tabBar_delete(tab);

@@ -173,6 +173,8 @@ Interface_Tab *Interface_Tab_new (void) {
  * Frees a tab.
  */
 void Interface_Tab_free (Interface_Tab *tab) {
+        Interface_Object_detatchReferences(tab);
+        Interface_Object_detatchReferences(&tab->closeButton);
         free(tab);
 }
 

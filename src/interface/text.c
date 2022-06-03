@@ -34,6 +34,12 @@ void Interface_editViewText_redraw (void) {
         Interface_EditView     *editView = &interface.editView;
         Interface_EditViewText *text     = &editView->text;
 
+        if (text->buffer == NULL) {
+                // TODO: draw text in the center that says something along the
+                // lines of "No open files."
+                return;
+        }
+
         for (size_t y = 0; y < text->display->height; y ++) {
                 Interface_editViewText_redrawRow(y);
         }

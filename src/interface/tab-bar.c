@@ -45,7 +45,7 @@ void Interface_tabBar_redraw (void) {
 }
 
 /* Interface_tabBar_scroll
- * Scrolls the tab bar by amount, keeping the tabs within bounds. ote that the
+ * Scrolls the tab bar by amount, keeping the tabs within bounds. Note that the
  * tab positions will only update when the tab bar gets recalculated!
  */
 void Interface_tabBar_scroll (int amount) {
@@ -114,12 +114,11 @@ void Interface_tabBar_delete (Interface_Tab *tab) {
 
         if (tab->previous == NULL) {
                 interface.tabBar.tabs = tab->next;
-                tab->next->previous = NULL;
                 Interface_Tab_free(tab);
-                return;
+        } else {
+                tab->previous->next = tab->next;
         }
 
-        tab->previous->next = tab->next;
         if (tab->next != NULL) {
                 tab->next->previous = tab->previous;
         }
@@ -135,16 +134,19 @@ void Interface_tabBar_setActive (Interface_Tab *tab) {
         Interface_TabBar *tabBar = &interface.tabBar;
         tabBar->activeTab = tab;
 
-        if (tab->x < tabBar->x) {
-               tabBar->scroll += (int)(tab->x - tabBar->x);
-        } else if (
-                tab->x + tab->width >
-                tabBar->x + tabBar->tabClippingPoint
-        ) {
-                tabBar->scroll -= (int)(
-                        (tabBar->x + tabBar->tabClippingPoint) -
-                        (tab->x + tab->width));
+        if (tab != NULL) {
+                if (tab->x < tabBar->x) {
+                       tabBar->scroll += (int)(tab->x - tabBar->x);
+                } else if (
+                        tab->x + tab->width >
+                        tabBar->x + tabBar->tabClippingPoint
+                ) {
+                        tabBar->scroll -= (int)(
+                                (tabBar->x + tabBar->tabClippingPoint) -
+                                (tab->x + tab->width));
+                }
         }
+
         Interface_invalidateLayout();
 }
 

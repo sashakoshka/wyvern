@@ -34,6 +34,9 @@
 
 #define TO_GENERIC(object) (Interface_Object *)(object)
 
+#define REMOVE_REFERENCE(object, reference) \
+        if (reference == TO_GENERIC(object)) { reference = NULL; }
+
 #define Interface_Object_isWithinBounds(object, x, y) \
         Interface_Object_isWithinBoundsBack(TO_GENERIC(object), x, y)
 
@@ -42,6 +45,9 @@
 
 #define Interface_Object_invalidateDrawing(object) \
         Interface_Object_invalidateDrawingBack(TO_GENERIC(object))
+
+#define Interface_Object_detatchReferences(object) \
+        Interface_Object_detatchReferencesBack(TO_GENERIC(object))
 
 #define Interface_Object_isHovered(object) \
         interface.mouseState.hoverObject == TO_GENERIC(object)
@@ -106,6 +112,8 @@ void Interface_editView_invalidateLayout    (void);
 void Interface_editView_invalidateDrawing   (void);
 
 void Interface_editViewText_invalidateText (void);
+
+void Interface_Object_detatchReferencesBack (Interface_Object *);
 
 void Interface_handleKeyRight    (Window_State);
 void Interface_handleKeyLeft     (Window_State);
