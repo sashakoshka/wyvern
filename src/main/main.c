@@ -1,5 +1,6 @@
-#include <unistd.h>
 #include <stdio.h>
+#include <unistd.h>
+#include <libgen.h>
 #include "options.h"
 #include "interface.h"
 #include "edit-buffer.h"
@@ -9,7 +10,7 @@ static void   handleStart     (void);
 static void   handleSwitchTab (Interface_Tab *);
 static void   handleNewTab    (void);
 static void   handleCloseTab  (Interface_Tab *);
-static size_t openInNewTab    (const char *);
+static size_t openInNewTab    (char *);
 
 int main () {
         BufferManager_init();
@@ -62,12 +63,17 @@ static void handleCloseTab (Interface_Tab *tab) {
         Interface_tabBar_delete(tab);
 }
 
-static size_t openInNewTab (const char *path) {
+static size_t openInNewTab (char *path) {
         EditBuffer *editBuffer = EditBuffer_new();
         EditBuffer_open(editBuffer, path);
         
         size_t bufferId = BufferManager_add(editBuffer);
-        Interface_Tab *tab = Interface_tabBar_add(bufferId, "Untitled");
+
+        char *tabTitle = "Untitled";
+        if (path != NULL) {
+                tabTitle = basename(path);
+        }
+        Interface_Tab *tab = Interface_tabBar_add(bufferId, tabTitle);
 
         Interface_tabBar_setActive(tab);
         Interface_setEditBuffer(BufferManager_get(bufferId));
