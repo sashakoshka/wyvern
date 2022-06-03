@@ -1,264 +1,671 @@
 #include "module.h"
+#include "options.h"
 
-Interface_MouseState  mouseState  = { 0 };
-Interface_ModKeyState modKeyState = { 0 };
+// im a twisted fucking cycle path
+#define OR ||
+#define BUFFER_EXISTS (interface.editView.text.buffer != NULL)
 
-/* Interface_onRedraw
- * Fires when the screen needs to be redrawn.
+static void conditionallyRefresh (int);
+static void updateHoverObject    (void);
+static int  checkTabSelect       (void);
+static int  checkNewTab          (void);
+static int  checkCloseTab        (void);
+static int  checkMiddleCloseTab  (void);
+static int  checkTextClick       (void);
+
+/* Interface_onStart
+ * Sets the function to be called when Interface finishes starting up.
  */
-void Interface_onRedraw (int width, int height) {
-        Interface_recalculate(width, height);
-        Interface_redraw();
+void Interface_onStart (void (*callback) (void)) {
+        interface.callbacks.onStart = callback;
 }
 
-/* Interface_onMouseButton
+/* Interface_onNewTab
+ * Sets the function to be called when the new tab button is pressed.
+ */
+void Interface_onNewTab (void (*callback) (void)) {
+        interface.callbacks.onNewTab = callback;
+}
+
+/* Interface_onCloseTab
+ * Sets the function to be called when the close button is pressed on a tab.
+ */
+void Interface_onCloseTab (void (*callback) (Interface_Tab *)) {
+        interface.callbacks.onCloseTab = callback;
+}
+
+/* Interface_onSwitchTab
+ * Sets the function to be called when the user selects a tab.
+ */
+void Interface_onSwitchTab (void (*callback) (Interface_Tab *)) {
+        interface.callbacks.onSwitchTab = callback;
+}
+
+/* Interface_handleRedraw
+ * Fires when the screen needs to be redrawn.
+ */
+void Interface_handleRedraw (int render, int width, int height) {
+        // TODO: make generic setter method for this??
+        interface.width  = width;
+        interface.height = height;
+        
+        Interface_invalidateLayout();
+        Interface_invalidateDrawing();
+
+        conditionallyRefresh(render);
+}
+
+/* Interface_handleMouseButton
  * Fires when a mouse button is pressed or released.
  */
-void Interface_onMouseButton (Window_MouseButton button, Window_State state) {
+void Interface_handleMouseButton (
+        int                render, 
+        Window_MouseButton button,
+        Window_State state
+) {
+        updateHoverObject();
+        Interface_Object *object = interface.mouseState.hoverObject;
+
         // something is going to move or change - we need the cursor to be
         // visible
-        interface.editView.cursorBlink = 1;
-
-        int inCell = HITBOX(mouseState.x, mouseState.y, interface.editView);
-        
-        size_t cellX = 0;
-        size_t cellY = 0;
+        interface.editView.text.cursorBlink = 1;
 
         switch (button) {
         case Window_MouseButton_left:
-                Interface_findMouseHoverCell (
-                        mouseState.x, mouseState.y,
-                        &cellX, &cellY);
-                
-                mouseState.dragOriginX = mouseState.x;
-                mouseState.dragOriginY = mouseState.y;
-                mouseState.dragOriginInCell = inCell;
-        
-                mouseState.left = state;
-        
-                // TODO: selection, etc.
-                if (state == Window_State_on && inCell) {
-                        size_t realX = 0;
-                        size_t realY = 0;
-                        TextDisplay_getRealCoords (
-                                textDisplay,
-                                cellX, cellY,
-                                &realX, &realY);
-
-                        mouseState.dragOriginRealX = realX;
-                        mouseState.dragOriginRealY = realY;
-                        
-                        if (modKeyState.ctrl) {
-                                EditBuffer_addNewCursor (
-                                        editBuffer,
-                                        realX, realY);
-                                Interface_editView_drawChars(1);
-                                break;
+                if (state == Window_State_on) {
+                        if (object != NULL && object->redrawOnMouseButton) {
+                                object->needsRedraw = 1;
                         }
 
-                        EditBuffer_clearExtraCursors(editBuffer);
-                        EditBuffer_Cursor_moveTo (
-                                editBuffer->cursors,
-                                realX, realY);
-                        Interface_editView_drawChars(1);
+                        interface.mouseState.downObject = object;
+                } else {
+                        object = interface.mouseState.downObject;
+                        if (object != NULL && object->redrawOnMouseButton) {
+                                object->needsRedraw = 1;
+                        }
+                }
+        
+                interface.mouseState.left = state;
+        
+                if (state == Window_State_on) {
+                        checkTextClick() OR
+                        checkTabSelect();
+                } else {
+                        checkNewTab() OR
+                        checkCloseTab();
+                }
+
+                if (state == Window_State_off) {
+                        interface.mouseState.downObject = NULL;
                 }
                 break;
         
         case Window_MouseButton_middle:
-                mouseState.middle = state;
-                // TODO: copy/paste
+                interface.mouseState.middle = state;
+                if (state == Window_State_on) {
+                        checkMiddleCloseTab();
+                }
                 break;
         
         case Window_MouseButton_right:
-                mouseState.right = state;
+                interface.mouseState.right = state;
                 // TODO: context menu
                 break;
         
         case Window_MouseButton_scrollUp:
-                if (state == Window_State_on && inCell) {
-                        EditBuffer_scroll(editBuffer, Options_scrollSize * -1);
-                        TextDisplay_grab(textDisplay);
+                if (state == Window_State_off) { break; }
+                
+                if (interface.mouseState.inEditView && BUFFER_EXISTS) {
+                        EditBuffer_scroll (
+                                interface.editView.text.buffer,
+                                Options_scrollSize * -1);
+                        TextDisplay_grab(interface.editView.text.display);
 
-                        if (mouseState.left && mouseState.dragOriginInCell) {
+                        if (
+                                interface.mouseState.left &&
+                                interface.mouseState.dragOriginInEditView
+                        ) {
                                 Interface_updateTextSelection();
-                                TextDisplay_grab(textDisplay);
+                                TextDisplay_grab (
+                                        interface.editView.text.display);
                         }
         
-                        Interface_editView_drawRuler();
-                        Interface_editView_drawChars(0);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
+                } else if (interface.mouseState.inTabBar) {
+                        Interface_tabBar_scroll(-32);
                 }
                 break;
                 
         case Window_MouseButton_scrollDown:
-                if (state == Window_State_on && inCell) {
-                        EditBuffer_scroll(editBuffer, Options_scrollSize);
-                        TextDisplay_grab(textDisplay);
+                if (state == Window_State_off) { break; }
+                
+                if (interface.mouseState.inEditView && BUFFER_EXISTS) {
+                        EditBuffer_scroll (
+                                interface.editView.text.buffer,
+                                Options_scrollSize);
+                        TextDisplay_grab(interface.editView.text.display);
 
-                        if (mouseState.left && mouseState.dragOriginInCell) {
+                        if (
+                                interface.mouseState.left &&
+                                interface.mouseState.dragOriginInEditView
+                        ) {
                                 Interface_updateTextSelection();
-                                TextDisplay_grab(textDisplay);
+                                TextDisplay_grab (
+                                        interface.editView.text.display);
                         }
                         
-                        Interface_editView_drawRuler();
-                        Interface_editView_drawChars(0);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
+                } else if (interface.mouseState.inTabBar) {
+                        Interface_tabBar_scroll(32);
                 }
                 break;
         }
+        
+        conditionallyRefresh(render);
 }
 
-/* Interface_onMouseMove
+/* Interface_handleMouseMove
  * Fires when the mouse is moved.
  */
-void Interface_onMouseMove (int x, int y) {
-        mouseState.x = x;
-        mouseState.y = y;
+void Interface_handleMouseMove (int render, int x, int y) {
+        interface.mouseState.x = x;
+        interface.mouseState.y = y;
 
-        if (mouseState.left && mouseState.dragOriginInCell) {
+        updateHoverObject();
+
+        if (
+                interface.mouseState.left && 
+                interface.mouseState.dragOriginInEditView &&
+                BUFFER_EXISTS
+        ) {
                 Interface_updateTextSelection();
-                Interface_editView_drawChars(1);
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+                Interface_editViewText_invalidateText();
         }
+        
+        conditionallyRefresh(render);
 }
 
-/* Interface_onInterval
+/* updateHoverObject
+ * Updates various information about what the mouse is currently hovering over.
+ */
+static void updateHoverObject (void) {
+        Interface_Object *newHoverObject = Interface_getHoveredObject (
+                interface.mouseState.x,
+                interface.mouseState.y);
+
+        interface.mouseState.inTabBar = Interface_Object_isWithinBounds (
+                &interface.tabBar,
+                interface.mouseState.x,
+                interface.mouseState.y);
+
+        interface.mouseState.inEditView = Interface_Object_isWithinBounds (
+                &interface.editView,
+                interface.mouseState.x,
+                interface.mouseState.y);
+
+        Interface_findMouseHoverCell (
+                interface.mouseState.x,
+                interface.mouseState.y,
+                &interface.mouseState.cellX, &interface.mouseState.cellY);
+
+        if (interface.mouseState.hoverObject != newHoverObject) {
+                if (
+                        interface.mouseState.hoverObject != NULL &&
+                        interface.mouseState.hoverObject->redrawOnHover
+                ) {
+                        interface.mouseState.hoverObject->needsRedraw = 1;
+                }
+                
+                if (
+                        newHoverObject != NULL &&
+                        newHoverObject->redrawOnHover
+                ) {
+                        newHoverObject->needsRedraw = 1;
+                }
+        }
+        
+        interface.mouseState.previousHoverObject =
+                interface.mouseState.hoverObject;
+        interface.mouseState.hoverObject = newHoverObject;
+}
+
+/* Interface_handleInterval
  * Fires every 500 milliseconds.
  */
-void Interface_onInterval (void) {
-        Interface_editView_drawChars(0);
-        interface.editView.cursorBlink = !interface.editView.cursorBlink;
+void Interface_handleInterval (int render) {
+        interface.editView.text.cursorBlink =
+                !interface.editView.text.cursorBlink;
+
+        // we don't need to blink the cursor if the buffer doesn't exist
+        if (BUFFER_EXISTS) {
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+        }
+        
+        conditionallyRefresh(render);
 }
 
-/* Interface_onKey
+/* Interface_handleKey
  * Fires when a key is pressed or released.
  */
-void Interface_onKey (Window_KeySym keySym, Rune rune, Window_State state) {
+void Interface_handleKey (
+        int           render,
+        Window_KeySym keySym,
+        Rune          rune,
+        Window_State  state) {
         // if (state == Window_State_on) {
                 // printf("%lx\n", keySym);
         // }
 
         // something is going to move or change - we need the cursor to be
         // visible
-        interface.editView.cursorBlink = 1;
+        interface.editView.text.cursorBlink = 1;
         
         switch (keySym) {
-        case WINDOW_KEY_SHIFT: modKeyState.shift = state; return;
-        case WINDOW_KEY_CTRL:  modKeyState.ctrl  = state; return;
-        case WINDOW_KEY_ALT:   modKeyState.alt   = state; return;
+        case WINDOW_KEY_SHIFT: interface.modKeyState.shift = state; break;
+        case WINDOW_KEY_CTRL:  interface.modKeyState.ctrl  = state; break;
+        case WINDOW_KEY_ALT:   interface.modKeyState.alt   = state; break;
 
-        case WINDOW_KEY_UP:    Interface_onKeyUp(state);    return;
-        case WINDOW_KEY_DOWN:  Interface_onKeyDown(state);  return;
-        case WINDOW_KEY_LEFT:  Interface_onKeyLeft(state);  return;
-        case WINDOW_KEY_RIGHT: Interface_onKeyRight(state); return;
+        case WINDOW_KEY_UP:    Interface_handleKeyUp(state);    break;
+        case WINDOW_KEY_DOWN:  Interface_handleKeyDown(state);  break;
+        case WINDOW_KEY_LEFT:  Interface_handleKeyLeft(state);  break;
+        case WINDOW_KEY_RIGHT: Interface_handleKeyRight(state); break;
 
         case WINDOW_KEY_ESCAPE:
-                EditBuffer_clearExtraCursors(editBuffer);
-                Interface_editView_drawChars(1);
+                if (BUFFER_EXISTS) {
+                        EditBuffer_clearExtraCursors (
+                                interface.editView.text.buffer);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
+                }
                 break;
 
         case WINDOW_KEY_ENTER:
         case WINDOW_KEY_PAD_ENTER:
-                if (state == Window_State_on) {
-                        EditBuffer_cursorsInsertRune(editBuffer, '\n');
-                        Interface_editView_drawChars(1);
-                        Interface_editView_drawRuler();
+                if (state == Window_State_on && BUFFER_EXISTS) {
+                        EditBuffer_cursorsInsertRune (
+                                interface.editView.text.buffer, '\n');
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 }
-                return;
+                break;
 
         case WINDOW_KEY_TAB:
-                if (state == Window_State_on) {
-                        EditBuffer_cursorsInsertRune(editBuffer, '\t');
+                if (state == Window_State_on && BUFFER_EXISTS) {
+                        EditBuffer_cursorsInsertRune (
+                                interface.editView.text.buffer, '\t');
                         if (!Options_tabsToSpaces) {
-                                EditBuffer_cursorsMoveH(editBuffer, 1);
+                                EditBuffer_cursorsMoveH (
+                                        interface.editView.text.buffer, 1);
                         }
-                        Interface_editView_drawChars(1);
-                        Interface_editView_drawRuler();
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 }
-                return;
+                break;
         
         case WINDOW_KEY_BACKSPACE:
-                if (state == Window_State_on) {
-                        EditBuffer_cursorsBackspaceRune(editBuffer);
-                        Interface_editView_drawChars(1);
-                        Interface_editView_drawRuler();
+                if (state == Window_State_on && BUFFER_EXISTS) {
+                        EditBuffer_cursorsBackspaceRune (
+                                interface.editView.text.buffer);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 }
-                return;
+                break;
         
         case WINDOW_KEY_DELETE:
-                if (state == Window_State_on) {
-                        EditBuffer_cursorsDeleteRune(editBuffer);
-                        Interface_editView_drawChars(1);
-                        Interface_editView_drawRuler();
+                if (state == Window_State_on && BUFFER_EXISTS) {
+                        EditBuffer_cursorsDeleteRune (
+                                interface.editView.text.buffer);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
                 }
-                return;
-        }
+                break;
 
-        if (keySym >> 8 == 0 && state == Window_State_on) {
-                EditBuffer_cursorsInsertRune(editBuffer, rune);
-                Interface_editView_drawChars(1);
+        case WINDOW_KEY_PAGEUP:
+                if (state == Window_State_on) {
+                        if (interface.modKeyState.ctrl) {
+                                Interface_tabBar_invalidateLayout();
+                                Interface_Tab *tab =
+                                        interface.tabBar.activeTab->previous;
+                                if (tab == NULL) {
+                                        tab = interface.tabBar.lastTab;
+                                }
+                                
+                                if (interface.callbacks.onSwitchTab != NULL) {
+                                        interface.callbacks.onSwitchTab(tab);
+                                }
+                        }
+                }
+                break;
+        
+        case WINDOW_KEY_PAGEDOWN:
+                if (state == Window_State_on) {
+                        if (interface.modKeyState.ctrl) {
+                                Interface_tabBar_invalidateLayout();
+                                Interface_Tab *tab =
+                                        interface.tabBar.activeTab->next;
+                                if (tab == NULL) {
+                                        tab = interface.tabBar.tabs;
+                                }
+                                
+                                if (interface.callbacks.onSwitchTab != NULL) {
+                                        interface.callbacks.onSwitchTab(tab);
+                                }
+                        }
+                }
+                break;
+
+        default:
+                if (state == Window_State_on && interface.modKeyState.ctrl) {
+                        switch (keySym) {
+                        case 'w':
+                                Interface_tabBar_invalidateLayout();
+                                if (interface.callbacks.onCloseTab != NULL) {
+                                        interface.callbacks.onCloseTab (
+                                                interface.tabBar.activeTab);
+                                }
+                                break;
+                        case 't':
+                                if (interface.callbacks.onNewTab != NULL) {
+                                        interface.callbacks.onNewTab();
+                                }
+                                break;
+                        }
+                } else if (
+                        keySym >> 8 == 0 && state == Window_State_on &&
+                        BUFFER_EXISTS
+                ) {
+                        EditBuffer_cursorsInsertRune (
+                                interface.editView.text.buffer, rune);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.ruler);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
+                }
+                break;
         }
+        
+        conditionallyRefresh(render);
 }
 
-/* Interface_onKeyUp
+/* Interface_handleKeyUp
  * Fires when the up arrow is pressed or released.
  */
-void Interface_onKeyUp (Window_State state) {
+void Interface_handleKeyUp (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (modKeyState.shift == Window_State_on) {
-                if (modKeyState.alt == Window_State_on) {
-                        size_t column = editBuffer->cursors[0].column;
-                        size_t row    = editBuffer->cursors[0].row;
-                        EditBuffer_Cursor_moveV(editBuffer->cursors, -1);
-                        EditBuffer_addNewCursor(editBuffer, column, row);
+
+        if (BUFFER_EXISTS) {
+                if (interface.modKeyState.shift == Window_State_on) {
+                        if (interface.modKeyState.alt == Window_State_on) {
+                                size_t column =
+                                        interface.
+                                        editView.
+                                        text.buffer->cursors[0].column;
+                                size_t row =
+                                        interface.
+                                        editView.
+                                        text.buffer->cursors[0].row;
+                                EditBuffer_Cursor_moveV (
+                                        interface.editView.text.buffer->cursors, -1);
+                                EditBuffer_addNewCursor (
+                                        interface.editView.text.buffer, column, row);
+                        } else {
+                                EditBuffer_cursorsSelectV (
+                                        interface.editView.text.buffer, -1);
+                        }
                 } else {
-                        EditBuffer_cursorsSelectV(editBuffer, -1);
+                        EditBuffer_cursorsMoveV(interface.editView.text.buffer, -1);
                 }
-        } else {
-                EditBuffer_cursorsMoveV(editBuffer, -1);
+                
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+                Interface_editViewText_invalidateText();
         }
-        Interface_editView_drawChars(1);
 }
 
-/* Interface_onKeyDown
+/* Interface_handleKeyDown
  * Fires when the down arrow is pressed or released.
  */
-void Interface_onKeyDown (Window_State state) {
+void Interface_handleKeyDown (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (modKeyState.shift == Window_State_on) {
-                if (modKeyState.alt == Window_State_on) {
-                        size_t column = editBuffer->cursors[0].column;
-                        size_t row    = editBuffer->cursors[0].row;
-                        EditBuffer_Cursor_moveV(editBuffer->cursors, 1);
-                        EditBuffer_addNewCursor(editBuffer, column, row);
+
+        if (BUFFER_EXISTS) {
+                if (interface.modKeyState.shift == Window_State_on) {
+                        if (interface.modKeyState.alt == Window_State_on) {
+                                size_t column =
+                                        interface.
+                                        editView.
+                                        text.buffer->cursors[0].column;
+                                size_t row =
+                                        interface.
+                                        editView.
+                                        text.buffer->cursors[0].row;
+                                EditBuffer_Cursor_moveV (
+                                        interface.editView.text.buffer->cursors,
+                                        1);
+                                EditBuffer_addNewCursor (
+                                        interface.editView.text.buffer, column,
+                                        row);
+                        } else {
+                                EditBuffer_cursorsSelectV (
+                                        interface.editView.text.buffer, 1);
+                        }
                 } else {
-                        EditBuffer_cursorsSelectV(editBuffer, 1);
+                        EditBuffer_cursorsMoveV (
+                                interface.editView.text.buffer, 1);
                 }
-        } else {
-                EditBuffer_cursorsMoveV(editBuffer, 1);
+                
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+                Interface_editViewText_invalidateText();
         }
-        Interface_editView_drawChars(1);
 }
 
-/* Interface_onKeyLeft
+/* Interface_handleKeyLeft
  * Fires when the left arrow is pressed or released.
  */
-void Interface_onKeyLeft (Window_State state) {
+void Interface_handleKeyLeft (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (modKeyState.shift == Window_State_on) {
-                EditBuffer_cursorsSelectH(editBuffer, -1);
-        } else {
-                EditBuffer_cursorsMoveH(editBuffer, -1);
+        
+        if (BUFFER_EXISTS) {
+                if (interface.modKeyState.shift == Window_State_on) {
+                        EditBuffer_cursorsSelectH (
+                                interface.editView.text.buffer, -1);
+                } else {
+                        EditBuffer_cursorsMoveH (
+                                interface.editView.text.buffer, -1);
+                }
+                
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+                Interface_editViewText_invalidateText();
         }
-        Interface_editView_drawChars(1);
 }
 
-/* Interface_onKeyRight
+/* Interface_handleKeyRight
  * Fires when the right arrow is pressed or released.
  */
-void Interface_onKeyRight (Window_State state) {
+void Interface_handleKeyRight (Window_State state) {
         if (state != Window_State_on) { return; }
-        if (modKeyState.shift == Window_State_on) {
-                EditBuffer_cursorsSelectH(editBuffer, 1);
-        } else {
-                EditBuffer_cursorsMoveH(editBuffer, 1);
+
+        if (BUFFER_EXISTS) {
+                if (interface.modKeyState.shift == Window_State_on) {
+                        EditBuffer_cursorsSelectH (
+                                interface.editView.text.buffer, 1);
+                } else {
+                        EditBuffer_cursorsMoveH (
+                                interface.editView.text.buffer, 1);
+                }
+                
+                Interface_Object_invalidateDrawing(&interface.editView.text);
+                Interface_editViewText_invalidateText();
         }
-        Interface_editView_drawChars(1);
+}
+
+/* conditionallyRefresh
+ * Refreshes the entire interface if the render parameter is 1.
+ */
+static void conditionallyRefresh (int render) {
+        if (render) {
+                Interface_refresh();
+        }
+}
+
+/* checkTabSelect
+ * Checks if a tab has been selected, and if it has, fires the onTabSelect
+ * event. If it happened, returns 1. Assumes the left mouse button has been
+ * pressed.
+ */
+static int checkTabSelect (void) {
+        Interface_Tab *tab = interface.tabBar.tabs;
+        while (tab != NULL) {
+                if (Interface_Object_isHovered(tab)) {
+                        Interface_Tab_invalidateDrawing (
+                                interface.tabBar.activeTab);
+                        Interface_Tab_invalidateDrawing(tab);
+
+                        if (interface.callbacks.onSwitchTab != NULL) {
+                                interface.callbacks.onSwitchTab(tab);
+                        }
+                        return 1;
+                }
+                
+                tab = tab->next;
+        }
+
+        return 0;
+}
+
+/* checkNewTab
+ * Checks if a tab has been selected, and if it has, fires the onNewTab event.
+ * If it happened, returns 1. Assumes the left mouse button has been released.
+ */
+static int checkNewTab (void) {
+        Interface_NewTabButton *newTabButton = &interface.tabBar.newTabButton;
+        
+        if (
+                Interface_Object_isHovered(newTabButton) &&
+                Interface_Object_isClicked(newTabButton)
+        ) {
+                if (interface.callbacks.onNewTab != NULL) {
+                        interface.callbacks.onNewTab();
+                }
+                return 1;
+        }
+
+        return 0;
+}
+
+/* checkCloseTab
+ * Checks if a tab's close button has been pressed, and if it has, fires the
+ * onCloseTab event. If it happened, returns 1. Assumes the left mouse button
+ * has been released.
+ */
+static int checkCloseTab (void) {
+        Interface_Tab *tab = interface.tabBar.tabs;
+        while (tab != NULL) {
+                if (
+                        Interface_Object_isHovered(&tab->closeButton) &&
+                        Interface_Object_isClicked(&tab->closeButton)
+                ) {
+                        Interface_tabBar_invalidateLayout();
+                        if (interface.callbacks.onCloseTab != NULL) {
+                                interface.callbacks.onCloseTab(tab);
+                        }
+                        return 1;
+                }
+                
+                tab = tab->next;
+        }
+
+        return 0;
+}
+
+/* checkMiddleCloseTab
+ * Checks if a tab has been closed with the middle mouse button, and if it has,
+ * fires the onCloseTab event. If it happened, returns 1. Assumes the middle
+ * mouse button has been pressed.
+ */
+static int checkMiddleCloseTab (void) {
+        Interface_Tab *tab = interface.tabBar.tabs;
+        while (tab != NULL) {
+                if (
+                        Interface_Object_isHovered(tab) ||
+                        Interface_Object_isHovered(&tab->closeButton)
+                ) {
+                        Interface_tabBar_invalidateLayout();
+
+                        if (interface.callbacks.onCloseTab != NULL) {
+                                interface.callbacks.onCloseTab(tab);
+                        }
+                        return 1;
+                }
+                
+                tab = tab->next;
+        }
+
+        return 0;
+}
+
+/* checkTextClick
+ * Handles mouse down interaction with the text view. If something was handled,
+ * returns 1. Assumes the left mouse button has been pressed.
+ */
+static int checkTextClick (void) {
+        interface.mouseState.dragOriginInEditView =
+                interface.mouseState.inEditView;
+        
+        if (interface.mouseState.inEditView && BUFFER_EXISTS) {
+                size_t realX = 0;
+                size_t realY = 0;
+                TextDisplay_getRealCoords (
+                        interface.editView.text.display,
+                        interface.mouseState.cellX,
+                        interface.mouseState.cellY,
+                        &realX, &realY);
+
+                interface.mouseState.dragOriginRealX = realX;
+                interface.mouseState.dragOriginRealY = realY;
+                
+                if (interface.modKeyState.ctrl) {
+                        EditBuffer_addNewCursor (
+                                interface.editView.text.buffer,
+                                realX, realY);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
+                } else {
+                        EditBuffer_clearExtraCursors (
+                                interface.editView.text.buffer);
+                        EditBuffer_Cursor_moveTo (
+                                interface.editView.text.buffer->cursors,
+                                realX, realY);
+                        Interface_Object_invalidateDrawing (
+                                &interface.editView.text);
+                        Interface_editViewText_invalidateText();
+                }
+
+                return 1;
+        }
+
+        return 0;
 }

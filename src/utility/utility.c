@@ -49,6 +49,11 @@ char *Utility_copyCString (
         const char *source,
         size_t      maximumChars
 ) {
+        if (source == NULL) {
+                destination[0] = '\0';
+                return destination;
+        }
+        
         size_t index;
         for (index = 0; index < maximumChars; index ++) {
                 if (source[index] == '\0') { break; }

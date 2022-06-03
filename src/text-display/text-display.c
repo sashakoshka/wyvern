@@ -56,6 +56,7 @@ void TextDisplay_grab (TextDisplay *textDisplay) {
  * display relative to the model is automatically determined based on the scroll
  * value.
  */
+ // TODO: optimize this function, it seems to be incredibly slow!
 static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
         size_t scroll = textDisplay->model->scroll;
         size_t realRow = row + scroll;
@@ -98,29 +99,33 @@ static void TextDisplay_grabRow (TextDisplay *textDisplay, size_t row) {
                         new = ' ';
                 }
 
-                int hasCursor = EditBuffer_hasCursorAt (
-                        textDisplay->model,
-                        realColumn, realRow) && isOwnRune;
-
-                int hasSelection = EditBuffer_hasSelectionAt (
-                        textDisplay->model,
-                        realColumn, realRow) && isOwnRune;
-
+                // get cursor state
                 TextDisplay_CursorState cursorState;
-                if (hasSelection) {
+                if (
+                        isOwnRune && EditBuffer_hasSelectionAt (
+                                textDisplay->model,
+                                realColumn, realRow)
+                ) {
                         cursorState = TextDisplay_CursorState_selection;
-                } else if (hasCursor) {
+                } else if (
+                         isOwnRune && EditBuffer_hasCursorAt (
+                                textDisplay->model,
+                                realColumn, realRow)
+                ) {
                         cursorState = TextDisplay_CursorState_cursor;
                 } else {
                         cursorState = TextDisplay_CursorState_none;
                 }
+
+                // determine whether the cell is damaged
                 uint8_t damaged =
                         cell->rune != new |
                         cell->cursorState != cursorState;
                 cell->damaged    |= damaged;
                 cell->rune        = new;
                 cell->cursorState = cursorState;
-                
+
+                // get real row and column
                 if (realRow >= textDisplay->model->length) {
                         cell->realRow    = textDisplay->model->length - 1;
                         cell->realColumn = textDisplay->cells [

@@ -87,8 +87,8 @@ Error Window_listen   (void);
 Error Window_stop     (void);
 Error Window_setTitle (const char *);
 
-void Window_onRedraw      (void (*) (int, int));
-void Window_onMouseButton (void (*) (Window_MouseButton, Window_State));
-void Window_onMouseMove   (void (*) (int, int));
-void Window_onInterval    (void (*) (void));
-void Window_onKey         (void (*) (Window_KeySym, Rune, Window_State));
+void Window_onRedraw      (void (*) (int, int, int));
+void Window_onMouseButton (void (*) (int, Window_MouseButton, Window_State));
+void Window_onMouseMove   (void (*) (int, int, int));
+void Window_onInterval    (void (*) (int));
+void Window_onKey         (void (*) (int, Window_KeySym, Rune, Window_State));

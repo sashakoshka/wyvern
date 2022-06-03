@@ -13,7 +13,7 @@ clean)
         ;;
 
 run)
-        buildAll && "./$DEBUG_PATH"
+        buildAll && "./$DEBUG_PATH" "src/interface/event.c"
         ;;
 
 lint)
@@ -23,10 +23,14 @@ lint)
         ;;
 
 val)
-        buildAll
+        buildAll && \
         valgrind --tool=memcheck --leak-check=yes $DEBUG_PATH
         ;;
 
+prof)
+        buildAll && "./$DEBUG_PATH" && \
+        gprof -b $DEBUG_PATH gmon.out
+        ;;
 *)
         buildModule $1 $2
         ;;

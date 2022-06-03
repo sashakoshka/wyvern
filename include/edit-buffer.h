@@ -103,3 +103,19 @@ void EditBuffer_Cursor_getSelectionBounds (
         EditBuffer_Cursor *,
         size_t *, size_t *,
         size_t *, size_t *);
+
+
+/* TODO: methods for interacting with the buffer to facilitate cool keybinds and
+ * make it easier for plugins (in the future) to interact with the edit buffer.
+ * These methods should perfer operating on all cursors to recude the likelihood
+ * of plugins that only support one cursor (cough cough micro).
+ *
+ * some ideas:
+ * 
+ * - iterate over all lines with a cursor on them
+ * - iterate over all lines with a cursor or selection on them
+ * - iterate over all lines with a selection on them
+ * - iterate over all cursors
+ * - iterate over all runes with a selection on them
+ * - 
+ */
