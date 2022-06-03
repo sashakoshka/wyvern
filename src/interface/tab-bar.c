@@ -114,7 +114,6 @@ void Interface_tabBar_delete (Interface_Tab *tab) {
 
         if (tab->previous == NULL) {
                 interface.tabBar.tabs = tab->next;
-                Interface_Tab_free(tab);
         } else {
                 tab->previous->next = tab->next;
         }

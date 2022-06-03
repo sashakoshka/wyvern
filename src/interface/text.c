@@ -25,6 +25,26 @@ void Interface_editViewText_recalculate (void) {
                 text->display,
                 (size_t)(textDisplayWidth),
                 (size_t)(textDisplayHeight));
+
+        if (text->buffer == NULL) {
+                Interface_fontNormal();
+                cairo_text_extents_t extents;
+                cairo_text_extents(Window_context, text->messageText, &extents);
+
+                text->messageX = (editView->width  - extents.width)  / 2;
+                text->messageY = (editView->height - extents.height) / 2;
+
+                if (text->messageX < editView->padding) {
+                        text->messageX = editView->padding;
+                }
+
+                if (text->messageY < editView->padding) {
+                        text->messageY = editView->padding;
+                }
+
+                text->messageX += editView->x;
+                text->messageY += editView->y + extents.height;
+        }
 }
 
 /* Interface_editViewText_redraw
@@ -35,8 +55,10 @@ void Interface_editViewText_redraw (void) {
         Interface_EditViewText *text     = &editView->text;
 
         if (text->buffer == NULL) {
-                // TODO: draw text in the center that says something along the
-                // lines of "No open files."
+                Interface_fontNormal();
+                cairo_set_source_rgb(Window_context, QUIET_TEXT_COLOR);
+                cairo_move_to(Window_context, text->messageX, text->messageY);
+                cairo_show_text(Window_context, text->messageText);
                 return;
         }
 

@@ -66,6 +66,7 @@ static Error Interface_setup (void) {
 
         interface.tabBar.newTabButton.redrawOnHover       = 1;
         interface.tabBar.newTabButton.redrawOnMouseButton = 1;
+        interface.editView.text.messageText = "No open files";
 
         return Error_none;
 }
@@ -173,7 +174,7 @@ int Interface_Object_isWithinBoundsBack (
  * Sets references relating to this object to NULL.
  */
 void Interface_Object_detatchReferencesBack (Interface_Object *object) {
-        REMOVE_REFERENCE(interface.mouseState.previousHoverObject, object)
-        REMOVE_REFERENCE(interface.mouseState.hoverObject, object)
-        REMOVE_REFERENCE(interface.mouseState.downObject, object)
+        REMOVE_REFERENCE(object, interface.mouseState.previousHoverObject)
+        REMOVE_REFERENCE(object, interface.mouseState.hoverObject)
+        REMOVE_REFERENCE(object, interface.mouseState.downObject)
 }

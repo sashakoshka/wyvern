@@ -120,6 +120,10 @@ struct Interface_EditViewText {
         
         int cursorBlink;
         int needsGrab;
+
+        char *messageText;
+        double messageX;
+        double messageY;
         
         EditBuffer  *buffer;
         TextDisplay *display;

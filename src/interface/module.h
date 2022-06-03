@@ -9,10 +9,11 @@
 
 // TODO: make this an enum, and make a function to set color based on input from
 // a value in that enum.
-#define BACKGROUND_COLOR 0.141, 0.161, 0.200
-#define OUTLINE_COLOR    0.122, 0.137, 0.169
-#define TEXT_COLOR       0.925, 0.937, 0.957
-#define ACCENT_COLOR     0.506, 0.631, 0.757
+#define BACKGROUND_COLOR  0.141, 0.161, 0.200
+#define OUTLINE_COLOR     0.122, 0.137, 0.169
+#define TEXT_COLOR        0.925, 0.937, 0.957
+#define ACCENT_COLOR      0.506, 0.631, 0.757
+#define QUIET_TEXT_COLOR  0.298, 0.337, 0.416
 
 #define RULER_COLOR               0.180, 0.204, 0.251
 #define RULER_TEXT_COLOR          0.298, 0.337, 0.416
