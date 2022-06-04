@@ -13,7 +13,7 @@ clean)
         ;;
 
 run)
-        buildAll && "./$DEBUG_PATH" "src/interface/event.c"
+        buildAll && "./$DEBUG_PATH" $ARGS_DEBUG
         ;;
 
 lint)
@@ -22,14 +22,18 @@ lint)
         --warnings-as-errors=* "$SRC_PATH"/*/*.c -- $FLAGS_CFLAGS
         ;;
 
-val)
+memcheck)
         buildAll && \
-        valgrind --tool=memcheck --leak-check=yes $DEBUG_PATH
+        valgrind --tool=memcheck --leak-check=yes \
+        $DEBUG_PATH $ARGS_DEBUG
         ;;
 
-prof)
-        buildAll && "./$DEBUG_PATH" && \
-        gprof -b $DEBUG_PATH gmon.out
+profile)
+        rm *.out.*
+        buildAll && \
+        valgrind --tool=callgrind \
+        $DEBUG_PATH $ARGS_DEBUG
+        kcachegrind *.out.*
         ;;
 *)
         buildModule $1 $2

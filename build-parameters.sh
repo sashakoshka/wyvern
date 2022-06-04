@@ -7,7 +7,9 @@ EXE_NAME="wyvern"
 
 FLAGS_RELEASE="-O3 -DRELEASE"
 FLAGS_WARN="-Wall -Wextra"
-FLAGS_DEBUG="-g -DDEBUG -pg"
+FLAGS_DEBUG="-g -DDEBUG"
+
+ARGS_DEBUG="src/interface/event.c"
 
 INSTALL_LOCATION="/usr/local"
 
