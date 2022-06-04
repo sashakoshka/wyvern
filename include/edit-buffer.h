@@ -60,7 +60,9 @@ void  EditBuffer_deleteRange (
         size_t, size_t,
         size_t, size_t);
 
-void EditBuffer_scroll (EditBuffer *, int);
+void   EditBuffer_scroll (EditBuffer *, int);
+size_t EditBuffer_getUppermostCursorRow (EditBuffer *);
+size_t EditBuffer_getLowermostCursorRow (EditBuffer *);
 
 String *EditBuffer_getLine (EditBuffer *, size_t);
 

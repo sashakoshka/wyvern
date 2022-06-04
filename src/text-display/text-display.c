@@ -179,6 +179,33 @@ void TextDisplay_resize (
         textDisplay->cells = calloc(width * height, sizeof(TextDisplay_Cell));
 }
 
+/* TextDisplay_frameCursors
+ * Scrolls the model so that all (or all possible) cursors are visible. Returns
+ * 1 if the model was scrolled.
+ */
+int TextDisplay_frameCursors (TextDisplay *textDisplay) {
+        size_t upperCursor =
+                EditBuffer_getUppermostCursorRow(textDisplay->model);
+        size_t lowerCursor =
+                EditBuffer_getLowermostCursorRow(textDisplay->model);
+        size_t upperBound = textDisplay->model->scroll + 4;
+        size_t lowerBound =
+                textDisplay->model->scroll +
+                textDisplay->height - 4;
+
+        if (lowerCursor > lowerBound) {
+                textDisplay->model->scroll =
+                        lowerCursor - textDisplay->height + 4;
+                return 1;
+        } else if (upperCursor < upperBound && upperBound > 4) {
+                textDisplay->model->scroll = upperCursor - 3;
+                return 1;
+        }
+
+        return 0;
+}
+
+
 /* TextDisplay_getRealCoords
  * Takes in the coordinates of a cell in the buffer, and outputs the row and
  * column that it points to in the model.

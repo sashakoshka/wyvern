@@ -268,16 +268,34 @@ void Interface_handleKey (
         // something is going to move or change - we need the cursor to be
         // visible
         interface.editView.text.cursorBlink = 1;
+
+        int needFrameCursors = 0;
         
         switch (keySym) {
         case WINDOW_KEY_SHIFT: interface.modKeyState.shift = state; break;
         case WINDOW_KEY_CTRL:  interface.modKeyState.ctrl  = state; break;
         case WINDOW_KEY_ALT:   interface.modKeyState.alt   = state; break;
 
-        case WINDOW_KEY_UP:    Interface_handleKeyUp(state);    break;
-        case WINDOW_KEY_DOWN:  Interface_handleKeyDown(state);  break;
-        case WINDOW_KEY_LEFT:  Interface_handleKeyLeft(state);  break;
-        case WINDOW_KEY_RIGHT: Interface_handleKeyRight(state); break;
+        case WINDOW_KEY_UP:
+                Interface_handleKeyUp(state);
+                needFrameCursors = 1;
+                break;
+                
+        case WINDOW_KEY_DOWN:
+                Interface_handleKeyDown(state);
+                needFrameCursors = 1;
+                break;
+                
+        case WINDOW_KEY_LEFT:
+                Interface_handleKeyLeft(state);
+                needFrameCursors = 1;
+                break;
+                
+        case WINDOW_KEY_RIGHT:
+                Interface_handleKeyRight(state);
+                needFrameCursors = 1;
+                break;
+                
 
         case WINDOW_KEY_ESCAPE:
                 if (BUFFER_EXISTS) {
@@ -286,6 +304,7 @@ void Interface_handleKey (
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
                         Interface_editViewText_invalidateText();
+                        needFrameCursors = 1;
                 }
                 break;
 
@@ -299,6 +318,7 @@ void Interface_handleKey (
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
                         Interface_editViewText_invalidateText();
+                        needFrameCursors = 1;
                 }
                 break;
 
@@ -315,6 +335,7 @@ void Interface_handleKey (
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
                         Interface_editViewText_invalidateText();
+                        needFrameCursors = 1;
                 }
                 break;
         
@@ -327,6 +348,7 @@ void Interface_handleKey (
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
                         Interface_editViewText_invalidateText();
+                        needFrameCursors = 1;
                 }
                 break;
         
@@ -339,6 +361,7 @@ void Interface_handleKey (
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
                         Interface_editViewText_invalidateText();
+                        needFrameCursors = 1;
                 }
                 break;
 
@@ -356,6 +379,7 @@ void Interface_handleKey (
                                         interface.callbacks.onSwitchTab(tab);
                                 }
                         }
+                        needFrameCursors = 1;
                 }
                 break;
         
@@ -373,6 +397,7 @@ void Interface_handleKey (
                                         interface.callbacks.onSwitchTab(tab);
                                 }
                         }
+                        needFrameCursors = 1;
                 }
                 break;
 
@@ -403,10 +428,21 @@ void Interface_handleKey (
                         Interface_Object_invalidateDrawing (
                                 &interface.editView.text);
                         Interface_editViewText_invalidateText();
+                        needFrameCursors = 1;
                 }
                 break;
         }
-        
+
+        if (
+                needFrameCursors && BUFFER_EXISTS && state == Window_State_on &&
+                TextDisplay_frameCursors(interface.editView.text.display)
+        ) {
+                Interface_Object_invalidateDrawing (
+                        &interface.editView.ruler);
+                Interface_Object_invalidateDrawing (
+                        &interface.editView.text);
+                Interface_editViewText_invalidateText();
+        }
         conditionallyRefresh(render);
 }
 

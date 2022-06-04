@@ -40,6 +40,7 @@ void         TextDisplay_free          (TextDisplay *);
 void         TextDisplay_grab          (TextDisplay *);
 void         TextDisplay_setModel      (TextDisplay *, EditBuffer *);
 void         TextDisplay_resize        (TextDisplay *, size_t, size_t);
+int          TextDisplay_frameCursors  (TextDisplay *);
 void         TextDisplay_getRealCoords (
         TextDisplay *,
         size_t, size_t,

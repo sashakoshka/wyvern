@@ -499,6 +499,40 @@ void EditBuffer_scroll (EditBuffer *editBuffer, int amount) {
                 editBuffer->length);
 }
 
+/* EditBuffer_getUppermostCursorRow
+ * Returns the row of the cursor(s) that are the highest up in the buffer.
+ */
+size_t EditBuffer_getUppermostCursorRow (EditBuffer *editBuffer) {
+        size_t lowest = editBuffer->length;
+        START_ALL_CURSORS
+                if (cursor->row < lowest) {
+                        lowest = cursor->row;
+                }
+
+                if (cursor->selectionRow < lowest) {
+                        lowest = cursor->selectionRow;
+                }
+        END_ALL_CURSORS
+        return lowest;
+}
+
+/* EditBuffer_getLowermostCursorRow
+ * Returns the row of the cursor(s) that are the lowest down in the buffer.
+ */
+size_t EditBuffer_getLowermostCursorRow (EditBuffer *editBuffer) {
+        size_t highest = 0;
+        START_ALL_CURSORS
+                if (cursor->row > highest) {
+                        highest = cursor->row;
+                }
+
+                if (cursor->selectionRow > highest) {
+                        highest = cursor->selectionRow;
+                }
+        END_ALL_CURSORS
+        return highest;
+}
+
 /* EditBuffer_getLine
  * Returns the line at row. If it does not exist, this function returns NULL.
  */
