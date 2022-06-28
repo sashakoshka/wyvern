@@ -1,5 +1,7 @@
 # wyvern
 
+Note: I am not working on this right now. I plan to rewrite it in my own language when I'm done with that.
+
 ![Wyvern editing its own source code](images/screenshot.png)
 
 A minimalist graphical text editor built with xlib and cairo.
